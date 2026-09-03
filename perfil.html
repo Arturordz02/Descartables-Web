@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil y Facturación | Descartables Peruanos</title>
+  <meta name="description" content="Gestiona tus datos de facturación, dirección de despacho e historial de cotizaciones en Descartables Peruanos.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            warm: {
+              cream: '#FDFBF7',
+              sand: '#F4EFEA',
+              border: '#EAE3DA',
+            },
+            terracota: {
+              DEFAULT: '#C85A32',
+              hover: '#B84A22',
+              light: '#FBF0EB',
+            },
+            amberPeru: {
+              DEFAULT: '#D9822B',
+              light: '#FDF5EC',
+            },
+            espresso: {
+              DEFAULT: '#1F1815',
+              muted: '#574B46',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="assets/css/custom.css">
+  <link rel="icon" type="image/svg+xml" href="assets/images/libro-reclamaciones.svg">
+</head>
+<body class="bg-warm-cream text-espresso antialiased selection:bg-terracota selection:text-white">
+
+  <!-- Header Glassmorphism -->
+  <header class="sticky top-0 z-40 glass-warm border-b border-warm-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20 gap-4">
+        
+        <a href="index.html" class="flex items-center gap-3 flex-shrink-0 group">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-terracota to-amberPeru flex items-center justify-center shadow-md shadow-terracota/20 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          </div>
+          <div>
+            <span class="font-heading font-extrabold text-xl tracking-tight text-espresso block leading-none">
+              DESCARTABLES
+            </span>
+            <span class="text-[11px] font-bold tracking-widest text-terracota uppercase block">
+              PERUANOS
+            </span>
+          </div>
+        </a>
+
+        <nav class="hidden lg:flex items-center gap-6 text-xs font-semibold text-espresso-muted">
+          <a href="index.html" class="nav-link hover:text-terracota transition-colors">Inicio</a>
+          <a href="catalogo.html" class="nav-link hover:text-terracota transition-colors">Catálogo</a>
+          <a href="libro-de-reclamaciones.html" class="nav-link hover:text-terracota transition-colors">Libro Reclamaciones</a>
+          <a href="contacto.html" class="nav-link hover:text-terracota transition-colors">Contacto</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <button class="open-cart-trigger relative p-2.5 rounded-xl bg-white hover:bg-warm-sand border border-warm-border text-espresso transition-colors shadow-sm" aria-label="Ver Cotizador">
+            <svg class="w-5 h-5 text-espresso" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+            <span class="cart-count-badge hidden absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-terracota text-white text-[11px] font-bold flex items-center justify-center shadow-md">0</span>
+          </button>
+
+          <button onclick="Auth.logout()" class="py-2 px-3.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-semibold border border-rose-200 transition-colors">
+            Cerrar Sesión
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner Perfil -->
+  <section class="bg-gradient-to-r from-warm-sand via-warm-cream to-warm-sand border-b border-warm-border py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div id="perfilAvatar" class="w-16 h-16 rounded-2xl bg-gradient-to-br from-terracota to-amberPeru text-white flex items-center justify-center font-heading font-black text-2xl shadow-md shadow-terracota/20">
+            C
+          </div>
+          <div>
+            <h1 id="perfilNombreDisplay" class="font-heading text-2xl font-bold text-espresso">Cargando perfil...</h1>
+            <p id="perfilDocDisplay" class="text-xs text-terracota font-bold">DNI / RUC</p>
+            <p id="perfilEmailDisplay" class="text-xs text-espresso-muted">email@ejemplo.com</p>
+          </div>
+        </div>
+
+        <div>
+          <a href="catalogo.html" class="px-5 py-2.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            <span>Nueva Cotización</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contenido Panel de Cliente -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Columna Izquierda: Formulario de Actualización de Datos -->
+      <div class="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border border-warm-border shadow-sm space-y-6">
+        <div class="border-b border-warm-border pb-3 flex items-center justify-between">
+          <h2 class="font-heading font-bold text-lg text-espresso flex items-center gap-2">
+            <svg class="w-5 h-5 text-terracota" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            <span>Datos Fiscales y de Despacho</span>
+          </h2>
+          <span class="text-[11px] text-stone-400">Actualización en tiempo real</span>
+        </div>
+
+        <form id="profileForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Nombre Completo o Razón Social *</label>
+            <input type="text" id="perfilNombre" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-espresso mb-1">Teléfono o WhatsApp *</label>
+              <input type="tel" id="perfilTelefono" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-espresso mb-1">Departamento</label>
+              <select id="perfilDepartamento" class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+                <option value="Lima">Lima</option>
+                <option value="Arequipa">Arequipa</option>
+                <option value="Cusco">Cusco</option>
+                <option value="La Libertad">La Libertad</option>
+                <option value="Piura">Piura</option>
+                <option value="Junín">Junín</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-espresso mb-1">Distrito de Entrega</label>
+              <input type="text" id="perfilDistrito" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-espresso mb-1">Dirección de Entrega / Almacén</label>
+              <input type="text" id="perfilDireccion" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+            </div>
+          </div>
+
+          <div class="pt-4 flex justify-end">
+            <button type="submit" class="px-6 py-3 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-md transition-all">
+              Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Columna Derecha: Historial de Cotizaciones y Reclamaciones -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Historial Cotizaciones -->
+        <div class="bg-white p-6 rounded-3xl border border-warm-border shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-warm-border pb-3">
+            <h3 class="font-heading font-bold text-base text-espresso flex items-center gap-2">
+              <svg class="w-4 h-4 text-terracota" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              <span>Cotizaciones Recientes</span>
+            </h3>
+            <button class="open-cart-trigger text-xs font-semibold text-terracota hover:underline">
+              Ver Carrito
+            </button>
+          </div>
+
+          <div id="historialCotizacionesList" class="space-y-3">
+            <!-- Dinámico -->
+          </div>
+        </div>
+
+        <!-- Historial Libro de Reclamaciones -->
+        <div class="bg-white p-6 rounded-3xl border border-warm-border shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-warm-border pb-3">
+            <h3 class="font-heading font-bold text-base text-espresso flex items-center gap-2">
+              <svg class="w-4 h-4 text-terracota" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              <span>Hojas de Reclamación</span>
+            </h3>
+            <a href="libro-de-reclamaciones.html" class="text-xs font-semibold text-terracota hover:underline">
+              Nuevo Reclamo
+            </a>
+          </div>
+
+          <div id="historialReclamacionesList" class="space-y-3">
+            <!-- Dinámico -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="py-6 border-t border-warm-border text-center text-xs text-stone-500">
+    &copy; 2026 Descartables Peruanos S.A.C. Todos los derechos reservados.
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/carrito.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Auth.initProfilePage();
+    });
+  </script>
+
+</body>
+</html>
+

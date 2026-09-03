@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacto y Ubicación | Descartables Peruanos (Cercado de Lima)</title>
+  <meta name="description" content="Visítanos en nuestra sede de Cercado de Lima en Av. Alejandro Bertello 732-C. Teléfono: (01) 564-1450, WhatsApp: +51 994 195 430.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            warm: {
+              cream: '#FDFBF7',
+              sand: '#F4EFEA',
+              border: '#EAE3DA',
+            },
+            terracota: {
+              DEFAULT: '#C85A32',
+              hover: '#B84A22',
+              light: '#FBF0EB',
+            },
+            amberPeru: {
+              DEFAULT: '#D9822B',
+              light: '#FDF5EC',
+            },
+            sageEco: {
+              DEFAULT: '#4A5D4E',
+              light: '#EDF2EE',
+            },
+            espresso: {
+              DEFAULT: '#1F1815',
+              muted: '#574B46',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="assets/css/custom.css">
+  <link rel="icon" type="image/svg+xml" href="assets/images/libro-reclamaciones.svg">
+</head>
+<body class="bg-warm-cream text-espresso antialiased selection:bg-terracota selection:text-white">
+
+  <!-- TopBar -->
+  <div class="bg-espresso text-warm-cream text-[11px] py-2 px-4 border-b border-stone-800">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div class="flex items-center gap-4">
+        <span class="flex items-center gap-1.5 text-amber-400 font-medium">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+          Av. Alejandro Bertello 732-C, Cercado de Lima
+        </span>
+        <span class="hidden md:inline text-stone-500">|</span>
+        <span class="hidden md:inline text-stone-300">Central: (01) 564-1450</span>
+      </div>
+      <div>
+        <a href="https://wa.me/51994195430" target="_blank" class="hover:text-emerald-400 font-semibold transition-colors">
+          WhatsApp: +51 994 195 430
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Glassmorphism -->
+  <header class="sticky top-0 z-40 glass-warm border-b border-warm-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20 gap-4">
+        
+        <a href="index.html" class="flex items-center gap-3 flex-shrink-0 group">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-terracota to-amberPeru flex items-center justify-center shadow-md shadow-terracota/20 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          </div>
+          <div>
+            <span class="font-heading font-extrabold text-xl tracking-tight text-espresso block leading-none">
+              DESCARTABLES
+            </span>
+            <span class="text-[11px] font-bold tracking-widest text-terracota uppercase block">
+              PERUANOS
+            </span>
+          </div>
+        </a>
+
+        <nav class="hidden lg:flex items-center gap-6 text-xs font-semibold text-espresso-muted">
+          <a href="index.html" class="nav-link hover:text-terracota transition-colors">Inicio</a>
+          <a href="catalogo.html" class="nav-link hover:text-terracota transition-colors">Catálogo</a>
+          <a href="libro-de-reclamaciones.html" class="nav-link hover:text-terracota transition-colors">Libro Reclamaciones</a>
+          <a href="contacto.html" class="nav-link hover:text-terracota transition-colors text-terracota font-bold">Contacto</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <div class="nav-user-container"></div>
+          
+          <button class="open-cart-trigger relative p-2.5 rounded-xl bg-white hover:bg-warm-sand border border-warm-border text-espresso transition-colors shadow-sm" aria-label="Ver Cotizador">
+            <svg class="w-5 h-5 text-espresso" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+            <span class="cart-count-badge hidden absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-terracota text-white text-[11px] font-bold flex items-center justify-center shadow-md">0</span>
+          </button>
+
+          <button id="mobileMenuBtn" class="p-2.5 rounded-xl text-espresso lg:hidden hover:bg-warm-sand" aria-label="Abrir Menú">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+        </div>
+
+      </div>
+
+      <div id="mobileNav" class="lg:hidden hidden border-t border-warm-border py-4 space-y-3">
+        <a href="index.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Inicio</a>
+        <a href="catalogo.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Catálogo</a>
+        <a href="libro-de-reclamaciones.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Libro de Reclamaciones</a>
+        <a href="contacto.html" class="block px-3 py-2 rounded-xl text-xs font-semibold text-terracota font-bold">Contacto</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner -->
+  <section class="bg-gradient-to-r from-warm-sand via-warm-cream to-warm-sand border-b border-warm-border py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="font-heading text-3xl font-black text-espresso">Contáctenos y Ubicación</h1>
+      <p class="text-xs sm:text-sm text-espresso-muted mt-1">Estamos a su servicio para atender cotizaciones mayoristas, muestras comerciales y despachos a todo el Perú.</p>
+    </div>
+  </section>
+
+  <!-- Sección de Contacto y Mapa -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      
+      <!-- Columna Izquierda: Información de Atención & Formulario -->
+      <div class="lg:col-span-6 space-y-8">
+        
+        <!-- Tarjetas de Información Rápida -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <div class="p-5 bg-white rounded-3xl border border-warm-border shadow-sm space-y-2">
+            <div class="w-10 h-10 rounded-2xl bg-terracota/10 text-terracota flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <h3 class="font-heading font-bold text-sm text-espresso">Sede Central y Almacén</h3>
+            <p class="text-xs text-espresso-muted leading-relaxed">
+              Av. Alejandro Bertello 732-C<br>
+              Cercado de Lima, Lima, Perú
+            </p>
+          </div>
+
+          <div class="p-5 bg-white rounded-3xl border border-warm-border shadow-sm space-y-2">
+            <div class="w-10 h-10 rounded-2xl bg-amberPeru/10 text-amberPeru flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            </div>
+            <h3 class="font-heading font-bold text-sm text-espresso">Teléfonos y Ventas</h3>
+            <p class="text-xs text-espresso-muted leading-relaxed">
+              Central: (01) 564-1450<br>
+              WhatsApp: +51 994 195 430<br>
+              WhatsApp: +51 994 009 692
+            </p>
+          </div>
+
+          <div class="p-5 bg-white rounded-3xl border border-warm-border shadow-sm space-y-2">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-600/10 text-emerald-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 class="font-heading font-bold text-sm text-espresso">Horario de Atención</h3>
+            <p class="text-xs text-espresso-muted leading-relaxed">
+              Lunes a Viernes: 8:00 AM - 6:00 PM<br>
+              Sábados: 8:30 AM - 1:00 PM
+            </p>
+          </div>
+
+          <div class="p-5 bg-white rounded-3xl border border-warm-border shadow-sm space-y-2">
+            <div class="w-10 h-10 rounded-2xl bg-blue-600/10 text-blue-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <h3 class="font-heading font-bold text-sm text-espresso">Correos Corporativos</h3>
+            <p class="text-xs text-espresso-muted leading-relaxed">
+              ventas@descartablesperuanos.pe<br>
+              cotizaciones@descartablesperuanos.pe
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Formulario de Mensaje Directo -->
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-warm-border shadow-sm space-y-4">
+          <h2 class="font-heading font-bold text-lg text-espresso">Envíenos un Mensaje</h2>
+          <p class="text-xs text-espresso-muted">Responderemos a la brevedad con información comercial y fichas técnicas.</p>
+
+          <form id="contactForm" onsubmit="event.preventDefault(); const msg=document.getElementById('contactoMsg').value; const nom=document.getElementById('contactoNom').value; window.open('https://wa.me/51994195430?text='+encodeURIComponent('Hola Descartables Peruanos, mi nombre es '+nom+'. '+msg), '_blank');" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-espresso mb-1">Nombre o Empresa *</label>
+                <input type="text" id="contactoNom" required placeholder="Su nombre" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-espresso mb-1">Teléfono o Celular *</label>
+                <input type="tel" required placeholder="Ej: 994195430" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-espresso mb-1">Correo Electrónico *</label>
+              <input type="email" required placeholder="correo@empresa.com" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-espresso mb-1">Mensaje o Consulta sobre Productos *</label>
+              <textarea id="contactoMsg" rows="3" required placeholder="Indique qué productos o medidas necesita cotizar..." class="w-full bg-warm-cream border border-warm-border rounded-xl p-4 text-xs text-espresso focus:outline-none focus:border-terracota"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-lg shadow-terracota/20 transition-all flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              <span>Enviar Consulta vía WhatsApp</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Columna Derecha: Mapa de Google Maps Embebido -->
+      <div class="lg:col-span-6 space-y-6">
+        <div class="bg-white p-3 rounded-3xl border border-warm-border shadow-sm overflow-hidden h-[500px] lg:h-[650px] relative flex flex-col">
+          <div class="p-3 bg-warm-sand rounded-2xl mb-2 flex items-center justify-between">
+            <span class="text-xs font-bold text-espresso">Ubicación de Sede Central</span>
+            <span class="text-[11px] text-[#C85A32] font-semibold">Cercado de Lima</span>
+          </div>
+
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.884140026219!2d-77.06019552416806!3d-12.051515288185593!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c8d08e5be267%3A0xe54e63e791b5c2a!2sAv.%20Alejandro%20Bertello%20732%2C%20Lima%2015082!5e0!3m2!1ses!2spe!4v1709440000000!5m2!1ses!2spe" 
+            width="100%" 
+            height="100%" 
+            style="border:0; border-radius: 1rem; flex: 1;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer con Isotipo Oficial INDECOPI -->
+  <footer class="bg-espresso text-warm-cream pt-16 pb-12 border-t border-stone-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-stone-800">
+        <div class="space-y-3">
+          <span class="font-heading font-extrabold text-lg text-white block">DESCARTABLES PERUANOS</span>
+          <p class="text-xs text-stone-400">Av. Alejandro Bertello 732-C, Cercado de Lima</p>
+          <p class="text-xs text-stone-400">Central: (01) 564-1450</p>
+          <p class="text-xs text-stone-400">WhatsApp: +51 994 195 430</p>
+        </div>
+
+        <div class="space-y-2 text-xs text-stone-400">
+          <h4 class="font-bold text-warm-cream uppercase tracking-wider">Líneas de Productos</h4>
+          <p><a href="catalogo.html?cat=pamolsa" class="hover:text-terracota">Productos Pamolsa</a></p>
+          <p><a href="catalogo.html?cat=proplas-barrera" class="hover:text-terracota">Línea Proplas</a></p>
+          <p><a href="catalogo.html?cat=cubiertos" class="hover:text-terracota">Cubiertos Descartables</a></p>
+        </div>
+
+        <div class="space-y-2 text-xs text-stone-400">
+          <h4 class="font-bold text-warm-cream uppercase tracking-wider">Agencias de Envío</h4>
+          <p>Shalom Express</p>
+          <p>Marvisur Carga</p>
+          <p>Flores Hermanos</p>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-warm-cream">Libro de Reclamaciones</h4>
+          <a href="libro-de-reclamaciones.html" class="block transform hover:scale-102 transition-transform">
+            <div class="w-full max-w-[220px] rounded-2xl overflow-hidden border border-amber-400/40 shadow-lg">
+              <img src="assets/images/libro-reclamaciones.svg" alt="Libro de Reclamaciones Virtual INDECOPI" class="w-full h-auto">
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="pt-8 text-center text-xs text-stone-500">
+        &copy; 2026 Descartables Peruanos S.A.C. Todos los derechos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/carrito.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/main.js"></script>
+
+</body>
+</html>
+

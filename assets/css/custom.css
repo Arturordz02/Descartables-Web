@@ -1,0 +1,133 @@
+/* ====================================================================
+   PLATAFORMA DESCARTABLES PERUANOS - ESTILOS PERSONALIZADOS
+   Sistema Visual: WARM EDITORIAL (Shadcn Warm + Bento Architecture)
+   ==================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+:root {
+  --bg-cream: #FDFBF7;
+  --bg-sand: #F4EFEA;
+  --primary-terracota: #C85A32;
+  --primary-hover: #B84A22;
+  --accent-amber: #D9822B;
+  --eco-sage: #4A5D4E;
+  --eco-light: #EBF1ED;
+  --text-espresso: #1F1815;
+  --text-espresso-muted: #574B46;
+  --border-warm: #EAE3DA;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-cream);
+  color: var(--text-espresso);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Glassmorphism cálido */
+.glass-warm {
+  background: rgba(253, 251, 247, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(234, 227, 218, 0.7);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(234, 227, 218, 0.9);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F4EFEA;
+}
+::-webkit-scrollbar-thumb {
+  background: #D5C6B7;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C85A32;
+}
+
+/* Animaciones sutiles */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200, 90, 50, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(200, 90, 50, 0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.pulse-primary {
+  animation: pulseGlow 2.5s infinite;
+}
+
+/* Hover effects */
+.bento-card {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(31, 24, 21, 0.08), 0 8px 10px -6px rgba(31, 24, 21, 0.04);
+}
+
+/* Badges */
+.badge-eco {
+  background-color: var(--eco-light);
+  color: var(--eco-sage);
+  border: 1px solid rgba(74, 93, 78, 0.25);
+}
+
+/* ====================================================================
+   ESTILOS DE IMPRESIÓN OFICIAL - LIBRO DE RECLAMACIONES INDECOPI
+   ==================================================================== */
+@media print {
+  /* Ocultar elementos de interfaz al imprimir */
+  header, footer, #cartDrawer, #cartBackdrop, #toastContainer, 
+  .no-print, button:not(.allow-print) {
+    display: none !important;
+  }
+
+  body {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  #modalHojaReclamacion, #hojaReclamacionPrintArea {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  .hoja-print-border {
+    border: 2px solid #000000 !important;
+    padding: 15px !important;
+  }
+
+  .print-break-inside {
+    page-break-inside: avoid;
+  }
+}
+

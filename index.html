@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Descartables Peruanos | Envases, Empaques y Descartables al por Mayor y Menor</title>
+  <meta name="description" content="Distribuidora líder en Lima y Perú de productos Pamolsa, línea Proplas, empaques biodegradables, cubiertos y suministros para restaurantes y catering.">
+
+  <!-- Tailwind CSS CDN con configuración de tema Warm Editorial -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            warm: {
+              cream: '#FDFBF7',
+              sand: '#F4EFEA',
+              border: '#EAE3DA',
+            },
+            terracota: {
+              DEFAULT: '#C85A32',
+              hover: '#B84A22',
+              light: '#FBF0EB',
+            },
+            amberPeru: {
+              DEFAULT: '#D9822B',
+              light: '#FDF5EC',
+            },
+            sageEco: {
+              DEFAULT: '#4A5D4E',
+              light: '#EDF2EE',
+            },
+            espresso: {
+              DEFAULT: '#1F1815',
+              muted: '#574B46',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Custom CSS -->
+  <link rel="stylesheet" href="assets/css/custom.css">
+  <link rel="icon" type="image/svg+xml" href="assets/images/libro-reclamaciones.svg">
+</head>
+<body class="bg-warm-cream text-espresso antialiased selection:bg-terracota selection:text-white">
+
+  <!-- TopBar de Notificaciones / Datos de Atención Comercial en Perú -->
+  <div class="bg-espresso text-warm-cream text-[11px] py-2 px-4 border-b border-stone-800">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div class="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
+        <span class="flex items-center gap-1.5 text-amber-400 font-medium">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Sede Central: Av. Alejandro Bertello 732-C, Cercado de Lima
+        </span>
+        <span class="hidden md:inline text-stone-500">|</span>
+        <span class="hidden md:flex items-center gap-1.5 text-stone-300">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          Central: (01) 564-1450
+        </span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="bg-terracota/30 text-amber-300 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider">
+          Envíos a Nivel Nacional
+        </span>
+        <a href="https://wa.me/51994195430" target="_blank" class="hover:text-emerald-400 flex items-center gap-1 text-[11px] font-semibold transition-colors">
+          <span>WhatsApp Ventas: +51 994 195 430</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Principal con Efecto Glassmorphism -->
+  <header class="sticky top-0 z-40 glass-warm border-b border-warm-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20 gap-4">
+        
+        <!-- Logo Institucional -->
+        <a href="index.html" class="flex items-center gap-3 flex-shrink-0 group">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-terracota to-amberPeru flex items-center justify-center shadow-md shadow-terracota/20 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <div>
+            <span class="font-heading font-extrabold text-xl tracking-tight text-espresso block leading-none">
+              DESCARTABLES
+            </span>
+            <span class="text-[11px] font-bold tracking-widest text-terracota uppercase block">
+              PERUANOS
+            </span>
+          </div>
+        </a>
+
+        <!-- Buscador en Tiempo Real para Escritorio -->
+        <div class="hidden md:flex flex-1 max-w-md mx-4">
+          <div class="relative w-full">
+            <input type="text" id="navSearchInput" placeholder="Buscar vasos, contenedores, bolsas, cubiertos..." class="w-full bg-white/90 border border-warm-border rounded-xl pl-10 pr-4 py-2.5 text-xs text-espresso placeholder:text-stone-400 focus:outline-none focus:border-terracota focus:ring-2 focus:ring-terracota/10 transition-all shadow-sm">
+            <svg class="w-4 h-4 text-stone-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Navegación y Acciones -->
+        <div class="flex items-center gap-3 sm:gap-4">
+          
+          <!-- Enlaces de navegación desktop -->
+          <nav class="hidden lg:flex items-center gap-6 text-xs font-semibold text-espresso-muted">
+            <a href="index.html" class="nav-link hover:text-terracota transition-colors">Inicio</a>
+            <a href="catalogo.html" class="nav-link hover:text-terracota transition-colors">Catálogo</a>
+            <a href="libro-de-reclamaciones.html" class="nav-link hover:text-terracota transition-colors">Libro Reclamaciones</a>
+            <a href="contacto.html" class="nav-link hover:text-terracota transition-colors">Contacto</a>
+          </nav>
+
+          <div class="h-6 w-px bg-warm-border hidden lg:block"></div>
+
+          <!-- Módulo de Usuario (Dinámico vía auth.js) -->
+          <div class="nav-user-container">
+            <!-- Render dinámico por Auth.updateNavbarUserUI() -->
+          </div>
+
+          <!-- Disparador Carrito de Cotización Flotante -->
+          <button class="open-cart-trigger relative p-2.5 rounded-xl bg-white hover:bg-warm-sand border border-warm-border text-espresso transition-colors shadow-sm" aria-label="Ver Carrito de Cotización">
+            <svg class="w-5 h-5 text-espresso" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <!-- Badge Contador Flotante -->
+            <span class="cart-count-badge hidden absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-terracota text-white text-[11px] font-bold flex items-center justify-center shadow-md">
+              0
+            </span>
+          </button>
+
+          <!-- WhatsApp Botón Rápido -->
+          <a href="https://wa.me/51994195430" target="_blank" class="hidden sm:flex items-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+            </svg>
+            <span>WhatsApp</span>
+          </a>
+
+          <!-- Botón Menú Móvil -->
+          <button id="mobileMenuBtn" class="p-2.5 rounded-xl text-espresso lg:hidden hover:bg-warm-sand" aria-label="Abrir Menú Móvil">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Menú Desplegable Móvil -->
+      <div id="mobileNav" class="lg:hidden hidden border-t border-warm-border py-4 space-y-3">
+        <div class="px-2 pb-2">
+          <input type="text" onkeydown="if(event.key==='Enter') window.location.href='catalogo.html?q='+encodeURIComponent(this.value)" placeholder="Buscar en catálogo..." class="w-full bg-white border border-warm-border rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-terracota">
+        </div>
+        <a href="index.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Inicio</a>
+        <a href="catalogo.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Catálogo Completo</a>
+        <a href="libro-de-reclamaciones.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Libro de Reclamaciones (INDECOPI)</a>
+        <a href="contacto.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Contacto y Ubicación</a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- HERO SECTION: Warm Editorial & High-Converting Value Proposition -->
+  <section class="relative overflow-hidden py-12 md:py-20 bg-gradient-to-b from-warm-sand/80 to-warm-cream">
+    
+    <!-- Elementos decorativos de fondo -->
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-amberPeru/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-terracota/10 blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="grid lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Texto Principal Hero -->
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-terracota-light border border-terracota/20 text-terracota text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-terracota animate-pulse"></span>
+            <span>Venta al por Mayor y Menor • Envíos a todo el Perú</span>
+          </div>
+
+          <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-espresso tracking-tight leading-[1.1]">
+            Envases y Descartables para el <span class="text-transparent bg-clip-text bg-gradient-to-r from-terracota to-amberPeru">Sector Gastronómico e Industrial</span>
+          </h1>
+
+          <p class="text-espresso-muted text-base sm:text-lg max-w-2xl leading-relaxed">
+            Abastecemos a restaurantes, pollerías, cafeterías, empresas de catering y distribuidores con productos de primera calidad: <strong>Pamolsa, Proplas, cubiertos reforzados y empaques 100% biodegradables</strong>.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
+            <a href="catalogo.html" class="px-7 py-3.5 rounded-2xl bg-terracota hover:bg-terracota-hover text-white font-bold text-sm shadow-xl shadow-terracota/25 transition-all flex items-center justify-center gap-2 group">
+              <span>Explorar Catálogo Completo</span>
+              <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+
+            <button class="open-cart-trigger px-6 py-3.5 rounded-2xl bg-white hover:bg-warm-sand border border-warm-border text-espresso font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+              <svg class="w-5 h-5 text-terracota" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              <span>Cotizador Express</span>
+            </button>
+          </div>
+
+          <!-- Métricas de Confianza en Perú -->
+          <div class="pt-6 border-t border-warm-border grid grid-cols-3 gap-4 text-center lg:text-left">
+            <div>
+              <p class="font-heading font-extrabold text-2xl text-espresso">+15 Años</p>
+              <p class="text-xs text-espresso-muted">En el mercado peruano</p>
+            </div>
+            <div>
+              <p class="font-heading font-extrabold text-2xl text-terracota">+500</p>
+              <p class="text-xs text-espresso-muted">SKUs en stock real</p>
+            </div>
+            <div>
+              <p class="font-heading font-extrabold text-2xl text-emerald-700">100%</p>
+              <p class="text-xs text-espresso-muted">Boleta y Factura SUNAT</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Render Visual High-End (Sin 3D pesado) -->
+        <div class="lg:col-span-5 relative">
+          <div class="relative mx-auto max-w-md lg:max-w-none">
+            
+            <div class="rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white">
+              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80" alt="Empaques biodegradables y descartables gastronómicos" class="w-full h-80 sm:h-96 object-cover">
+            </div>
+
+            <!-- Floating Badge Superior: Biodegradables -->
+            <div class="absolute -top-4 -left-4 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-warm-border flex items-center gap-3 animate-fade-in">
+              <div class="w-10 h-10 rounded-xl bg-sageEco-light text-sageEco flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <div>
+                <p class="text-[11px] text-espresso-muted">Línea Verde</p>
+                <p class="text-xs font-bold text-espresso">100% Compostable</p>
+              </div>
+            </div>
+
+            <!-- Floating Badge Inferior: Despacho a Provincias -->
+            <div class="absolute -bottom-4 -right-4 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-warm-border flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amberPeru-light text-amberPeru flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <div>
+                <p class="text-[11px] text-espresso-muted">Envíos Rápidos</p>
+                <p class="text-xs font-bold text-espresso">Agencias Shalom & Marvisur</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CINTA DE GARANTÍAS EN PERÚ (Logística y Normativa) -->
+  <section class="bg-espresso text-warm-cream py-6 border-y border-stone-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-center">
+        
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-white/10 text-amber-400 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20"/></svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-xs">Envíos a Nivel Nacional</h4>
+            <p class="text-[11px] text-stone-400">Marvisur, Shalom, Flores y agencias</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-white/10 text-terracota flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-xs">Venta por Mayor y Menor</h4>
+            <p class="text-[11px] text-stone-400">Emitimos Boleta y Factura con RUC</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-white/10 text-emerald-400 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-xs">Línea Biodegradable</h4>
+            <p class="text-[11px] text-stone-400">Bagazo de caña, kraft y CPLA</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-white/10 text-cyan-400 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-xs">Atención Rápida WhatsApp</h4>
+            <p class="text-[11px] text-stone-400">Respuesta inmediata de ejecutivos</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- BENTO GRID DE CATEGORÍAS PRINCIPALES (Asymmetric Visual Architecture) -->
+  <section class="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="text-xs font-bold uppercase tracking-widest text-terracota">Catálogo Especializado</span>
+      <h2 class="font-heading text-3xl sm:text-4xl font-extrabold text-espresso mt-2">
+        Nuestras Líneas de Productos
+      </h2>
+      <p class="text-espresso-muted text-sm mt-2">
+        Selecciona una categoría para explorar especificaciones técnicas y cotizar directamente por fardo, caja o millar.
+      </p>
+    </div>
+
+    <!-- Bento Grid Container -->
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[220px]">
+      
+      <!-- Bento Item 1: Productos Pamolsa (Large 2 cols x 2 rows) -->
+      <a href="catalogo.html?cat=pamolsa" class="bento-card md:col-span-2 md:row-span-2 rounded-3xl relative overflow-hidden group shadow-sm bg-white border border-warm-border p-6 flex flex-col justify-between">
+        <img src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=900&q=80" alt="Productos Pamolsa" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.85]">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+        
+        <div class="relative z-10">
+          <span class="px-3 py-1 rounded-lg bg-terracota text-white text-[10px] font-bold uppercase tracking-wider">
+            Línea Gastronómica Líder
+          </span>
+        </div>
+
+        <div class="relative z-10 text-white space-y-1">
+          <h3 class="font-heading text-2xl sm:text-3xl font-bold leading-tight">Productos Pamolsa</h3>
+          <p class="text-xs text-stone-200 max-w-md">Envases térmicos CT-4, CT-3, vasos térmicos para café, domos para repostería y bandejas de poliestireno.</p>
+          <div class="pt-2 flex items-center gap-1 text-amber-300 text-xs font-semibold">
+            <span>Ver línea completa</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Bento Item 2: Línea Proplas / Barrera (1 col x 2 rows) -->
+      <a href="catalogo.html?cat=proplas-barrera" class="bento-card md:col-span-1 md:row-span-2 rounded-3xl relative overflow-hidden group shadow-sm bg-white border border-warm-border p-6 flex flex-col justify-between">
+        <img src="https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=700&q=80" alt="Línea Proplas / Barrera" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.82]">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+        
+        <div class="relative z-10">
+          <span class="px-3 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider">
+            Industrial & Conservación
+          </span>
+        </div>
+
+        <div class="relative z-10 text-white space-y-1">
+          <h3 class="font-heading text-xl font-bold">Línea Proplas / Barrera</h3>
+          <p class="text-xs text-stone-200">Bolsas de vacío alta barrera, pouch bilaminados y films stretch industriales.</p>
+          <div class="pt-2 flex items-center gap-1 text-cyan-300 text-xs font-semibold">
+            <span>Explorar empaques</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Bento Item 3: Cubiertos Descartables (1 col x 1 row) -->
+      <a href="catalogo.html?cat=cubiertos" class="bento-card rounded-3xl relative overflow-hidden group shadow-sm bg-white border border-warm-border p-5 flex flex-col justify-between">
+        <img src="https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=500&q=80" alt="Cubiertos Descartables" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.80]">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent"></div>
+        
+        <div class="relative z-10 flex justify-between items-start">
+          <span class="px-2.5 py-0.5 rounded-lg bg-white/20 backdrop-blur text-white text-[10px] font-bold">Resistentes</span>
+        </div>
+
+        <div class="relative z-10 text-white">
+          <h3 class="font-heading text-lg font-bold">Cubiertos Reforzados</h3>
+          <p class="text-[11px] text-stone-200">Cucharas, tenedores y cuchillos pesados.</p>
+        </div>
+      </a>
+
+      <!-- Bento Item 4: Servilletas y Papeles (1 col x 1 row) -->
+      <a href="catalogo.html?cat=servilletas" class="bento-card rounded-3xl relative overflow-hidden group shadow-sm bg-white border border-warm-border p-5 flex flex-col justify-between">
+        <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=500&q=80" alt="Servilletas y Papeles" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.80]">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent"></div>
+        
+        <div class="relative z-10 flex justify-between items-start">
+          <span class="px-2.5 py-0.5 rounded-lg bg-white/20 backdrop-blur text-white text-[10px] font-bold">Institucional</span>
+        </div>
+
+        <div class="relative z-10 text-white">
+          <h3 class="font-heading text-lg font-bold">Servilletas y Papeles</h3>
+          <p class="text-[11px] text-stone-200">Interfoliadas, cocktail y bobinas.</p>
+        </div>
+      </a>
+
+      <!-- Bento Item 5: Productos de Limpieza e Higiene (2 cols x 1 row) -->
+      <a href="catalogo.html?cat=limpieza" class="bento-card md:col-span-2 rounded-3xl relative overflow-hidden group shadow-sm bg-white border border-warm-border p-5 flex flex-col justify-between">
+        <img src="https://images.unsplash.com/photo-1584744982491-665216d95f8b?auto=format&fit=crop&w=800&q=80" alt="Productos de Limpieza e Higiene" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.75]">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+        
+        <div class="relative z-10">
+          <span class="px-2.5 py-0.5 rounded-lg bg-purple-600 text-white text-[10px] font-bold">Inocuidad & Seguridad</span>
+        </div>
+
+        <div class="relative z-10 text-white flex justify-between items-end">
+          <div>
+            <h3 class="font-heading text-lg font-bold">Limpieza e Higiene</h3>
+            <p class="text-[11px] text-stone-200">Bolsas de basura 140L, guantes de nitrilo y desinfectantes.</p>
+          </div>
+          <span class="text-xs font-semibold text-amber-300">Ver más &rarr;</span>
+        </div>
+      </a>
+
+      <!-- Bento Item 6: Novedades / Destacados Biodegradables (2 cols x 1 row) -->
+      <a href="catalogo.html?cat=novedades" class="bento-card md:col-span-2 rounded-3xl relative overflow-hidden group shadow-sm bg-white border border-warm-border p-5 flex flex-col justify-between">
+        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80" alt="Novedades y Biodegradables" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.75]">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+        
+        <div class="relative z-10">
+          <span class="px-2.5 py-0.5 rounded-lg bg-emerald-600 text-white text-[10px] font-bold">Eco-Amigable</span>
+        </div>
+
+        <div class="relative z-10 text-white flex justify-between items-end">
+          <div>
+            <h3 class="font-heading text-lg font-bold">Novedades Biodegradables</h3>
+            <p class="text-[11px] text-stone-200">Envases de bagazo de caña, bowls kraft y biopolímeros compostables.</p>
+          </div>
+          <span class="text-xs font-semibold text-emerald-300">Descubrir &rarr;</span>
+        </div>
+      </a>
+
+    </div>
+
+  </section>
+
+  <!-- SECCIÓN PRODUCTOS DESTACADOS CON AGREGADO DIRECTO A COTIZACIÓN -->
+  <section class="py-16 bg-warm-sand/50 border-t border-warm-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-terracota">Alta Rotación</span>
+          <h2 class="font-heading text-3xl font-extrabold text-espresso mt-1">Productos Más Cotizados</h2>
+          <p class="text-espresso-muted text-xs sm:text-sm mt-1">Agrega directamente a tu carrito de cotización y recibe precio por mayor.</p>
+        </div>
+        <a href="catalogo.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-terracota hover:underline">
+          <span>Ver catálogo completo</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+      </div>
+
+      <!-- Grid de 4 Productos Destacados -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Prod 1: PAM-CT4 -->
+        <div class="product-card bg-white rounded-2xl border border-warm-border p-4 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+          <div>
+            <div class="relative h-44 rounded-xl overflow-hidden bg-warm-sand mb-3">
+              <img src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=500&q=80" alt="Contenedor Térmico CT-4" class="w-full h-full object-cover">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-espresso text-white font-mono text-[10px] font-bold">PAM-CT4</span>
+            </div>
+            <span class="text-[10px] font-semibold text-terracota uppercase">Productos Pamolsa</span>
+            <h3 class="font-bold text-sm text-espresso mt-0.5 leading-snug">Contenedor Térmico CT-4</h3>
+            <p class="text-xs text-espresso-muted line-clamp-2 my-1">Contenedor térmico espumado con tapa bisagra para delivery de menús calientes.</p>
+            <p class="text-xs font-semibold text-stone-700 bg-warm-sand px-2 py-1 rounded inline-block my-1">Caja x 200 und</p>
+          </div>
+          <div class="pt-3 border-t border-warm-border flex items-center gap-2 mt-2">
+            <input type="number" min="1" value="1" class="input-qty-selector w-12 py-1.5 text-center text-xs border border-warm-border rounded-lg bg-warm-cream">
+            <button data-sku="PAM-CT4" class="btn-add-quote flex-1 py-2 bg-terracota hover:bg-terracota-hover text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Cotizar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Prod 2: PAM-V8 -->
+        <div class="product-card bg-white rounded-2xl border border-warm-border p-4 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+          <div>
+            <div class="relative h-44 rounded-xl overflow-hidden bg-warm-sand mb-3">
+              <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=500&q=80" alt="Vaso Térmico 8 oz" class="w-full h-full object-cover">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-espresso text-white font-mono text-[10px] font-bold">PAM-V8</span>
+            </div>
+            <span class="text-[10px] font-semibold text-terracota uppercase">Productos Pamolsa</span>
+            <h3 class="font-bold text-sm text-espresso mt-0.5 leading-snug">Vaso Térmico 8 oz Pamolsa</h3>
+            <p class="text-xs text-espresso-muted line-clamp-2 my-1">Vaso espumado para café y bebidas calientes con retención de calor.</p>
+            <p class="text-xs font-semibold text-stone-700 bg-warm-sand px-2 py-1 rounded inline-block my-1">Caja x 1,000 und</p>
+          </div>
+          <div class="pt-3 border-t border-warm-border flex items-center gap-2 mt-2">
+            <input type="number" min="1" value="1" class="input-qty-selector w-12 py-1.5 text-center text-xs border border-warm-border rounded-lg bg-warm-cream">
+            <button data-sku="PAM-V8" class="btn-add-quote flex-1 py-2 bg-terracota hover:bg-terracota-hover text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Cotizar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Prod 3: CUB-TEN-PES -->
+        <div class="product-card bg-white rounded-2xl border border-warm-border p-4 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+          <div>
+            <div class="relative h-44 rounded-xl overflow-hidden bg-warm-sand mb-3">
+              <img src="https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=500&q=80" alt="Tenedor Pesado Blanco" class="w-full h-full object-cover">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-espresso text-white font-mono text-[10px] font-bold">CUB-TEN-PES</span>
+            </div>
+            <span class="text-[10px] font-semibold text-stone-600 uppercase">Cubiertos Reforzados</span>
+            <h3 class="font-bold text-sm text-espresso mt-0.5 leading-snug">Tenedor Pesado Blanco PP</h3>
+            <p class="text-xs text-espresso-muted line-clamp-2 my-1">Tenedor de polipropileno reforzado no quebradizo, resistente al calor.</p>
+            <p class="text-xs font-semibold text-stone-700 bg-warm-sand px-2 py-1 rounded inline-block my-1">Caja x 1,000 und</p>
+          </div>
+          <div class="pt-3 border-t border-warm-border flex items-center gap-2 mt-2">
+            <input type="number" min="1" value="1" class="input-qty-selector w-12 py-1.5 text-center text-xs border border-warm-border rounded-lg bg-warm-cream">
+            <button data-sku="CUB-TEN-PES" class="btn-add-quote flex-1 py-2 bg-terracota hover:bg-terracota-hover text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Cotizar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Prod 4: BIO-BWL-KR750 -->
+        <div class="product-card bg-white rounded-2xl border border-warm-border p-4 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+          <div>
+            <div class="relative h-44 rounded-xl overflow-hidden bg-warm-sand mb-3">
+              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80" alt="Bowl Kraft 750ml" class="w-full h-full object-cover">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-emerald-700 text-white font-mono text-[10px] font-bold">100% Bio</span>
+            </div>
+            <span class="text-[10px] font-semibold text-emerald-700 uppercase">Biodegradables</span>
+            <h3 class="font-bold text-sm text-espresso mt-0.5 leading-snug">Bowl Kraft Redondo 750ml</h3>
+            <p class="text-xs text-espresso-muted line-clamp-2 my-1">Bowl ecológico resistente a grasas y líquidos con tapa hermética transparente.</p>
+            <p class="text-xs font-semibold text-stone-700 bg-warm-sand px-2 py-1 rounded inline-block my-1">Caja x 300 und</p>
+          </div>
+          <div class="pt-3 border-t border-warm-border flex items-center gap-2 mt-2">
+            <input type="number" min="1" value="1" class="input-qty-selector w-12 py-1.5 text-center text-xs border border-warm-border rounded-lg bg-warm-cream">
+            <button data-sku="BIO-BWL-KR750" class="btn-add-quote flex-1 py-2 bg-terracota hover:bg-terracota-hover text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Cotizar</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER INSTITUCIONAL CON ISOTIPO DEL LIBRO DE RECLAMACIONES (D.S. 011-2011-PCM) -->
+  <footer class="bg-espresso text-warm-cream pt-16 pb-12 border-t border-stone-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-stone-800">
+        
+        <!-- Columna 1: Datos de Empresa -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-terracota flex items-center justify-center text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+            </div>
+            <div>
+              <span class="font-heading font-extrabold text-lg text-white block">DESCARTABLES PERUANOS</span>
+              <span class="text-[10px] font-bold text-terracota tracking-widest uppercase block">S.A.C. • RUC 20601234567</span>
+            </div>
+          </div>
+
+          <p class="text-xs text-stone-400 leading-relaxed max-w-sm">
+            Especialistas en la distribución y comercialización de envases descartables, térmicos, bolsas industriales y empaques ecológicos para Lima y todo el territorio peruano.
+          </p>
+
+          <div class="space-y-2 text-xs text-stone-300">
+            <p class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-terracota flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+              <span>Av. Alejandro Bertello 732-C, Cercado de Lima, Perú</span>
+            </p>
+            <p class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-amberPeru flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              <span>Central Telefónica: (01) 564-1450</span>
+            </p>
+            <p class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z"/></svg>
+              <span>WhatsApp: +51 994 195 430 / +51 994 009 692</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Columna 2: Líneas de Catálogo -->
+        <div class="space-y-3">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-warm-cream">Líneas de Catálogo</h4>
+          <ul class="space-y-2 text-xs text-stone-400">
+            <li><a href="catalogo.html?cat=pamolsa" class="hover:text-terracota transition-colors">Productos Pamolsa</a></li>
+            <li><a href="catalogo.html?cat=proplas-barrera" class="hover:text-terracota transition-colors">Línea Proplas / Barrera</a></li>
+            <li><a href="catalogo.html?cat=cubiertos" class="hover:text-terracota transition-colors">Cubiertos Descartables</a></li>
+            <li><a href="catalogo.html?cat=servilletas" class="hover:text-terracota transition-colors">Servilletas y Papeles</a></li>
+            <li><a href="catalogo.html?cat=limpieza" class="hover:text-terracota transition-colors">Productos de Limpieza</a></li>
+            <li><a href="catalogo.html?cat=novedades" class="hover:text-terracota transition-colors">Novedades y Biodegradables</a></li>
+          </ul>
+        </div>
+
+        <!-- Columna 3: Servicios y Agencias -->
+        <div class="space-y-3">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-warm-cream">Despacho y Ventas</h4>
+          <ul class="space-y-2 text-xs text-stone-400">
+            <li>Venta Mayorista (Fardo / Millar)</li>
+            <li>Venta Minorista para Restaurantes</li>
+            <li>Envíos Lima Metropolitana</li>
+            <li>Agencia Shalom Express</li>
+            <li>Agencia Marvisur</li>
+            <li>Transportes Flores Hermanos</li>
+          </ul>
+        </div>
+
+        <!-- Columna 4: Cumplimiento Normativo INDECOPI -->
+        <div class="space-y-3">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-warm-cream">Normativa Perú</h4>
+          <p class="text-[11px] text-stone-400">
+            En cumplimiento con el Reglamento del Libro de Reclamaciones conforme a la Ley del INDECOPI (D.S. 011-2011-PCM).
+          </p>
+          
+          <!-- Botón con Isotipo Oficial del Libro de Reclamaciones -->
+          <a href="libro-de-reclamaciones.html" class="block group transform hover:scale-102 transition-transform">
+            <div class="w-full max-w-[240px] rounded-2xl overflow-hidden border border-amber-400/40 shadow-lg shadow-black/40">
+              <img src="assets/images/libro-reclamaciones.svg" alt="Libro de Reclamaciones Virtual INDECOPI" class="w-full h-auto">
+            </div>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Copyright y Créditos -->
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
+        <p>&copy; 2026 Descartables Peruanos S.A.C. Todos los derechos reservados. RUC 20601234567.</p>
+        <div class="flex items-center gap-4">
+          <a href="libro-de-reclamaciones.html" class="hover:text-stone-300">Libro de Reclamaciones</a>
+          <a href="contacto.html" class="hover:text-stone-300">Contacto</a>
+          <a href="login.html" class="hover:text-stone-300">Acceso Clientes</a>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- Scripts Globales -->
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/carrito.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/main.js"></script>
+
+</body>
+</html>
+

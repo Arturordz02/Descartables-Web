@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión | Descartables Peruanos</title>
+  <meta name="description" content="Accede a tu cuenta de cliente en Descartables Peruanos para gestionar cotizaciones y pedidos mayoristas.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            warm: {
+              cream: '#FDFBF7',
+              sand: '#F4EFEA',
+              border: '#EAE3DA',
+            },
+            terracota: {
+              DEFAULT: '#C85A32',
+              hover: '#B84A22',
+              light: '#FBF0EB',
+            },
+            amberPeru: {
+              DEFAULT: '#D9822B',
+              light: '#FDF5EC',
+            },
+            espresso: {
+              DEFAULT: '#1F1815',
+              muted: '#574B46',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="assets/css/custom.css">
+  <link rel="icon" type="image/svg+xml" href="assets/images/libro-reclamaciones.svg">
+</head>
+<body class="bg-warm-cream text-espresso antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Header Simplificado -->
+  <header class="py-6 px-4 border-b border-warm-border glass-warm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-terracota flex items-center justify-center text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+        </div>
+        <span class="font-heading font-extrabold text-lg text-espresso">DESCARTABLES PERUANOS</span>
+      </a>
+      <a href="index.html" class="text-xs font-semibold text-espresso-muted hover:text-terracota flex items-center gap-1">
+        <span>&larr; Volver al Inicio</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal Formulario -->
+  <main class="flex-1 flex items-center justify-center p-4 sm:p-6 my-8">
+    <div class="max-w-md w-full bg-white p-8 rounded-3xl border border-warm-border shadow-xl space-y-6">
+      
+      <div class="text-center space-y-2">
+        <span class="text-[10px] font-bold uppercase tracking-widest text-terracota bg-terracota-light px-3 py-1 rounded-full">
+          Portal de Clientes
+        </span>
+        <h1 class="font-heading text-2xl font-extrabold text-espresso">Bienvenido de nuevo</h1>
+        <p class="text-xs text-espresso-muted">Ingresa con tu correo o número de DNI / RUC registrado.</p>
+      </div>
+
+      <!-- Alerta de Error -->
+      <div id="loginErrorBox" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 text-center"></div>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-espresso mb-1">Correo Electrónico o N° DNI / RUC *</label>
+          <input type="text" id="loginIdentificador" placeholder="ejemplo@correo.com o 20601234567" required class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-3 text-xs text-espresso focus:outline-none focus:border-terracota">
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold text-espresso">Contraseña *</label>
+            <a href="#" onclick="alert('Comuníquese a la central (01) 564-1450 o WhatsApp +51 994 195 430 para restablecer sus accesos corporativos.'); return false;" class="text-[11px] text-terracota hover:underline">¿Olvidaste tu clave?</a>
+          </div>
+          <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-3 text-xs text-espresso focus:outline-none focus:border-terracota">
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-lg shadow-terracota/20 transition-all flex items-center justify-center gap-2">
+          <span>Iniciar Sesión</span>
+        </button>
+      </form>
+
+      <!-- Cuenta de prueba sugerida -->
+      <div class="p-3 bg-warm-sand rounded-xl text-[11px] text-espresso-muted">
+        <p class="font-bold text-espresso mb-0.5">Acceso Demo Rápido:</p>
+        <p>Usuario: <code class="font-mono text-terracota font-bold">cliente@demo.pe</code> o <code class="font-mono text-terracota font-bold">20601234567</code></p>
+        <p>Clave: <code class="font-mono text-terracota font-bold">password123</code></p>
+      </div>
+
+      <div class="text-center pt-2 border-t border-warm-border">
+        <p class="text-xs text-espresso-muted">
+          ¿Aún no tienes cuenta? 
+          <a href="registro.html" class="font-bold text-terracota hover:underline">Regístrate aquí</a>
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="py-6 border-t border-warm-border text-center text-xs text-stone-500">
+    &copy; 2026 Descartables Peruanos S.A.C. Todos los derechos reservados.
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/carrito.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Auth.initLoginPage();
+    });
+  </script>
+
+</body>
+</html>
+

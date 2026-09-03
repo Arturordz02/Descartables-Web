@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Libro de Reclamaciones Virtual | Descartables Peruanos (INDECOPI)</title>
+  <meta name="description" content="Libro de Reclamaciones Virtual de Descartables Peruanos S.A.C. conforme al Decreto Supremo N° 011-2011-PCM del INDECOPI.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            warm: {
+              cream: '#FDFBF7',
+              sand: '#F4EFEA',
+              border: '#EAE3DA',
+            },
+            terracota: {
+              DEFAULT: '#C85A32',
+              hover: '#B84A22',
+              light: '#FBF0EB',
+            },
+            amberPeru: {
+              DEFAULT: '#D9822B',
+              light: '#FDF5EC',
+            },
+            sageEco: {
+              DEFAULT: '#4A5D4E',
+              light: '#EDF2EE',
+            },
+            espresso: {
+              DEFAULT: '#1F1815',
+              muted: '#574B46',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="assets/css/custom.css">
+  <link rel="icon" type="image/svg+xml" href="assets/images/libro-reclamaciones.svg">
+</head>
+<body class="bg-warm-cream text-espresso antialiased selection:bg-terracota selection:text-white">
+
+  <!-- TopBar -->
+  <div class="bg-espresso text-warm-cream text-[11px] py-2 px-4 border-b border-stone-800">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div class="flex items-center gap-4">
+        <span class="flex items-center gap-1.5 text-amber-400 font-medium">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+          Sede Central: Av. Alejandro Bertello 732-C, Cercado de Lima
+        </span>
+        <span class="hidden md:inline text-stone-500">|</span>
+        <span class="hidden md:inline text-stone-300">Central: (01) 564-1450</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-stone-300">Normativa D.S. N° 011-2011-PCM • INDECOPI</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Glassmorphism -->
+  <header class="sticky top-0 z-40 glass-warm border-b border-warm-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20 gap-4">
+        
+        <a href="index.html" class="flex items-center gap-3 flex-shrink-0 group">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-terracota to-amberPeru flex items-center justify-center shadow-md shadow-terracota/20 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+          </div>
+          <div>
+            <span class="font-heading font-extrabold text-xl tracking-tight text-espresso block leading-none">
+              DESCARTABLES
+            </span>
+            <span class="text-[11px] font-bold tracking-widest text-terracota uppercase block">
+              PERUANOS
+            </span>
+          </div>
+        </a>
+
+        <nav class="hidden lg:flex items-center gap-6 text-xs font-semibold text-espresso-muted">
+          <a href="index.html" class="nav-link hover:text-terracota transition-colors">Inicio</a>
+          <a href="catalogo.html" class="nav-link hover:text-terracota transition-colors">Catálogo</a>
+          <a href="libro-de-reclamaciones.html" class="nav-link hover:text-terracota transition-colors text-terracota font-bold">Libro Reclamaciones</a>
+          <a href="contacto.html" class="nav-link hover:text-terracota transition-colors">Contacto</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <div class="nav-user-container"></div>
+          
+          <button class="open-cart-trigger relative p-2.5 rounded-xl bg-white hover:bg-warm-sand border border-warm-border text-espresso transition-colors shadow-sm" aria-label="Ver Cotizador">
+            <svg class="w-5 h-5 text-espresso" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+            <span class="cart-count-badge hidden absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-terracota text-white text-[11px] font-bold flex items-center justify-center shadow-md">0</span>
+          </button>
+
+          <button id="mobileMenuBtn" class="p-2.5 rounded-xl text-espresso lg:hidden hover:bg-warm-sand" aria-label="Abrir Menú">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+        </div>
+
+      </div>
+
+      <div id="mobileNav" class="lg:hidden hidden border-t border-warm-border py-4 space-y-3">
+        <a href="index.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Inicio</a>
+        <a href="catalogo.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Catálogo</a>
+        <a href="libro-de-reclamaciones.html" class="block px-3 py-2 rounded-xl text-xs font-semibold text-terracota font-bold">Libro de Reclamaciones</a>
+        <a href="contacto.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Contacto</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner Normativo -->
+  <section class="bg-gradient-to-r from-warm-sand via-warm-cream to-warm-sand border-b border-warm-border py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <span class="px-2.5 py-1 rounded bg-amber-100 text-amber-900 text-[10px] font-bold uppercase tracking-wider">
+            Normativa INDECOPI • D.S. N° 011-2011-PCM
+          </span>
+          <h1 class="font-heading text-3xl font-extrabold text-espresso mt-2">
+            Libro de Reclamaciones Virtual
+          </h1>
+          <p class="text-xs sm:text-sm text-espresso-muted mt-1">
+            Conforme a lo establecido en el Código de Protección y Defensa del Consumidor, ponemos a su disposición nuestro libro virtual de reclamaciones.
+          </p>
+        </div>
+
+        <div class="w-28 flex-shrink-0">
+          <img src="assets/images/libro-reclamaciones.svg" alt="Isotipo Oficial INDECOPI" class="w-full h-auto rounded-xl shadow-sm">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORMULARIO OFICIAL INDECOPI -->
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+    
+    <!-- DATOS DEL PROVEEDOR (OBLIGATORIO SEGÚN LEY) -->
+    <div class="bg-white p-6 rounded-3xl border border-warm-border shadow-sm mb-8 space-y-3">
+      <div class="flex items-center gap-2 text-xs font-bold text-terracota uppercase tracking-wider">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+        <span>Identificación del Proveedor / Establecimiento Comercial</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-1 border-t border-warm-border">
+        <div>
+          <span class="text-espresso-muted block text-[11px]">Razón Social:</span>
+          <strong class="text-espresso">DESCARTABLES PERUANOS S.A.C.</strong>
+        </div>
+        <div>
+          <span class="text-espresso-muted block text-[11px]">RUC:</span>
+          <strong class="text-espresso">20601234567</strong>
+        </div>
+        <div>
+          <span class="text-espresso-muted block text-[11px]">Dirección Fiscal:</span>
+          <strong class="text-espresso">Av. Alejandro Bertello 732-C, Cercado de Lima</strong>
+        </div>
+        <div>
+          <span class="text-espresso-muted block text-[11px]">Central Telefónica:</span>
+          <strong class="text-espresso">(01) 564-1450</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORMULARIO -->
+    <form id="formLibroReclamaciones" class="space-y-8">
+
+      <!-- SECCIÓN 1: IDENTIFICACIÓN DEL CONSUMIDOR RECLAMANTE -->
+      <div class="bg-white p-6 sm:p-8 rounded-3xl border border-warm-border shadow-sm space-y-5">
+        <div class="border-b border-warm-border pb-3">
+          <h2 class="font-heading font-bold text-lg text-espresso flex items-center gap-2">
+            <span class="w-7 h-7 rounded-xl bg-terracota text-white flex items-center justify-center text-xs font-bold">1</span>
+            <span>Identificación del Consumidor Reclamante</span>
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Tipo de Documento *</label>
+            <select id="recTipoDoc" class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+              <option value="DNI">DNI (Documento Nacional de Identidad)</option>
+              <option value="RUC">RUC (Registro Único de Contribuyentes)</option>
+              <option value="CE">Carné de Extranjería (CE)</option>
+              <option value="PASAPORTE">Pasaporte</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-espresso mb-1">Número de Documento *</label>
+            <input type="text" id="recNumDoc" placeholder="8 dígitos numéricos" maxlength="8" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-espresso mb-1">Nombres y Apellidos Completos / Razón Social *</label>
+          <input type="text" id="recNombre" placeholder="Ej: Juan Carlos Pérez Mendoza / Distribuidora Gastronómica S.A.C." class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Teléfono o Celular *</label>
+            <input type="tel" id="recTelefono" placeholder="Ej: 994195430" maxlength="15" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Correo Electrónico (para recibir la Hoja Oficial) *</label>
+            <input type="email" id="recEmail" placeholder="correo@ejemplo.com" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Departamento *</label>
+            <select id="recDepartamento" class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+              <option value="Lima">Lima</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Provincia *</label>
+            <input type="text" id="recProvincia" value="Lima" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Distrito *</label>
+            <select id="recDistrito" class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+              <option value="Cercado de Lima">Cercado de Lima</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-espresso mb-1">Dirección de Domicilio *</label>
+          <input type="text" id="recDireccion" placeholder="Av. / Calle / Jr. N°, Dpto o Urbanización" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+        </div>
+
+        <!-- Menor de edad -->
+        <div class="pt-2">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="recEsMenor" class="w-4 h-4 rounded text-terracota focus:ring-terracota border-warm-border">
+            <span class="text-xs font-semibold text-espresso">El consumidor es menor de edad</span>
+          </label>
+
+          <div id="tutorContainer" class="hidden mt-3 p-4 bg-amber-50 rounded-2xl border border-amber-200">
+            <label class="block text-xs font-bold text-amber-900 mb-1">Nombres y Apellidos del Padre, Madre o Tutor *</label>
+            <input type="text" id="recNombreTutor" placeholder="Nombre completo del tutor responsable" class="w-full bg-white border border-amber-300 rounded-xl px-4 py-2 text-xs text-espresso focus:outline-none focus:border-terracota">
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: IDENTIFICACIÓN DEL BIEN CONTRATADO -->
+      <div class="bg-white p-6 sm:p-8 rounded-3xl border border-warm-border shadow-sm space-y-5">
+        <div class="border-b border-warm-border pb-3">
+          <h2 class="font-heading font-bold text-lg text-espresso flex items-center gap-2">
+            <span class="w-7 h-7 rounded-xl bg-terracota text-white flex items-center justify-center text-xs font-bold">2</span>
+            <span>Identificación del Bien Contratado</span>
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-2">Tipo de Bien *</label>
+            <div class="flex items-center gap-6">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="tipo_bien" value="Producto" checked class="w-4 h-4 text-terracota focus:ring-terracota">
+                <span class="text-xs font-semibold text-espresso">Producto</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="tipo_bien" value="Servicio" class="w-4 h-4 text-terracota focus:ring-terracota">
+                <span class="text-xs font-semibold text-espresso">Servicio</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Monto Reclamado (Soles S/.) *</label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-2.5 text-xs font-bold text-stone-500">S/</span>
+              <input type="number" step="0.01" min="0" id="recMonto" placeholder="0.00" class="w-full bg-warm-cream border border-warm-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-espresso font-semibold focus:outline-none focus:border-terracota" required>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-espresso mb-1">Descripción del Producto o Servicio *</label>
+          <input type="text" id="recDescBien" placeholder="Ej: 5 Cajas de Contenedores CT-4 Pamolsa / Servicio de flete a provincia" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota" required>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: DETALLE DE LA RECLAMACIÓN -->
+      <div class="bg-white p-6 sm:p-8 rounded-3xl border border-warm-border shadow-sm space-y-5">
+        <div class="border-b border-warm-border pb-3">
+          <h2 class="font-heading font-bold text-lg text-espresso flex items-center gap-2">
+            <span class="w-7 h-7 rounded-xl bg-terracota text-white flex items-center justify-center text-xs font-bold">3</span>
+            <span>Detalle de la Reclamación y Pedido del Consumidor</span>
+          </h2>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-espresso mb-2">Seleccione el Tipo de Reclamación según INDECOPI: *</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <label class="p-4 rounded-2xl border-2 border-stone-200 hover:border-terracota transition-colors cursor-pointer block bg-warm-cream">
+              <div class="flex items-center gap-2.5 mb-1.5">
+                <input type="radio" name="tipo_reclamacion" value="Reclamo" checked class="w-4 h-4 text-terracota focus:ring-terracota">
+                <span class="font-bold text-xs text-espresso">RECLAMO</span>
+              </div>
+              <p class="text-[11px] text-espresso-muted leading-relaxed">
+                Disconformidad relacionada directamente a los productos o servicios ofrecidos o comercializados.
+              </p>
+            </label>
+
+            <label class="p-4 rounded-2xl border-2 border-stone-200 hover:border-terracota transition-colors cursor-pointer block bg-warm-cream">
+              <div class="flex items-center gap-2.5 mb-1.5">
+                <input type="radio" name="tipo_reclamacion" value="Queja" class="w-4 h-4 text-terracota focus:ring-terracota">
+                <span class="font-bold text-xs text-espresso">QUEJA</span>
+              </div>
+              <p class="text-[11px] text-espresso-muted leading-relaxed">
+                Malestar o descontento respecto a la atención al público (no relacionada al producto directamente).
+              </p>
+            </label>
+
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-espresso mb-1">Detalle de la Reclamación *</label>
+          <textarea id="recDetalle" rows="4" placeholder="Explique de manera clara y detallada los hechos que motivan su reclamo o queja..." class="w-full bg-warm-cream border border-warm-border rounded-xl p-4 text-xs text-espresso focus:outline-none focus:border-terracota leading-relaxed" required></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-espresso mb-1">Pedido Concreto del Consumidor *</label>
+          <textarea id="recPedido" rows="2" placeholder="Indique de forma concreta qué solución solicita (ej. cambio de producto, reembolso, etc.)..." class="w-full bg-warm-cream border border-warm-border rounded-xl p-4 text-xs text-espresso focus:outline-none focus:border-terracota leading-relaxed" required></textarea>
+        </div>
+
+        <!-- Declaración y Plazos Ley 31435 -->
+        <div class="p-4 rounded-2xl bg-warm-sand text-[11px] text-espresso-muted space-y-2 border border-warm-border">
+          <p>
+            <strong>* Plazo Legal de Respuesta:</strong> La formulación del reclamo no impide acudir a otras vías de solución de controversias ni es requisito previo para interponer una denuncia ante el INDECOPI. El proveedor deberá dar respuesta al reclamo en un plazo no mayor a quince (15) días hábiles improrrogables, conforme a la Ley N° 31435.
+          </p>
+          <label class="flex items-start gap-2 cursor-pointer pt-1">
+            <input type="checkbox" required class="w-4 h-4 rounded text-terracota focus:ring-terracota border-warm-border mt-0.5">
+            <span class="text-xs text-espresso font-medium">
+              Declaro ser el titular del reclamo o representante legal y que la información consignada en esta Hoja de Reclamación es verídica.
+            </span>
+          </label>
+        </div>
+
+        <div class="pt-4 flex justify-end">
+          <button type="submit" class="w-full sm:w-auto px-8 py-4 bg-terracota hover:bg-terracota-hover text-white rounded-2xl font-bold text-sm shadow-xl shadow-terracota/20 transition-all flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>Registrar Hoja de Reclamación</span>
+          </button>
+        </div>
+
+      </div>
+
+    </form>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-espresso text-warm-cream pt-12 pb-8 border-t border-stone-800">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center text-xs text-stone-400 space-y-3">
+      <p>DESCARTABLES PERUANOS S.A.C. • RUC 20601234567 • Av. Alejandro Bertello 732-C, Cercado de Lima</p>
+      <p>Central de Atención: (01) 564-1450 • Correo Legal: reclamaciones@descartablesperuanos.pe</p>
+      <p class="text-stone-500 pt-2">&copy; 2026 Plataforma Descartables Peruanos. Cumplimiento Normativo INDECOPI.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/carrito.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/reclamaciones.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Reclamaciones.init();
+    });
+  </script>
+
+</body>
+</html>
+

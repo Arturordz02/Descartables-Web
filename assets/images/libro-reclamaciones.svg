@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 180" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bookBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A2B4C"/>
+      <stop offset="100%" stop-color="#0F1A30"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F7D070"/>
+      <stop offset="50%" stop-color="#D4A036"/>
+      <stop offset="100%" stop-color="#B8801C"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Contenedor Base Estilo Tarjeta Oficial -->
+  <rect x="6" y="6" width="408" height="168" rx="14" fill="url(#bookBg)" stroke="url(#goldGrad)" stroke-width="2.5" filter="url(#cardShadow)"/>
+  
+  <!-- Franja decorativa Bandera del Perú -->
+  <rect x="6" y="6" width="10" height="168" rx="4" fill="#D91424"/>
+  <rect x="10" y="6" width="4" height="168" fill="#FFFFFF"/>
+  <rect x="14" y="6" width="4" height="168" fill="#D91424"/>
+
+  <!-- Icono Libro Abierto -->
+  <g transform="translate(36, 42)">
+    <!-- Base del Libro -->
+    <path d="M50 78 C35 70 12 72 4 75 L4 18 C14 15 35 13 50 22 C65 13 86 15 96 18 L96 75 C88 72 65 70 50 78 Z" fill="#FFFFFF" opacity="0.95"/>
+    <path d="M50 22 L50 78" stroke="#D4A036" stroke-width="2.5" stroke-linecap="round"/>
+    
+    <!-- Hojas interiores -->
+    <path d="M12 28 C24 25 38 25 45 30 M12 38 C24 35 38 35 45 40 M12 48 C24 45 38 45 45 50 M12 58 C24 55 38 55 45 60" stroke="#1A2B4C" stroke-width="1.8" stroke-linecap="round" opacity="0.4"/>
+    <path d="M88 28 C76 25 62 25 55 30 M88 38 C76 35 62 35 55 40 M88 48 C76 45 62 45 55 50 M88 58 C76 55 62 55 55 60" stroke="#1A2B4C" stroke-width="1.8" stroke-linecap="round" opacity="0.4"/>
+
+    <!-- Pluma Dorada -->
+    <path d="M85 8 L65 38 L68 40 L90 12 Z" fill="url(#goldGrad)"/>
+    <circle cx="64" cy="40" r="1.5" fill="#D91424"/>
+  </g>
+
+  <!-- Textos Normativos INDECOPI -->
+  <g transform="translate(150, 0)">
+    <text x="0" y="44" fill="url(#goldGrad)" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="900" letter-spacing="1">LIBRO DE</text>
+    <text x="0" y="74" fill="#FFFFFF" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="900" letter-spacing="1.5">RECLAMACIONES</text>
+    
+    <rect x="0" y="86" width="240" height="1.5" fill="#D4A036" opacity="0.6"/>
+    
+    <text x="0" y="108" fill="#F4EFEA" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="0.5">VIRTUAL</text>
+    <text x="56" y="108" fill="#A0AEC0" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="11">| D.S. N° 011-2011-PCM</text>
+    
+    <text x="0" y="132" fill="#E2E8F0" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="10.5">Conforme a la ley del INDECOPI</text>
+    <text x="0" y="148" fill="#D4A036" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="9.5" font-weight="600">DESCARTABLES PERUANOS S.A.C.</text>
+  </g>
+</svg>
+
