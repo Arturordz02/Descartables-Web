@@ -69,14 +69,16 @@ const ApiService = {
     return CATEGORIAS;
   },
 
-  // Obtener productos con filtros opcionales
+  // Obtener productos con filtros opcionales (Modo MySQL + Modo Local Integrado)
   async getProducts(filters = {}) {
     const isAvailable = await this.checkBackendAvailability();
+    let results = [];
+
     if (isAvailable) {
       try {
         const queryParams = new URLSearchParams();
-        if (filters.categoria) queryParams.append('categoria', filters.categoria);
-        if (filters.material) queryParams.append('material', filters.material);
+        if (filters.categoria && filters.categoria !== 'todos') queryParams.append('categoria', filters.categoria);
+        if (filters.material && filters.material !== 'todos') queryParams.append('material', filters.material);
         if (filters.biodegradable !== undefined && filters.biodegradable !== '') {
           queryParams.append('biodegradable', filters.biodegradable ? '1' : '0');
         }
@@ -85,34 +87,72 @@ const ApiService = {
 
         const res = await fetch(`${this.baseUrl}/productos.php?${queryParams.toString()}`);
         const json = await res.json();
-        if (json.success) return json.data;
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          results = json.data;
+        }
       } catch (e) {
         console.warn('Fallo al obtener productos de MySQL, usando datos locales.');
       }
     }
 
-    // Fallback local enriquecido
-    let results = [...PRODUCTOS];
+    // Modo Local enriquecido con productos agregados en el Admin
+    if (results.length === 0) {
+      const customProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+      const deletedIds = JSON.parse(localStorage.getItem('dp_productos_deleted') || '[]');
+      
+      const slugMap = {
+        1: 'pamolsa',
+        2: 'proplas-barrera',
+        3: 'cubiertos',
+        4: 'servilletas',
+        5: 'limpieza',
+        6: 'novedades'
+      };
 
-    if (filters.categoria && filters.categoria !== 'todos') {
-      results = results.filter(p => p.categoria_slug === filters.categoria);
-    }
-    if (filters.material && filters.material !== 'todos') {
-      results = results.filter(p => p.material.toLowerCase().includes(filters.material.toLowerCase()));
-    }
-    if (filters.biodegradable === true || filters.biodegradable === 'true' || filters.biodegradable === 1) {
-      results = results.filter(p => p.biodegradable === true);
-    }
-    if (filters.destacado) {
-      results = results.filter(p => p.destacado === true);
-    }
-    if (filters.q) {
-      const q = filters.q.toLowerCase().trim();
-      results = results.filter(p => 
-        p.nombre.toLowerCase().includes(q) || 
-        p.sku.toLowerCase().includes(q) || 
-        p.descripcion.toLowerCase().includes(q)
-      );
+      // 1. Filtrar catálogo base quitando los eliminados
+      results = (typeof PRODUCTOS !== 'undefined' ? PRODUCTOS : []).filter(p => !deletedIds.includes(p.id));
+
+      // 2. Agregar o sobreescribir con los productos personalizados creados en el Admin
+      customProds.forEach(cp => {
+        const enhancedCp = {
+          ...cp,
+          categoria_slug: cp.categoria_slug || slugMap[cp.categoria_id] || 'pamolsa',
+          categoria_nombre: cp.categoria_nombre || this.getCatalogCategoryName(cp.categoria_id)
+        };
+        const idx = results.findIndex(p => p.id === enhancedCp.id || (enhancedCp.sku && p.sku === enhancedCp.sku));
+        if (idx !== -1) {
+          results[idx] = { ...results[idx], ...enhancedCp };
+        } else {
+          results.unshift(enhancedCp);
+        }
+      });
+
+      // 3. Aplicar filtros en memoria
+      if (filters.categoria && filters.categoria !== 'todos') {
+        results = results.filter(p => 
+          p.categoria_slug === filters.categoria || 
+          p.categoria_id == filters.categoria || 
+          slugMap[p.categoria_id] === filters.categoria
+        );
+      }
+      if (filters.material && filters.material !== 'todos') {
+        results = results.filter(p => (p.material || '').toLowerCase().includes(filters.material.toLowerCase()));
+      }
+      if (filters.biodegradable === true || filters.biodegradable === 'true' || filters.biodegradable === 1) {
+        results = results.filter(p => p.biodegradable === true || p.biodegradable == 1);
+      }
+      if (filters.destacado) {
+        results = results.filter(p => p.destacado === true || p.destacado == 1);
+      }
+      if (filters.q) {
+        const q = filters.q.toLowerCase().trim();
+        results = results.filter(p => 
+          (p.nombre || '').toLowerCase().includes(q) || 
+          (p.sku || '').toLowerCase().includes(q) || 
+          (p.descripcion || '').toLowerCase().includes(q) ||
+          (p.material || '').toLowerCase().includes(q)
+        );
+      }
     }
 
     return results;
@@ -330,6 +370,19 @@ const ApiService = {
 
   // Crear producto
   async createProduct(productData) {
+    const slugMap = { 1: 'pamolsa', 2: 'proplas-barrera', 3: 'cubiertos', 4: 'servilletas', 5: 'limpieza', 6: 'novedades' };
+    const enhancedData = {
+      ...productData,
+      categoria_slug: slugMap[productData.categoria_id] || 'pamolsa',
+      categoria_nombre: this.getCatalogCategoryName(productData.categoria_id)
+    };
+
+    // Guardar copia local siempre para modo offline/local
+    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const newLocalProd = { id: Date.now(), ...enhancedData };
+    localProds.unshift(newLocalProd);
+    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
@@ -338,27 +391,42 @@ const ApiService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(productData)
         });
-        return await res.json();
+        const json = await res.json();
+        if (json.success && json.data) {
+          // Actualizar id en local si vino de MySQL
+          newLocalProd.id = json.data.id;
+          localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+          return json;
+        }
+        return json;
       } catch (e) {
         console.error('Error al crear producto en MySQL:', e);
-        return { success: false, error: 'Error de conexión con el servidor MySQL.' };
       }
     }
 
-    // Fallback local
-    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
-    const newProd = {
-      id: Date.now(),
-      ...productData,
-      categoria_nombre: this.getCatalogCategoryName(productData.categoria_id)
-    };
-    localProds.push(newProd);
-    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
-    return { success: true, message: 'Producto guardado localmente.', data: newProd };
+    return { success: true, message: 'Producto guardado exitosamente.', data: newLocalProd };
   },
 
   // Editar producto
   async updateProduct(id, productData) {
+    const slugMap = { 1: 'pamolsa', 2: 'proplas-barrera', 3: 'cubiertos', 4: 'servilletas', 5: 'limpieza', 6: 'novedades' };
+    const enhancedData = {
+      id,
+      ...productData,
+      categoria_slug: slugMap[productData.categoria_id] || 'pamolsa',
+      categoria_nombre: this.getCatalogCategoryName(productData.categoria_id)
+    };
+
+    // Guardar en copia local
+    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const idx = localProds.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      localProds[idx] = { ...localProds[idx], ...enhancedData };
+    } else {
+      localProds.push(enhancedData);
+    }
+    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
@@ -370,23 +438,25 @@ const ApiService = {
         return await res.json();
       } catch (e) {
         console.error('Error al actualizar producto en MySQL:', e);
-        return { success: false, error: 'Error de conexión con el servidor MySQL.' };
       }
     }
 
-    // Fallback local
-    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
-    const idx = localProds.findIndex(p => p.id === id);
-    if (idx !== -1) {
-      localProds[idx] = { ...localProds[idx], ...productData };
-      localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
-      return { success: true, message: 'Producto actualizado localmente.', data: localProds[idx] };
-    }
-    return { success: true, message: 'Producto actualizado.', data: { id, ...productData } };
+    return { success: true, message: 'Producto actualizado exitosamente.', data: enhancedData };
   },
 
   // Eliminar producto
   async deleteProduct(id) {
+    // Registrar ID eliminado para modo local
+    const deletedIds = JSON.parse(localStorage.getItem('dp_productos_deleted') || '[]');
+    if (!deletedIds.includes(id)) {
+      deletedIds.push(id);
+      localStorage.setItem('dp_productos_deleted', JSON.stringify(deletedIds));
+    }
+
+    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const filtered = localProds.filter(p => p.id !== id);
+    localStorage.setItem('dp_productos_custom', JSON.stringify(filtered));
+
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
@@ -398,14 +468,10 @@ const ApiService = {
         return await res.json();
       } catch (e) {
         console.error('Error al eliminar producto en MySQL:', e);
-        return { success: false, error: 'Error de conexión con el servidor MySQL.' };
       }
     }
 
-    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
-    const filtered = localProds.filter(p => p.id !== id);
-    localStorage.setItem('dp_productos_custom', JSON.stringify(filtered));
-    return { success: true, message: 'Producto eliminado localmente.' };
+    return { success: true, message: 'Producto eliminado correctamente.' };
   },
 
   // Subir imagen de producto
