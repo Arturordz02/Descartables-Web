@@ -101,3 +101,4 @@ Simplemente abre `index.html` en tu navegador o mediante la extensión Live Serv
 ## 📄 Licencia
 
 Distribuido bajo la Licencia MIT. Consulte `LICENSE` para más información.
+

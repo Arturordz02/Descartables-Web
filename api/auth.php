@@ -12,11 +12,14 @@ $action = isset($_GET['action']) ? trim($_GET['action']) : '';
 if ($method === 'POST') {
     $rawInput = file_get_contents('php://input');
     $data = json_decode($rawInput, true);
+    if (!$data || !is_array($data)) {
+        $data = $_POST;
+    }
 
-    if (!$data) {
+    if (empty($data)) {
         echo json_encode([
             'success' => false,
-            'error'   => 'Datos JSON inválidos.'
+            'error'   => 'Datos de solicitud inválidos o vacíos.'
         ], JSON_UNESCAPED_UNICODE);
         exit();
     }
@@ -156,3 +159,4 @@ echo json_encode([
     'success' => false,
     'error'   => 'Acción o método no soportado.'
 ], JSON_UNESCAPED_UNICODE);
+

@@ -141,9 +141,11 @@ INSERT INTO productos (id, categoria_id, sku, nombre, descripcion, presentacion,
 (18, 6, 'BIO-VAS-KRAF', 'Vaso de Polipapel Kraft Doble Capa 12 oz', 'Vaso térmico doble pared que no quema la mano, no requiere faja aislante. Ideal para cafeterías de especialidad.', 'Caja x 500 und', 'Papel Kraft Biodegradable', TRUE, 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80', TRUE)
 ON DUPLICATE KEY UPDATE nombre=VALUES(nombre), descripcion=VALUES(descripcion);
 
--- Usuario Administrador y Cliente de Prueba
+-- Usuario Administrador y Clientes de Prueba (Contraseña: password123)
 INSERT INTO usuarios (tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol) VALUES
-('RUC', '20601234567', 'DESCARTABLES PERUANOS S.A.C.', 'ventas@descartablesperuanos.pe', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '(01) 564-1450', 'Lima', 'Lima', 'Cercado de Lima', 'Av. Alejandro Bertello 732-C', 'admin'),
-('DNI', '45879632', 'Juan Carlos Pérez Mendoza', 'cliente.demo@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '994195430', 'Lima', 'Lima', 'Miraflores', 'Av. Larco 450 Dpto 302', 'cliente')
-ON DUPLICATE KEY UPDATE nombre_razon_social=VALUES(nombre_razon_social);
+('RUC', '20601234567', 'DESCARTABLES PERUANOS S.A.C.', 'ventas@descartablesperuanos.pe', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '(01) 564-1450', 'Lima', 'Lima', 'Cercado de Lima', 'Av. Alejandro Bertello 732-C', 'admin'),
+('DNI', '45879632', 'Juan Carlos Pérez Mendoza', 'cliente.demo@gmail.com', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '994195430', 'Lima', 'Lima', 'Miraflores', 'Av. Larco 450 Dpto 302', 'cliente'),
+('DNI', '10458796', 'Distribuidora Demo Gastronómica', 'cliente@demo.pe', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '994195430', 'Lima', 'Lima', 'Miraflores', 'Av. Larco 450', 'cliente')
+ON DUPLICATE KEY UPDATE password=VALUES(password), nombre_razon_social=VALUES(nombre_razon_social);
+
 

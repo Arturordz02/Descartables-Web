@@ -73,6 +73,12 @@
         <p class="text-xs text-espresso-muted">Ingresa con tu correo o número de DNI / RUC registrado.</p>
       </div>
 
+      <!-- Indicador en Vivo de Conexión con Base de Datos MySQL -->
+      <div id="backendStatusBadge" class="p-2 rounded-xl text-center text-[11px] bg-warm-sand text-espresso-muted flex items-center justify-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        <span>Comprobando conexión con MySQL (XAMPP)...</span>
+      </div>
+
       <!-- Alerta de Error -->
       <div id="loginErrorBox" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 text-center"></div>
 
@@ -90,16 +96,27 @@
           <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-3 text-xs text-espresso focus:outline-none focus:border-terracota">
         </div>
 
-        <button type="submit" class="w-full py-3.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-lg shadow-terracota/20 transition-all flex items-center justify-center gap-2">
+        <button type="submit" class="w-full py-3.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-lg shadow-terracota/20 transition-all flex items-center justify-center gap-2 tap-target">
           <span>Iniciar Sesión</span>
         </button>
       </form>
 
-      <!-- Cuenta de prueba sugerida -->
-      <div class="p-3 bg-warm-sand rounded-xl text-[11px] text-espresso-muted">
-        <p class="font-bold text-espresso mb-0.5">Acceso Demo Rápido:</p>
-        <p>Usuario: <code class="font-mono text-terracota font-bold">cliente@demo.pe</code> o <code class="font-mono text-terracota font-bold">20601234567</code></p>
-        <p>Clave: <code class="font-mono text-terracota font-bold">password123</code></p>
+      <!-- Cuenta de prueba sugerida con botones 1-click -->
+      <div class="p-3 bg-warm-sand rounded-2xl text-[11px] text-espresso-muted space-y-2 border border-warm-border/60">
+        <p class="font-bold text-espresso">Accesos Demo (Guardados en MySQL):</p>
+        <p class="leading-relaxed">
+          • Cliente DNI: <code class="font-mono text-terracota font-bold">cliente@demo.pe</code><br>
+          • Empresa RUC: <code class="font-mono text-terracota font-bold">20601234567</code><br>
+          • Contraseña: <code class="font-mono text-terracota font-bold">password123</code>
+        </p>
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button type="button" onclick="document.getElementById('loginIdentificador').value='cliente@demo.pe'; document.getElementById('loginPassword').value='password123';" class="flex-1 py-1.5 px-2.5 bg-white border border-warm-border rounded-xl text-terracota font-bold text-[10px] hover:bg-warm-cream transition-colors text-center tap-target shadow-xs">
+            Autocompletar Cliente Demo
+          </button>
+          <button type="button" onclick="document.getElementById('loginIdentificador').value='20601234567'; document.getElementById('loginPassword').value='password123';" class="flex-1 py-1.5 px-2.5 bg-white border border-warm-border rounded-xl text-espresso font-bold text-[10px] hover:bg-warm-cream transition-colors text-center tap-target shadow-xs">
+            Autocompletar Empresa Demo
+          </button>
+        </div>
       </div>
 
       <div class="text-center pt-2 border-t border-warm-border">

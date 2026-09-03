@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Parámetros de Conexión a MySQL (Valores por defecto compatibles con XAMPP / MariaDB)
-define('DB_HOST', 'localhost');
+define('DB_HOST', '127.0.0.1');
 define('DB_PORT', '3306');
 define('DB_NAME', 'descartables_db');
 define('DB_USER', 'root');

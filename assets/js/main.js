@@ -44,9 +44,12 @@ function injectMobileBottomBar() {
   if (document.getElementById('mobileBottomBar')) return;
 
   const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  // Excluir en login y registro para evitar solapamiento con teclado virtual y botones
+  if (currentPath.includes('login') || currentPath.includes('registro')) return;
+
   const isHome = currentPath === 'index.html' || currentPath === '';
   const isCat = currentPath === 'catalogo.html';
-  const isProfile = currentPath === 'perfil.html' || currentPath === 'login.html' || currentPath === 'registro.html';
+  const isProfile = currentPath === 'perfil.html';
 
   const barHTML = `
     <nav id="mobileBottomBar" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#EAE3DA] py-1.5 px-3 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.06)] mobile-quick-bar">

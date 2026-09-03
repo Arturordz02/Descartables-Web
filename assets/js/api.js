@@ -7,24 +7,45 @@ const ApiService = {
   baseUrl: 'api',
   hasBackend: null,
 
-  // Verifica si el servidor PHP/MySQL responde
+  // Verifica si el servidor PHP/MySQL responde probando múltiples rutas de XAMPP
   async checkBackendAvailability() {
     if (this.hasBackend !== null) return this.hasBackend;
-    try {
-      const response = await fetch(`${this.baseUrl}/productos.php?tipo=categorias`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-      });
-      if (response.ok) {
-        const json = await response.json();
-        this.hasBackend = !!json.success;
-      } else {
-        this.hasBackend = false;
+
+    const candidates = [
+      this.baseUrl,
+      'http://localhost/descartables/api',
+      'http://localhost/Web - Descartables/api',
+      'http://127.0.0.1/descartables/api',
+      'http://localhost/api'
+    ];
+
+    for (const cand of candidates) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const response = await fetch(`${cand}/productos.php?tipo=categorias`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (response.ok) {
+          const json = await response.json();
+          if (json.success) {
+            this.baseUrl = cand;
+            this.hasBackend = true;
+            console.log(`[ApiService] Conectado exitosamente a MySQL vía: ${cand}`);
+            return true;
+          }
+        }
+      } catch (e) {
+        // probar siguiente candidato
       }
-    } catch (e) {
-      this.hasBackend = false;
     }
-    return this.hasBackend;
+
+    this.hasBackend = false;
+    console.warn('[ApiService] Backend MySQL no detectado. Modo LocalStorage activado.');
+    return false;
   },
 
   // Obtener categorías

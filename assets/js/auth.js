@@ -113,6 +113,20 @@ const Auth = {
     const loginForm = document.getElementById('loginForm');
     if (!loginForm) return;
 
+    // Actualizar indicador de conexión con MySQL
+    const statusBadge = document.getElementById('backendStatusBadge');
+    if (statusBadge) {
+      ApiService.checkBackendAvailability().then(isAvailable => {
+        if (isAvailable) {
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Conectado a Base de Datos MySQL (XAMPP)</span>';
+          statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center gap-1.5';
+        } else {
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-800 font-bold">Modo Local Autónomo (LocalStorage)</span>';
+          statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center gap-1.5';
+        }
+      });
+    }
+
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const identificador = document.getElementById('loginIdentificador').value.trim();
@@ -145,6 +159,20 @@ const Auth = {
   initRegisterPage() {
     const registerForm = document.getElementById('registerForm');
     if (!registerForm) return;
+
+    // Actualizar indicador de conexión con MySQL
+    const statusBadge = document.getElementById('backendStatusBadge');
+    if (statusBadge) {
+      ApiService.checkBackendAvailability().then(isAvailable => {
+        if (isAvailable) {
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Conectado a Base de Datos MySQL (XAMPP)</span>';
+          statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center gap-1.5';
+        } else {
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-800 font-bold">Modo Local Autónomo (LocalStorage)</span>';
+          statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center gap-1.5';
+        }
+      });
+    }
 
     const tipoDocSelect = document.getElementById('regTipoDoc');
     const numDocInput = document.getElementById('regNumDoc');
