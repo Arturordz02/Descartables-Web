@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Términos y Condiciones | Descartables Peruanos S.A.C.</title>
+  <meta name="description" content="Términos y condiciones legales de uso, cotización y compraventa de Descartables Peruanos S.A.C. Conforme a las normativas de INDECOPI y SUNAT.">
+
+  <!-- Tipografías Oficiales -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            warm: {
+              cream: '#FDFBF7',
+              sand: '#F4EFEA',
+              border: '#EAE3DA',
+            },
+            terracota: {
+              DEFAULT: '#C85A32',
+              hover: '#B84A22',
+              light: '#F8ECE7',
+            },
+            amberPeru: '#D9822B',
+            salvia: '#4A5D4E',
+            espresso: {
+              DEFAULT: '#1F1815',
+              muted: '#574B46',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="assets/css/custom.css">
+</head>
+<body class="bg-warm-cream text-espresso min-h-screen flex flex-col antialiased selection:bg-terracota selection:text-white">
+
+  <!-- TOPBAR INFORMATIVA -->
+  <div class="bg-espresso text-warm-cream text-[11px] py-2 px-4 border-b border-stone-800">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>RUC: <strong>20601234567</strong> | DESCARTABLES PERUANOS S.A.C.</span>
+      </div>
+      <div class="flex items-center gap-4 text-stone-300">
+        <span>Central: (01) 564-1450</span>
+        <span>WhatsApp: +51 994 195 430</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVBAR PRINCIPAL -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-warm-border shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Logotipo -->
+        <a href="index.html" class="flex items-center gap-2.5 sm:gap-3 group">
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-terracota to-amberPeru flex items-center justify-center text-white font-heading font-black text-lg shadow-md shadow-terracota/20 group-hover:scale-105 transition-transform flex-shrink-0">
+            DP
+          </div>
+          <div class="leading-tight">
+            <span class="font-heading font-black text-sm sm:text-lg tracking-tight text-espresso block">
+              DESCARTABLES
+            </span>
+            <span class="text-[9px] sm:text-[11px] font-bold tracking-widest text-terracota uppercase block">
+              PERUANOS
+            </span>
+          </div>
+        </a>
+
+        <!-- Navegación Desktop -->
+        <nav class="hidden lg:flex items-center gap-6 text-xs font-semibold text-espresso-muted">
+          <a href="index.html" class="nav-link hover:text-terracota transition-colors">Inicio</a>
+          <a href="catalogo.html" class="nav-link hover:text-terracota transition-colors">Catálogo</a>
+          <a href="contacto.html" class="nav-link hover:text-terracota transition-colors">Contacto</a>
+        </nav>
+
+        <!-- Acciones -->
+        <div class="flex items-center gap-2 sm:gap-4">
+          <div class="nav-user-container hidden sm:block"></div>
+
+          <!-- Carrito Trigger -->
+          <button class="open-cart-trigger relative p-2 sm:p-2.5 rounded-xl bg-white hover:bg-warm-sand border border-warm-border text-espresso transition-colors shadow-sm tap-target" aria-label="Ver Cotizador">
+            <svg class="w-5 h-5 text-espresso" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <span class="cart-count-badge hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-terracota text-white text-[10px] font-bold flex items-center justify-center shadow-md">
+              0
+            </span>
+          </button>
+
+          <!-- WhatsApp Botón Rápido -->
+          <a href="https://wa.me/51994195430" target="_blank" class="hidden sm:flex items-center gap-1.5 py-2 sm:py-2.5 px-3 sm:px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all tap-target">
+            <span>WhatsApp</span>
+          </a>
+
+          <!-- Botón Menú Móvil -->
+          <button id="mobileMenuBtn" class="p-2 rounded-xl text-espresso lg:hidden hover:bg-warm-sand tap-target" aria-label="Abrir Menú">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Menú Móvil -->
+      <div id="mobileNav" class="lg:hidden hidden border-t border-warm-border py-4 space-y-3">
+        <div class="nav-user-container-mobile"></div>
+        <div class="grid grid-cols-3 gap-2 text-xs font-semibold text-center">
+          <a href="index.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Inicio</a>
+          <a href="catalogo.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Catálogo</a>
+          <a href="contacto.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Contacto</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BANNER CABECERA -->
+  <section class="bg-gradient-to-r from-warm-sand via-warm-cream to-warm-sand border-b border-warm-border py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
+      <span class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-terracota bg-terracota-light px-3.5 py-1 rounded-full border border-terracota/20">
+        Marco Legal & Cumplimiento SUNAT / INDECOPI
+      </span>
+      <h1 class="font-heading text-2xl sm:text-4xl font-extrabold text-espresso">
+        Términos y Condiciones de Uso y Contratación
+      </h1>
+      <p class="text-xs sm:text-sm text-espresso-muted max-w-2xl mx-auto">
+        Regulaciones de compraventa, cotizaciones por volumen, facturación electrónica, despachos en Lima y envíos a provincias de Descartables Peruanos S.A.C.
+      </p>
+      <p class="text-[11px] text-stone-400 font-mono">Última actualización: Septiembre de 2026</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DE LOS TÉRMINOS -->
+  <main class="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="bg-white p-6 sm:p-10 rounded-3xl border border-warm-border shadow-sm space-y-8 text-xs sm:text-sm leading-relaxed text-espresso-muted">
+      
+      <!-- Introducción -->
+      <div class="p-4 sm:p-5 rounded-2xl bg-warm-sand/80 border border-warm-border text-espresso space-y-2">
+        <p class="font-semibold text-xs leading-relaxed">
+          Bienvenido a la plataforma web oficial de <strong>DESCARTABLES PERUANOS S.A.C.</strong> Al acceder, navegar, registrarse o cotizar en nuestro sitio web, usted (en adelante, el <strong>"Usuario"</strong> o <strong>"Cliente"</strong>) acepta expresamente quedar vinculado por los presentes Términos y Condiciones, así como por nuestra Política de Privacidad y la normativa comercial de la República del Perú.
+        </p>
+      </div>
+
+      <!-- 1. Identificación -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">1</span>
+          <span>Identificación de la Empresa (Aviso Legal)</span>
+        </h2>
+        <p>En estricto cumplimiento del principio de transparencia e información exigido por el <strong>Código de Protección y Defensa del Consumidor (Ley N° 29571)</strong> de INDECOPI, se detallan los datos del titular:</p>
+        <ul class="list-disc pl-5 space-y-1 text-espresso font-medium">
+          <li><strong>Razón Social:</strong> DESCARTABLES PERUANOS S.A.C.</li>
+          <li><strong>RUC:</strong> 20601234567</li>
+          <li><strong>Domicilio Fiscal:</strong> Av. Alejandro Bertello 732-C, Cercado de Lima, Lima - Perú.</li>
+          <li><strong>Central Telefónica:</strong> (01) 564-1450</li>
+          <li><strong>WhatsApp Oficial de Ventas:</strong> +51 994 195 430 / +51 994 009 692</li>
+          <li><strong>Correo Electrónico Oficial:</strong> ventas@descartablesperuanos.pe</li>
+        </ul>
+      </div>
+
+      <!-- 2. Objeto de la Plataforma -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">2</span>
+          <span>Objeto de la Plataforma</span>
+        </h2>
+        <p>El sitio web tiene por objeto la exhibición, cotización técnica y comercialización mayorista y minorista de soluciones integrales en envases descartables, plásticos de barrera, menaje gastronómico, productos de limpieza institucional y líneas eco-biodegradables (marcas líderes como <em>Pamolsa, Proplas, Reyma, Carvajal</em>, entre otras) dirigidas al sector gastronómico, industrial y público en general dentro del territorio nacional.</p>
+      </div>
+
+      <!-- 3. Registro de Usuarios -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">3</span>
+          <span>Registro de Usuarios y Seguridad de Cuentas</span>
+        </h2>
+        <p>El usuario puede registrarse como Persona Natural (DNI/CE) o como Persona Jurídica (RUC). El Cliente garantiza que los datos consignados son verídicos y actualizados. Las contraseñas de acceso se encuentran encriptadas bajo algoritmos irreversibles (Bcrypt), garantizando que ningún colaborador ni tercero tenga acceso a las claves en texto plano.</p>
+      </div>
+
+      <!-- 4. Cotizaciones, Precios y Stock -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">4</span>
+          <span>Cotizaciones, Precios y Disponibilidad de Stock</span>
+        </h2>
+        <p>Todos los precios y cotizaciones generados en la web están expresados en <strong>Soles peruanos (S/.)</strong> e <strong>incluyen el Impuesto General a las Ventas (I.G.V. - 18%)</strong>, conforme a las directivas de SUNAT. Las cotizaciones formales enviadas por WhatsApp o correo tienen una vigencia máxima de <strong>3 a 7 días hábiles</strong> debido a posibles fluctuaciones en materias primas internacionales o tipo de cambio.</p>
+      </div>
+
+      <!-- 5. Comprobantes SUNAT -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">5</span>
+          <span>Emisión de Comprobantes de Pago Electrónicos (SUNAT)</span>
+        </h2>
+        <p>Emitimos <strong>Boleta de Venta Electrónica</strong> a personas naturales con DNI y <strong>Factura Electrónica</strong> a empresas o personas naturales con negocio cuyo RUC se encuentre en estado <strong>ACTIVO y HABIDO</strong> ante la SUNAT al momento de la facturación.</p>
+      </div>
+
+      <!-- 6. Medios de Pago -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">6</span>
+          <span>Medios de Pago y Validación</span>
+        </h2>
+        <p>Se aceptan transferencias interbancarias directas a nuestras cuentas corrientes corporativas (BCP, BBVA, Interbank), billeteras digitales autorizadas (Yape / Plin) y pago con tarjeta o efectivo en nuestro almacén central. La programación del despacho se efectúa una vez acreditados los fondos en cuenta.</p>
+      </div>
+
+      <!-- 7. Políticas de Entrega y Envíos -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">7</span>
+          <span>Políticas de Despacho, Envíos y Retiro en Almacén</span>
+        </h2>
+        <p><strong>Lima Metropolitana y Callao:</strong> Despachos programados en 24 a 48 horas hábiles tras la validación del abono, o retiro gratuito en nuestra sede central de Cercado de Lima.</p>
+        <p><strong>Envíos a Provincias (Todo el Perú):</strong> Entregamos la mercadería debidamente rotulada y embalada en la agencia de transporte terrestre acordada (ej. <em>Shalom Express, Marvisur, Flores Hermanos, Cavassa</em>) bajo la modalidad de <strong>Flete Contraentrega (Pago en Destino)</strong>, facilitando al cliente su Guía de Remisión y Clave de Recojo.</p>
+      </div>
+
+      <!-- 8. Cambios y Devoluciones (Inocuidad) -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">8</span>
+          <span>Política de Cambios, Devoluciones y Garantía de Inocuidad</span>
+        </h2>
+        <p>Por tratarse de <strong>envases destinados al contacto con alimentos</strong> (sujetos a normas de inocuidad sanitaria DIGESA/MINSA), <strong>no se aceptan devoluciones de productos cuyas cajas, fardos o mangas hayan sido abiertas, manipuladas o rotas</strong>. Se aceptan cambios por fallas de fabricación comprobadas o errores de despacho dentro de las <strong>48 a 72 horas hábiles</strong> de recibido el pedido.</p>
+      </div>
+
+      <!-- 9. Protección de Datos -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">9</span>
+          <span>Protección de Datos Personales (Ley N° 29733)</span>
+        </h2>
+        <p>Garantizamos el tratamiento confidencial de sus datos personales exclusivamente con fines comerciales, de facturación y de coordinación logística. Puede ejercer sus derechos ARCO enviando una comunicación a <code>ventas@descartablesperuanos.pe</code>.</p>
+      </div>
+
+      <!-- 10. Libro de Reclamaciones -->
+      <div class="space-y-2 border-b border-warm-border pb-6">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">10</span>
+          <span>Libro de Reclamaciones Virtual</span>
+        </h2>
+        <p>En cumplimiento con el <strong>D.S. 011-2011-PCM</strong> y la <strong>Ley N° 31435</strong>, ponemos a disposición nuestro Libro de Reclamaciones Virtual accesible en el pie de página de la web, con plazo de respuesta legal máximo de quince (15) días hábiles improrrogables.</p>
+      </div>
+
+      <!-- 11. Jurisdicción -->
+      <div class="space-y-2">
+        <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
+          <span class="w-6 h-6 rounded-lg bg-terracota text-white flex items-center justify-center text-xs font-bold">11</span>
+          <span>Legislación Aplicable y Jurisdicción</span>
+        </h2>
+        <p>Los presentes términos se rigen por las leyes de la República del Perú. Para cualquier controversia judicial, las partes se someten a la competencia de los Jueces y Tribunales del Distrito Judicial de Lima Cercado y a los canales administrativos de INDECOPI.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER OFICIAL COMPACTO -->
+  <footer class="bg-espresso text-warm-cream border-t border-stone-800 pt-10 pb-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-stone-800">
+        
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-terracota flex items-center justify-center font-bold text-white text-xs">DP</div>
+            <span class="font-heading font-extrabold text-sm tracking-tight">DESCARTABLES PERUANOS</span>
+          </div>
+          <p class="text-xs text-stone-400">Distribución mayorista de envases descartables, térmicos y biodegradables en todo el Perú.</p>
+        </div>
+
+        <div class="space-y-2 text-xs text-stone-400">
+          <h4 class="font-bold text-warm-cream uppercase tracking-wider">Enlaces Rápidos</h4>
+          <p><a href="index.html" class="hover:text-terracota">Inicio</a></p>
+          <p><a href="catalogo.html" class="hover:text-terracota">Catálogo de Productos</a></p>
+          <p><a href="contacto.html" class="hover:text-terracota">Contacto y Ubicación</a></p>
+          <p><a href="terminos-y-condiciones.html" class="text-terracota font-bold hover:underline">Términos y Condiciones</a></p>
+        </div>
+
+        <div class="space-y-2 text-xs text-stone-400">
+          <h4 class="font-bold text-warm-cream uppercase tracking-wider">Atención Comercial</h4>
+          <p>Central: (01) 564-1450</p>
+          <p>WhatsApp: +51 994 195 430</p>
+          <p>ventas@descartablesperuanos.pe</p>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-warm-cream">Normativa Perú</h4>
+          <a href="libro-de-reclamaciones.html" class="inline-flex items-center gap-2.5 p-2 rounded-xl bg-stone-900 border border-stone-800 hover:border-amber-500/50 transition-colors group">
+            <img src="assets/images/libro-reclamaciones.svg" alt="Libro de Reclamaciones Virtual INDECOPI" class="h-8 w-auto rounded">
+            <div class="text-left">
+              <span class="block text-[10px] font-bold text-warm-cream group-hover:text-terracota transition-colors">Libro de Reclamaciones</span>
+              <span class="block text-[9px] text-stone-400">D.S. 011-2011-PCM</span>
+            </div>
+          </a>
+        </div>
+
+      </div>
+
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-500">
+        <p>&copy; 2026 Descartables Peruanos S.A.C. Todos los derechos reservados. RUC 20601234567.</p>
+        <div class="flex items-center gap-4">
+          <a href="terminos-y-condiciones.html" class="hover:text-stone-300">Términos y Condiciones</a>
+          <a href="contacto.html" class="hover:text-stone-300">Contacto</a>
+          <a href="login.html" class="hover:text-stone-300">Acceso Clientes</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/carrito.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

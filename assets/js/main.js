@@ -99,6 +99,77 @@ function injectMobileBottomBar() {
   document.body.classList.add('pb-16', 'lg:pb-0');
 }
 
+// Inyección del Banner Flotante de Términos y Condiciones (Esquina Inferior Izquierda)
+function injectTermsConsentCard() {
+  // Si ya fueron aceptados, no mostrar
+  if (localStorage.getItem('dp_terminos_aceptados') === 'true') return;
+  if (document.getElementById('dpTermsConsentCard')) return;
+
+  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  // Si estamos directamente en terminos-y-condiciones.html, no hace falta tapar el contenido
+  if (currentPath.includes('terminos-y-condiciones')) return;
+
+  const cardHTML = `
+    <div id="dpTermsConsentCard" class="fixed bottom-20 lg:bottom-5 left-4 right-4 sm:right-auto sm:left-5 z-50 max-w-sm bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-[#EAE3DA] shadow-2xl shadow-black/15 transition-all duration-300 animate-fade-in">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 rounded-2xl bg-[#F8ECE7] text-[#C85A32] flex items-center justify-center flex-shrink-0 mt-0.5">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <div class="space-y-1.5 flex-1">
+          <div class="flex items-center justify-between">
+            <h4 class="font-heading font-extrabold text-xs text-[#1F1815] uppercase tracking-wide">Términos y Condiciones</h4>
+            <span class="text-[10px] font-bold text-[#C85A32] bg-[#F8ECE7] px-2 py-0.5 rounded-full">Legal Perú</span>
+          </div>
+          <p class="text-[11px] leading-relaxed text-[#574B46]">
+            Al navegar o cotizar en nuestra plataforma, aceptas nuestros 
+            <a href="terminos-y-condiciones.html" class="text-[#C85A32] font-bold underline hover:text-[#B84A22]">Términos de Uso</a> y Políticas conforme a la normativa de INDECOPI y SUNAT.
+          </p>
+          <div class="pt-2 flex items-center gap-2">
+            <button type="button" onclick="acceptTermsConsent()" class="flex-1 py-2 px-3 bg-[#C85A32] hover:bg-[#B84A22] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer tap-target text-center">
+              Aceptar
+            </button>
+            <button type="button" onclick="rejectTermsConsent()" class="py-2 px-3 bg-[#F4EFEA] hover:bg-stone-200 text-[#574B46] text-xs font-semibold rounded-xl border border-[#EAE3DA] transition-colors cursor-pointer tap-target text-center">
+              Rechazar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', cardHTML);
+}
+
+window.acceptTermsConsent = function() {
+  localStorage.setItem('dp_terminos_aceptados', 'true');
+  const card = document.getElementById('dpTermsConsentCard');
+  if (card) {
+    card.classList.add('opacity-0', 'translate-y-4');
+    setTimeout(() => card.remove(), 300);
+  }
+  if (window.showToast) {
+    showToast('Has aceptado los Términos y Condiciones.', 'success');
+  }
+};
+
+window.rejectTermsConsent = function() {
+  const card = document.getElementById('dpTermsConsentCard');
+  if (card) {
+    card.innerHTML = `
+      <div class="p-3 text-center space-y-2">
+        <p class="text-xs font-bold text-rose-700">Has rechazado los Términos de Uso de la plataforma.</p>
+        <p class="text-[11px] text-[#574B46]">Redirigiendo fuera del sitio web...</p>
+      </div>
+    `;
+  }
+  setTimeout(() => {
+    // Redirigir fuera de la web
+    window.location.href = 'https://www.google.com';
+  }, 1000);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Inicializar Carrito de Cotización en todas las páginas
   if (window.Carrito) {
@@ -113,7 +184,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Barra Móvil Inferior
   injectMobileBottomBar();
 
-  // 4. Menú Móvil Superior
+  // 4. Banner Flotante de Términos y Condiciones
+  injectTermsConsentCard();
+
+  // 5. Menú Móvil Superior
   const mobileMenuBtn = document.getElementById('mobileMenuBtn');
   const mobileNav = document.getElementById('mobileNav');
   if (mobileMenuBtn && mobileNav) {
@@ -129,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 5. Buscador Rápido del Header
+  // 6. Buscador Rápido del Header
   const navSearchInput = document.getElementById('navSearchInput');
   if (navSearchInput) {
     navSearchInput.addEventListener('keydown', (e) => {
@@ -142,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 6. Resaltar enlace de navegación activo
+  // 7. Resaltar enlace de navegación activo
   const currentPath = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-link').forEach(link => {
     const href = link.getAttribute('href');
