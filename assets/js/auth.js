@@ -32,32 +32,49 @@ const Auth = {
     const navUserContainers = document.querySelectorAll('.nav-user-container');
     const mobileUserContainers = document.querySelectorAll('.nav-user-container-mobile');
 
-    navUserContainers.forEach(container => {
+    navUserContainers.forEach((container, idx) => {
       if (user) {
         const shortName = user.nombre_razon_social.split(' ')[0] || 'Mi Cuenta';
+        const dropdownId = `userDropdownMenu_${idx}`;
         container.innerHTML = `
-          <div class="relative group">
-            <button class="flex items-center gap-2 py-1.5 px-3 rounded-xl bg-[#F4EFEA] hover:bg-[#EAE3DA] text-[#1F1815] text-xs font-semibold border border-[#EAE3DA] transition-colors tap-target">
+          <div class="relative inline-block text-left">
+            <button type="button" onclick="Auth.toggleUserDropdown(event, '${dropdownId}')" class="flex items-center gap-2 py-1.5 px-3 rounded-xl bg-[#F4EFEA] hover:bg-[#EAE3DA] text-[#1F1815] text-xs font-semibold border border-[#EAE3DA] transition-colors tap-target cursor-pointer select-none">
               <span class="w-6 h-6 rounded-full bg-[#C85A32] text-white flex items-center justify-center font-bold text-[10px]">
-                ${shortName.charAt(0).toUpperCase()}
+                ${(user.nombre_razon_social || 'C').charAt(0).toUpperCase()}
               </span>
-              <span class="max-w-[110px] truncate">${shortName}</span>
+              <span class="max-w-[120px] truncate">${shortName}</span>
               <svg class="w-3.5 h-3.5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             
-            <!-- Dropdown Menú -->
-            <div class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-[#EAE3DA] py-2 hidden group-hover:block z-50 animate-fade-in">
-              <div class="px-4 py-2 border-b border-stone-100">
-                <p class="text-xs font-bold text-[#1F1815] truncate">${user.nombre_razon_social}</p>
-                <p class="text-[11px] text-[#574B46]">${user.tipo_documento}: ${user.numero_documento}</p>
+            <!-- Dropdown Menú sin brecha de cursor y con toggle interactivo -->
+            <div id="${dropdownId}" class="user-dropdown-menu absolute right-0 top-full mt-1.5 w-60 bg-white rounded-2xl shadow-2xl border border-[#EAE3DA] py-2 hidden z-50 animate-fade-in divide-y divide-stone-100">
+              <div class="px-4 py-2.5 bg-gradient-to-r from-warm-sand to-warm-cream rounded-t-xl">
+                <p class="text-xs font-bold text-[#1F1815] truncate" title="${user.nombre_razon_social}">${user.nombre_razon_social}</p>
+                <p class="text-[10px] text-[#C85A32] font-semibold">${user.tipo_documento}: ${user.numero_documento}</p>
+                <p class="text-[10px] text-stone-500 truncate">${user.email || ''}</p>
               </div>
-              <a href="perfil.html" class="block px-4 py-2 text-xs text-[#1F1815] hover:bg-[#F4EFEA] font-medium">Mi Perfil y Facturación</a>
-              <a href="catalogo.html" class="block px-4 py-2 text-xs text-[#1F1815] hover:bg-[#F4EFEA]">Catálogo</a>
-              <a href="libro-de-reclamaciones.html" class="block px-4 py-2 text-xs text-[#1F1815] hover:bg-[#F4EFEA]">Libro de Reclamaciones</a>
-              <div class="border-t border-stone-100 my-1"></div>
-              <button onclick="Auth.logout()" class="w-full text-left px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 font-medium">Cerrar Sesión</button>
+              <div class="py-1">
+                <a href="perfil.html" class="flex items-center gap-2.5 px-4 py-2 text-xs text-[#1F1815] hover:bg-[#F4EFEA] font-medium transition-colors">
+                  <svg class="w-4 h-4 text-[#C85A32] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                  <span>Mi Perfil y Facturación</span>
+                </a>
+                <a href="catalogo.html" class="flex items-center gap-2.5 px-4 py-2 text-xs text-[#1F1815] hover:bg-[#F4EFEA] transition-colors">
+                  <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                  <span>Catálogo de Productos</span>
+                </a>
+                <a href="libro-de-reclamaciones.html" class="flex items-center gap-2.5 px-4 py-2 text-xs text-[#1F1815] hover:bg-[#F4EFEA] transition-colors">
+                  <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  <span>Libro de Reclamaciones</span>
+                </a>
+              </div>
+              <div class="py-1">
+                <button type="button" onclick="Auth.logout()" class="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 font-semibold transition-colors cursor-pointer">
+                  <svg class="w-4 h-4 text-rose-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                  <span>Cerrar Sesión</span>
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -117,11 +134,25 @@ const Auth = {
     const statusBadge = document.getElementById('backendStatusBadge');
     if (statusBadge) {
       ApiService.checkBackendAvailability().then(isAvailable => {
-        if (isAvailable) {
+        if (window.location.protocol === 'file:') {
+          statusBadge.innerHTML = `
+            <div class="text-left space-y-1">
+              <div class="flex items-center gap-1.5 font-bold text-amber-900">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span>Modo Archivo Local (file://)</span>
+              </div>
+              <p class="text-[10px] text-amber-800 leading-tight">
+                Para registrar en MySQL y ver los datos en phpMyAdmin, abre la web desde tu servidor XAMPP en: 
+                <a href="http://localhost/descartables/login.html" class="underline font-bold text-[#C85A32]">http://localhost/descartables/login.html</a>
+              </p>
+            </div>
+          `;
+          statusBadge.className = 'p-3 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900';
+        } else if (isAvailable) {
           statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Conectado a Base de Datos MySQL (XAMPP)</span>';
           statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center gap-1.5';
         } else {
-          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-800 font-bold">Modo Local Autónomo (LocalStorage)</span>';
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-800 font-bold">Servidor MySQL no detectado. Inicie Apache y MySQL en XAMPP.</span>';
           statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center gap-1.5';
         }
       });
@@ -164,11 +195,25 @@ const Auth = {
     const statusBadge = document.getElementById('backendStatusBadge');
     if (statusBadge) {
       ApiService.checkBackendAvailability().then(isAvailable => {
-        if (isAvailable) {
-          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Conectado a Base de Datos MySQL (XAMPP)</span>';
+        if (window.location.protocol === 'file:') {
+          statusBadge.innerHTML = `
+            <div class="text-left space-y-1">
+              <div class="flex items-center gap-1.5 font-bold text-amber-900">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span>Modo Archivo Local (file://)</span>
+              </div>
+              <p class="text-[10px] text-amber-800 leading-tight">
+                Para que el registro se guarde en tu base de datos de phpMyAdmin, abre la web desde tu servidor XAMPP en: 
+                <a href="http://localhost/descartables/registro.html" class="underline font-bold text-[#C85A32]">http://localhost/descartables/registro.html</a>
+              </p>
+            </div>
+          `;
+          statusBadge.className = 'p-3 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900';
+        } else if (isAvailable) {
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Conectado a Base de Datos MySQL (XAMPP) — Guardando en phpMyAdmin</span>';
           statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center gap-1.5';
         } else {
-          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-800 font-bold">Modo Local Autónomo (LocalStorage)</span>';
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-800 font-bold">Servidor MySQL no detectado. Inicie Apache y MySQL en XAMPP.</span>';
           statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center gap-1.5';
         }
       });
@@ -399,8 +444,33 @@ const Auth = {
     setTimeout(() => {
       container.classList.add('hidden');
     }, 5000);
+  },
+
+  toggleUserDropdown(e, menuId) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    const menu = document.getElementById(menuId);
+    if (!menu) return;
+    const isHidden = menu.classList.contains('hidden');
+    this.closeAllDropdowns();
+    if (isHidden) {
+      menu.classList.remove('hidden');
+    }
+  },
+
+  closeAllDropdowns() {
+    document.querySelectorAll('.user-dropdown-menu').forEach(m => m.classList.add('hidden'));
   }
 };
+
+// Cerrar dropdown al hacer clic fuera
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.user-dropdown-menu') && !e.target.closest('button')) {
+    Auth.closeAllDropdowns();
+  }
+});
 
 window.Auth = Auth;
 

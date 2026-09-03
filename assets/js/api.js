@@ -11,18 +11,24 @@ const ApiService = {
   async checkBackendAvailability() {
     if (this.hasBackend !== null) return this.hasBackend;
 
-    const candidates = [
-      this.baseUrl,
-      'http://localhost/descartables/api',
-      'http://localhost/Web - Descartables/api',
-      'http://127.0.0.1/descartables/api',
-      'http://localhost/api'
-    ];
+    const candidates = [];
+    if (window.location.protocol.startsWith('http')) {
+      candidates.push(this.baseUrl);
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      if (pathParts.length > 0 && (pathParts[0].includes('descartables') || pathParts[0].includes('Web'))) {
+        candidates.push(`/${pathParts[0]}/api`);
+      }
+    }
+    candidates.push('http://localhost/descartables/api');
+    candidates.push('http://127.0.0.1/descartables/api');
+    candidates.push('http://localhost/Web - Descartables/api');
+    candidates.push('http://127.0.0.1/Web - Descartables/api');
+    candidates.push('http://localhost/api');
 
     for (const cand of candidates) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
         const response = await fetch(`${cand}/productos.php?tipo=categorias`, {
           method: 'GET',
           headers: { 'Accept': 'application/json' },
@@ -247,11 +253,15 @@ const ApiService = {
           return json;
         }
       } catch (e) {
-        console.warn('Fallo en API MySQL registro, registrando localmente.');
+        console.error('Error al registrar en MySQL:', e);
+        return {
+          success: false,
+          error: 'Error de comunicación con el servidor MySQL (XAMPP). Verifique que Apache y MySQL estén iniciados.'
+        };
       }
     }
 
-    // Fallback Local
+    // Fallback Local (si no hay servidor XAMPP disponible o protocolo file://)
     const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
     const exists = users.find(u => u.numero_documento === userData.numero_documento || u.email === userData.email);
     if (exists) {
@@ -272,7 +282,13 @@ const ApiService = {
     delete sessionUser.password;
     localStorage.setItem('dp_usuario_activo', JSON.stringify(sessionUser));
 
-    return { success: true, message: 'Usuario registrado exitosamente.', user: sessionUser };
+    return { 
+      success: true, 
+      message: window.location.protocol === 'file:' 
+        ? 'Registrado localmente (Modo archivo file://). Para ver en phpMyAdmin abre en http://localhost/descartables/.' 
+        : 'Usuario registrado exitosamente.', 
+      user: sessionUser 
+    };
   },
 
   // Actualizar perfil
