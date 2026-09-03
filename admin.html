@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración | Descartables Peruanos</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            warm: {
+              cream: '#FDFBF7',
+              sand: '#F4EFEA',
+              border: '#EAE3DA',
+            },
+            terracota: {
+              DEFAULT: '#C85A32',
+              hover: '#B84A22',
+              light: '#F8ECE7',
+            },
+            amberPeru: '#D9822B',
+            salvia: '#4A5D4E',
+            espresso: {
+              DEFAULT: '#1F1815',
+              muted: '#574B46',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="assets/css/custom.css">
+</head>
+<body class="bg-warm-cream text-espresso min-h-screen flex flex-col antialiased">
+
+  <!-- NAVBAR ADMINISTRATIVO -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-warm-border shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Logo y Badge Admin -->
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="flex items-center gap-2.5">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-terracota to-amberPeru flex items-center justify-center text-white shadow-md shadow-terracota/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+            <div>
+              <span class="font-heading font-black text-sm sm:text-base tracking-tight text-espresso block leading-tight">DESCARTABLES PERUANOS</span>
+              <span class="text-[10px] text-terracota font-extrabold uppercase tracking-widest block">Panel de Administración</span>
+            </div>
+          </a>
+          <span class="hidden md:inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded-full">
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>
+            Master Admin
+          </span>
+        </div>
+
+        <!-- Acciones Cabecera -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <a href="catalogo.html" target="_blank" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200 text-xs font-semibold transition-colors tap-target">
+            <svg class="w-4 h-4 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            <span>Ver Tienda</span>
+          </a>
+
+          <div class="flex items-center gap-2 pl-2 border-l border-warm-border">
+            <div class="text-right hidden sm:block">
+              <p id="adminNombreHeader" class="text-xs font-bold text-espresso truncate max-w-[150px]">Administrador</p>
+              <p id="adminDocHeader" class="text-[10px] text-terracota font-bold">RUC 20601234567</p>
+            </div>
+            <button onclick="Auth.logout()" class="p-2 sm:px-3 sm:py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 tap-target" title="Cerrar Sesión">
+              <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              <span class="hidden sm:inline">Salir</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+
+    <!-- BARRA SUPERIOR DE PESTAÑAS (TABS) -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-3 sm:p-4 rounded-3xl border border-warm-border shadow-xs">
+      
+      <!-- Pestañas -->
+      <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto touch-scroll pb-1 sm:pb-0">
+        <button id="tabBtnProductos" onclick="Admin.switchTab('productos')" class="tab-btn active px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-terracota text-white shadow-md shadow-terracota/20">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          <span>Gestión de Productos</span>
+        </button>
+
+        <button id="tabBtnUsuarios" onclick="Admin.switchTab('usuarios')" class="tab-btn px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-warm-sand text-espresso-muted hover:bg-stone-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <span>Directorio de Usuarios</span>
+        </button>
+
+        <button id="tabBtnMetricas" onclick="Admin.switchTab('metricas')" class="tab-btn px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-warm-sand text-espresso-muted hover:bg-stone-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span>Resumen y Métricas</span>
+        </button>
+      </div>
+
+      <!-- Botón Nuevo Producto Rápido -->
+      <div id="btnNuevoProductoContainer">
+        <button onclick="Admin.openProductModal()" class="w-full sm:w-auto px-5 py-2.5 bg-salvia hover:bg-[#3d4d40] text-white rounded-2xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 tap-target">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span>+ Nuevo Producto</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 1: PRODUCTOS ==================== -->
+    <section id="tabProductos" class="space-y-4">
+      
+      <!-- Barra de Filtros y Búsqueda -->
+      <div class="bg-white p-4 rounded-3xl border border-warm-border shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="relative w-full md:w-80">
+          <input type="text" id="adminProdSearch" oninput="Admin.filterProducts()" placeholder="Buscar por nombre, SKU o material..." class="w-full bg-warm-cream border border-warm-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+          <svg class="w-4 h-4 text-stone-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+
+        <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto touch-scroll">
+          <select id="adminProdCatFilter" onchange="Admin.filterProducts()" class="bg-warm-cream border border-warm-border rounded-xl px-3 py-2 text-xs text-espresso font-semibold focus:outline-none focus:border-terracota">
+            <option value="all">Todas las Categorías</option>
+            <option value="1">Contenedores Pamolsa</option>
+            <option value="2">Vasos y Tapas Proplas</option>
+            <option value="3">Cubiertos y Vajilla</option>
+            <option value="4">Servilletas y Papelería</option>
+            <option value="5">Limpieza y Desinfección</option>
+            <option value="6">Línea Eco-Biodegradable</option>
+          </select>
+
+          <span id="adminProdCountBadge" class="text-xs font-bold text-espresso-muted px-3 py-2 bg-warm-sand rounded-xl whitespace-nowrap">
+            0 productos
+          </span>
+        </div>
+      </div>
+
+      <!-- Tabla de Productos -->
+      <div class="bg-white rounded-3xl border border-warm-border shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-warm-sand/70 text-espresso font-bold border-b border-warm-border uppercase text-[10px] tracking-wider">
+                <th class="py-3.5 px-4">Producto</th>
+                <th class="py-3.5 px-3">SKU</th>
+                <th class="py-3.5 px-3">Categoría</th>
+                <th class="py-3.5 px-3">Presentación</th>
+                <th class="py-3.5 px-3">Material</th>
+                <th class="py-3.5 px-3 text-center">Eco-Bio</th>
+                <th class="py-3.5 px-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="adminProductsTableBody" class="divide-y divide-warm-border/60">
+              <tr>
+                <td colspan="7" class="py-12 text-center text-stone-400">
+                  <div class="inline-block w-6 h-6 border-2 border-terracota border-t-transparent rounded-full animate-spin mb-2"></div>
+                  <p>Cargando catálogo de productos...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 2: USUARIOS ==================== -->
+    <section id="tabUsuarios" class="space-y-4 hidden">
+      
+      <!-- Filtros de Usuarios -->
+      <div class="bg-white p-4 rounded-3xl border border-warm-border shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="relative w-full md:w-80">
+          <input type="text" id="adminUserSearch" oninput="Admin.filterUsers()" placeholder="Buscar cliente por DNI, RUC, nombre o email..." class="w-full bg-warm-cream border border-warm-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+          <svg class="w-4 h-4 text-stone-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+
+        <div class="flex items-center gap-2 w-full md:w-auto">
+          <select id="adminUserRolFilter" onchange="Admin.filterUsers()" class="bg-warm-cream border border-warm-border rounded-xl px-3 py-2 text-xs text-espresso font-semibold focus:outline-none focus:border-terracota">
+            <option value="all">Todos los Roles</option>
+            <option value="cliente">Solo Clientes</option>
+            <option value="admin">Solo Administradores</option>
+          </select>
+
+          <span id="adminUserCountBadge" class="text-xs font-bold text-espresso-muted px-3 py-2 bg-warm-sand rounded-xl whitespace-nowrap">
+            0 usuarios
+          </span>
+        </div>
+      </div>
+
+      <!-- Tabla de Usuarios -->
+      <div class="bg-white rounded-3xl border border-warm-border shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-warm-sand/70 text-espresso font-bold border-b border-warm-border uppercase text-[10px] tracking-wider">
+                <th class="py-3.5 px-4">Cliente / Razón Social</th>
+                <th class="py-3.5 px-3">Documento</th>
+                <th class="py-3.5 px-3">Contacto Directo</th>
+                <th class="py-3.5 px-3">Ubicación</th>
+                <th class="py-3.5 px-3 text-center">Rol</th>
+                <th class="py-3.5 px-3">Registrado</th>
+                <th class="py-3.5 px-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsersTableBody" class="divide-y divide-warm-border/60">
+              <tr>
+                <td colspan="7" class="py-12 text-center text-stone-400">
+                  <div class="inline-block w-6 h-6 border-2 border-terracota border-t-transparent rounded-full animate-spin mb-2"></div>
+                  <p>Consultando base de datos MySQL...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 3: MÉTRICAS ==================== -->
+    <section id="tabMetricas" class="space-y-6 hidden">
+      
+      <!-- Bento Cards Resumen -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-terracota">
+            <span class="text-xs font-bold uppercase tracking-wider">Total Productos</span>
+            <div class="w-8 h-8 rounded-xl bg-terracota-light flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            </div>
+          </div>
+          <p id="metricTotalProd" class="font-heading font-black text-3xl text-espresso">0</p>
+          <p class="text-[11px] text-espresso-muted">Activos en el catálogo público</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-blue-600">
+            <span class="text-xs font-bold uppercase tracking-wider">Clientes Registrados</span>
+            <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+          </div>
+          <p id="metricTotalUsers" class="font-heading font-black text-3xl text-espresso">0</p>
+          <p class="text-[11px] text-espresso-muted">Guardados en MySQL (XAMPP)</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-purple-600">
+            <span class="text-xs font-bold uppercase tracking-wider">Empresas (RUC)</span>
+            <div class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </div>
+          </div>
+          <p id="metricTotalEmpresas" class="font-heading font-black text-3xl text-espresso">0</p>
+          <p class="text-[11px] text-espresso-muted">Clientes con Factura B2B</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-emerald-600">
+            <span class="text-xs font-bold uppercase tracking-wider">Base de Datos</span>
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+            </div>
+          </div>
+          <p class="font-heading font-black text-xl text-emerald-700 flex items-center gap-1.5 pt-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>MySQL Conectado</span>
+          </p>
+          <p class="text-[11px] text-espresso-muted">Host: 127.0.0.1 | Port: 3306</p>
+        </div>
+
+      </div>
+
+      <!-- Tarjeta de Información del Negocio -->
+      <div class="bg-white p-6 rounded-3xl border border-warm-border shadow-sm space-y-4">
+        <h3 class="font-heading font-bold text-base text-espresso flex items-center gap-2">
+          <svg class="w-5 h-5 text-terracota" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Información de la Plataforma y Normativa SUNAT</span>
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="p-4 bg-warm-cream rounded-2xl border border-warm-border/60">
+            <p class="text-espresso-muted text-[11px]">Razón Social:</p>
+            <p class="font-bold text-espresso">DESCARTABLES PERUANOS S.A.C.</p>
+            <p class="text-espresso-muted text-[11px] mt-2">RUC:</p>
+            <p class="font-bold text-terracota">20601234567</p>
+          </div>
+          <div class="p-4 bg-warm-cream rounded-2xl border border-warm-border/60">
+            <p class="text-espresso-muted text-[11px]">Dirección Fiscal:</p>
+            <p class="font-bold text-espresso">Av. Alejandro Bertello 732-C, Cercado de Lima</p>
+            <p class="text-espresso-muted text-[11px] mt-2">Teléfono Central:</p>
+            <p class="font-bold text-espresso">(01) 564-1450</p>
+          </div>
+          <div class="p-4 bg-warm-cream rounded-2xl border border-warm-border/60">
+            <p class="text-espresso-muted text-[11px]">Línea de WhatsApp Ventas:</p>
+            <p class="font-bold text-emerald-700">+51 994 195 430</p>
+            <p class="text-espresso-muted text-[11px] mt-2">Normativa Libro Reclamaciones:</p>
+            <p class="font-bold text-espresso">Ley N° 31435 / D.S. 011-2011-PCM</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL CREAR / EDITAR PRODUCTO ==================== -->
+  <div id="modalProducto" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto">
+    <div class="bg-white w-full max-w-2xl rounded-3xl border border-warm-border shadow-2xl p-5 sm:p-8 space-y-5 my-8">
+      
+      <div class="flex items-center justify-between border-b border-warm-border pb-3">
+        <div>
+          <h2 id="modalProductTitle" class="font-heading font-extrabold text-xl text-espresso">Agregar Nuevo Producto</h2>
+          <p class="text-xs text-espresso-muted">Complete los datos técnicos del empaque descartable.</p>
+        </div>
+        <button onclick="Admin.closeProductModal()" class="p-2 rounded-xl text-stone-400 hover:text-espresso hover:bg-stone-100 transition-colors tap-target">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="formProducto" onsubmit="Admin.saveProduct(event)" class="space-y-4">
+        <input type="hidden" id="prodFormId" value="">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-espresso mb-1">Nombre Comercial del Producto *</label>
+            <input type="text" id="prodFormNombre" required placeholder="Ej: Contenedor Térmico CT-4 Pamolsa" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Código SKU *</label>
+            <input type="text" id="prodFormSku" required placeholder="Ej: PAM-CT4-BLA" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-espresso focus:outline-none focus:border-terracota uppercase">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Categoría / Línea *</label>
+            <select id="prodFormCategoria" required class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-2.5 text-xs text-espresso font-semibold focus:outline-none focus:border-terracota">
+              <option value="1">1. Contenedores Térmicos Pamolsa</option>
+              <option value="2">2. Vasos y Tapas Proplas</option>
+              <option value="3">3. Cubiertos y Vajilla</option>
+              <option value="4">4. Servilletas y Papelería</option>
+              <option value="5">5. Limpieza y Desinfección</option>
+              <option value="6">6. Línea Eco-Biodegradable</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Presentación / Empaque *</label>
+            <input type="text" id="prodFormPresentacion" required placeholder="Ej: Caja x 200 und" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-espresso mb-1">Material de Fabricación *</label>
+            <input type="text" id="prodFormMaterial" required placeholder="Ej: Poliestireno Expandido" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+          </div>
+        </div>
+
+        <!-- FOTO DEL PRODUCTO (Subida de archivo o URL) -->
+        <div class="p-4 bg-warm-sand rounded-2xl border border-warm-border space-y-3">
+          <label class="block text-xs font-bold text-espresso">Fotografía del Producto</label>
+          <div class="flex flex-col sm:flex-row items-center gap-4">
+            <div class="w-24 h-24 rounded-2xl bg-white border border-warm-border flex items-center justify-center overflow-hidden flex-shrink-0 shadow-inner">
+              <img id="prodFormImgPreview" src="https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=400&q=80" alt="Vista Previa" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 space-y-2 w-full">
+              <div>
+                <label class="block text-[11px] text-espresso-muted font-medium mb-1">Opción A: Subir imagen desde tu computadora (JPG, PNG, WEBP)</label>
+                <input type="file" id="prodFormFileInput" accept="image/*" onchange="Admin.handleImageUpload(this)" class="w-full text-xs text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-terracota file:text-white hover:file:bg-terracota-hover cursor-pointer">
+              </div>
+              <div>
+                <label class="block text-[11px] text-espresso-muted font-medium mb-1">Opción B: O pegar enlace URL directo de imagen</label>
+                <input type="url" id="prodFormImgUrl" oninput="Admin.updateImagePreview(this.value)" placeholder="https://ejemplo.com/foto-producto.jpg" class="w-full bg-white border border-warm-border rounded-xl px-3 py-1.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-espresso mb-1">Descripción Comercial y Usos Recomendados</label>
+          <textarea id="prodFormDescripcion" rows="3" placeholder="Detalles de resistencia térmica, compatibilidad con alimentos calientes o fríos..." class="w-full bg-warm-cream border border-warm-border rounded-xl p-3 text-xs text-espresso focus:outline-none focus:border-terracota leading-relaxed"></textarea>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-6 pt-1">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="prodFormBiodegradable" class="w-4 h-4 rounded text-salvia focus:ring-salvia border-warm-border">
+            <span class="text-xs font-bold text-espresso">Producto Eco-Amigable / Biodegradable</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="prodFormDestacado" class="w-4 h-4 rounded text-terracota focus:ring-terracota border-warm-border">
+            <span class="text-xs font-bold text-espresso">Destacado en Portada</span>
+          </label>
+        </div>
+
+        <div class="pt-3 border-t border-warm-border flex items-center justify-end gap-3">
+          <button type="button" onclick="Admin.closeProductModal()" class="px-5 py-2.5 rounded-xl border border-warm-border text-xs font-bold text-espresso hover:bg-warm-sand transition-colors tap-target">
+            Cancelar
+          </button>
+          <button type="submit" id="btnGuardarProducto" class="px-6 py-2.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2 tap-target">
+            <span>Guardar Producto</span>
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script>
+    // MÓDULO ADMINISTRATIVO INTERACTIVO
+    const Admin = {
+      products: [],
+      users: [],
+      currentTab: 'productos',
+
+      async init() {
+        // Protección de ruta (solo usuarios admin)
+        const isAuthorized = Auth.initAdminPage();
+        if (!isAuthorized) return;
+
+        await this.loadProducts();
+        await this.loadUsers();
+        this.updateStats();
+      },
+
+      switchTab(tabName) {
+        this.currentTab = tabName;
+        ['productos', 'usuarios', 'metricas'].forEach(tab => {
+          const el = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+          const btn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+          if (tab === tabName) {
+            el.classList.remove('hidden');
+            btn.className = 'tab-btn active px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-terracota text-white shadow-md shadow-terracota/20';
+          } else {
+            el.classList.add('hidden');
+            btn.className = 'tab-btn px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-warm-sand text-espresso-muted hover:bg-stone-200';
+          }
+        });
+
+        const btnNuevo = document.getElementById('btnNuevoProductoContainer');
+        if (btnNuevo) {
+          btnNuevo.style.display = (tabName === 'productos') ? 'block' : 'none';
+        }
+      },
+
+      // ================= PRODUCTOS =================
+      async loadProducts() {
+        try {
+          this.products = await ApiService.getProducts();
+          this.renderProducts(this.products);
+        } catch (e) {
+          console.error('Error cargando productos:', e);
+        }
+      },
+
+      renderProducts(list) {
+        const tbody = document.getElementById('adminProductsTableBody');
+        const countBadge = document.getElementById('adminProdCountBadge');
+        if (countBadge) countBadge.textContent = `${list.length} productos`;
+
+        if (list.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="py-10 text-center text-stone-400">
+                No se encontraron productos coincidentes.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = list.map(prod => `
+          <tr class="hover:bg-warm-sand/40 transition-colors">
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-3">
+                <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-10 h-10 rounded-xl object-cover border border-warm-border flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=100&q=80'">
+                <div>
+                  <p class="font-bold text-espresso leading-tight">${prod.nombre}</p>
+                  <p class="text-[10px] text-espresso-muted truncate max-w-[200px]">${prod.descripcion || ''}</p>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-3 font-mono font-bold text-terracota text-[11px]">${prod.sku}</td>
+            <td class="py-3 px-3">
+              <span class="px-2.5 py-1 rounded-lg bg-warm-sand font-medium text-[11px] text-espresso">
+                ${prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id)}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-espresso-muted">${prod.presentacion}</td>
+            <td class="py-3 px-3 text-espresso">${prod.material}</td>
+            <td class="py-3 px-3 text-center">
+              ${prod.biodegradable 
+                ? '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">🌿 Bio</span>' 
+                : '<span class="text-stone-300 text-xs">—</span>'}
+            </td>
+            <td class="py-3 px-4 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="Admin.editProduct(${prod.id})" class="p-2 rounded-xl bg-warm-sand hover:bg-stone-200 text-espresso transition-colors tap-target" title="Editar Producto">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button onclick="Admin.confirmDeleteProduct(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}')" class="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors tap-target" title="Eliminar Producto">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      },
+
+      filterProducts() {
+        const query = document.getElementById('adminProdSearch').value.toLowerCase().trim();
+        const cat = document.getElementById('adminProdCatFilter').value;
+
+        const filtered = this.products.filter(p => {
+          const matchQuery = !query || 
+            p.nombre.toLowerCase().includes(query) || 
+            p.sku.toLowerCase().includes(query) || 
+            p.material.toLowerCase().includes(query);
+          const matchCat = (cat === 'all') || (p.categoria_id == cat);
+          return matchQuery && matchCat;
+        });
+
+        this.renderProducts(filtered);
+      },
+
+      openProductModal() {
+        document.getElementById('modalProductTitle').textContent = 'Agregar Nuevo Producto';
+        document.getElementById('formProducto').reset();
+        document.getElementById('prodFormId').value = '';
+        document.getElementById('prodFormImgPreview').src = 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=400&q=80';
+        const modal = document.getElementById('modalProducto');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      },
+
+      closeProductModal() {
+        const modal = document.getElementById('modalProducto');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      },
+
+      editProduct(id) {
+        const prod = this.products.find(p => p.id === id);
+        if (!prod) return;
+
+        document.getElementById('modalProductTitle').textContent = 'Editar Producto';
+        document.getElementById('prodFormId').value = prod.id;
+        document.getElementById('prodFormNombre').value = prod.nombre;
+        document.getElementById('prodFormSku').value = prod.sku;
+        document.getElementById('prodFormCategoria').value = prod.categoria_id;
+        document.getElementById('prodFormPresentacion').value = prod.presentacion;
+        document.getElementById('prodFormMaterial').value = prod.material;
+        document.getElementById('prodFormDescripcion').value = prod.descripcion || '';
+        document.getElementById('prodFormImgUrl').value = prod.imagen_url || '';
+        document.getElementById('prodFormBiodegradable').checked = Boolean(prod.biodegradable);
+        document.getElementById('prodFormDestacado').checked = Boolean(prod.destacado);
+
+        this.updateImagePreview(prod.imagen_url);
+
+        const modal = document.getElementById('modalProducto');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      },
+
+      updateImagePreview(url) {
+        const img = document.getElementById('prodFormImgPreview');
+        if (url && url.trim()) {
+          img.src = url;
+        } else {
+          img.src = 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=400&q=80';
+        }
+      },
+
+      async handleImageUpload(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        
+        // Preview temporal
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('prodFormImgPreview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+
+        // Subir al backend
+        const res = await ApiService.uploadProductImage(file);
+        if (res.success && res.url) {
+          document.getElementById('prodFormImgUrl').value = res.url;
+        }
+      },
+
+      async saveProduct(e) {
+        e.preventDefault();
+        const id = document.getElementById('prodFormId').value;
+        const btn = document.getElementById('btnGuardarProducto');
+
+        const payload = {
+          nombre: document.getElementById('prodFormNombre').value.trim(),
+          sku: document.getElementById('prodFormSku').value.trim().toUpperCase(),
+          categoria_id: parseInt(document.getElementById('prodFormCategoria').value),
+          presentacion: document.getElementById('prodFormPresentacion').value.trim(),
+          material: document.getElementById('prodFormMaterial').value.trim(),
+          descripcion: document.getElementById('prodFormDescripcion').value.trim(),
+          imagen_url: document.getElementById('prodFormImgUrl').value.trim() || 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=600&q=80',
+          biodegradable: document.getElementById('prodFormBiodegradable').checked ? 1 : 0,
+          destacado: document.getElementById('prodFormDestacado').checked ? 1 : 0
+        };
+
+        btn.disabled = true;
+        btn.innerHTML = '<span>Guardando...</span>';
+
+        let res;
+        if (id) {
+          res = await ApiService.updateProduct(parseInt(id), payload);
+        } else {
+          res = await ApiService.createProduct(payload);
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<span>Guardar Producto</span>';
+
+        if (res.success) {
+          alert(id ? '¡Producto actualizado correctamente!' : '¡Producto agregado al catálogo con éxito!');
+          this.closeProductModal();
+          await this.loadProducts();
+          this.updateStats();
+        } else {
+          alert(res.error || 'Ocurrió un error al guardar el producto.');
+        }
+      },
+
+      async confirmDeleteProduct(id, nombre) {
+        if (confirm(`¿Estás seguro de que deseas eliminar permanentemente "${nombre}" del catálogo?`)) {
+          const res = await ApiService.deleteProduct(id);
+          if (res.success) {
+            alert('Producto eliminado correctamente.');
+            await this.loadProducts();
+            this.updateStats();
+          } else {
+            alert(res.error || 'No se pudo eliminar el producto.');
+          }
+        }
+      },
+
+      // ================= USUARIOS =================
+      async loadUsers() {
+        try {
+          const res = await ApiService.getUsers();
+          if (res.success) {
+            this.users = res.data || [];
+            this.renderUsers(this.users);
+          }
+        } catch (e) {
+          console.error('Error cargando usuarios:', e);
+        }
+      },
+
+      renderUsers(list) {
+        const tbody = document.getElementById('adminUsersTableBody');
+        const countBadge = document.getElementById('adminUserCountBadge');
+        if (countBadge) countBadge.textContent = `${list.length} usuarios`;
+
+        if (list.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="py-10 text-center text-stone-400">
+                No se encontraron usuarios registrados.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = list.map(u => {
+          const cleanPhone = (u.telefono || '').replace(/[^0-9]/g, '');
+          const waLink = cleanPhone.length >= 9 
+            ? `https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + u.nombre_razon_social + ', le saludamos de Descartables Peruanos.')}` 
+            : '#';
+
+          return `
+            <tr class="hover:bg-warm-sand/40 transition-colors">
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full ${u.rol === 'admin' ? 'bg-[#C85A32]' : 'bg-stone-700'} text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    ${(u.nombre_razon_social || 'C').charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p class="font-bold text-espresso">${u.nombre_razon_social}</p>
+                    <p class="text-[11px] text-espresso-muted">${u.email}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3 px-3">
+                <span class="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold ${u.tipo_documento === 'RUC' ? 'bg-purple-100 text-purple-900' : 'bg-blue-100 text-blue-900'}">
+                  ${u.tipo_documento}: ${u.numero_documento}
+                </span>
+              </td>
+              <td class="py-3 px-3">
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-espresso">${u.telefono || '—'}</span>
+                  ${cleanPhone.length >= 9 ? `
+                    <a href="${waLink}" target="_blank" class="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors" title="Abrir WhatsApp">
+                      <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/></svg>
+                    </a>
+                  ` : ''}
+                </div>
+              </td>
+              <td class="py-3 px-3 text-espresso-muted">
+                <p class="text-[11px] leading-tight">${u.distrito || 'Lima'}, ${u.departamento || 'Lima'}</p>
+                <p class="text-[10px] text-stone-400 truncate max-w-[130px]">${u.direccion || ''}</p>
+              </td>
+              <td class="py-3 px-3 text-center">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${u.rol === 'admin' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}">
+                  ${u.rol}
+                </span>
+              </td>
+              <td class="py-3 px-3 text-espresso-muted text-[11px] whitespace-nowrap">
+                ${(u.creado_en || '').slice(0, 10)}
+              </td>
+              <td class="py-3 px-4 text-right">
+                ${u.id !== 1 ? `
+                  <button onclick="Admin.confirmDeleteUser(${u.id}, '${u.nombre_razon_social.replace(/'/g, "\\'")}')" class="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors tap-target" title="Eliminar Cliente">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                ` : '<span class="text-[10px] text-stone-400 font-bold">Principal</span>'}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      },
+
+      filterUsers() {
+        const query = document.getElementById('adminUserSearch').value.toLowerCase().trim();
+        const rol = document.getElementById('adminUserRolFilter').value;
+
+        const filtered = this.users.filter(u => {
+          const matchQuery = !query || 
+            (u.nombre_razon_social || '').toLowerCase().includes(query) || 
+            (u.numero_documento || '').toLowerCase().includes(query) || 
+            (u.email || '').toLowerCase().includes(query) ||
+            (u.telefono || '').toLowerCase().includes(query);
+          const matchRol = (rol === 'all') || (u.rol === rol);
+          return matchQuery && matchRol;
+        });
+
+        this.renderUsers(filtered);
+      },
+
+      async confirmDeleteUser(id, nombre) {
+        if (confirm(`¿Eliminar la cuenta del usuario "${nombre}" de la base de datos?`)) {
+          const res = await ApiService.deleteUser(id);
+          if (res.success) {
+            alert('Usuario eliminado correctamente.');
+            await this.loadUsers();
+            this.updateStats();
+          } else {
+            alert(res.error || 'No se pudo eliminar el usuario.');
+          }
+        }
+      },
+
+      updateStats() {
+        const metricProd = document.getElementById('metricTotalProd');
+        if (metricProd) metricProd.textContent = this.products.length;
+
+        const metricUsers = document.getElementById('metricTotalUsers');
+        if (metricUsers) metricUsers.textContent = this.users.length;
+
+        const metricEmpresas = document.getElementById('metricTotalEmpresas');
+        if (metricEmpresas) {
+          metricEmpresas.textContent = this.users.filter(u => u.tipo_documento === 'RUC').length;
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      Admin.init();
+    });
+  </script>
+</body>
+</html>

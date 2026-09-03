@@ -324,6 +324,204 @@ const ApiService = {
     }
 
     return { success: true, message: 'Perfil actualizado con éxito.', user: updated };
+  },
+
+  // ==================== MÓDULO ADMINISTRATIVO ====================
+
+  // Crear producto
+  async createProduct(productData) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/productos.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productData)
+        });
+        return await res.json();
+      } catch (e) {
+        console.error('Error al crear producto en MySQL:', e);
+        return { success: false, error: 'Error de conexión con el servidor MySQL.' };
+      }
+    }
+
+    // Fallback local
+    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const newProd = {
+      id: Date.now(),
+      ...productData,
+      categoria_nombre: this.getCatalogCategoryName(productData.categoria_id)
+    };
+    localProds.push(newProd);
+    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+    return { success: true, message: 'Producto guardado localmente.', data: newProd };
+  },
+
+  // Editar producto
+  async updateProduct(id, productData) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/productos.php`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, ...productData })
+        });
+        return await res.json();
+      } catch (e) {
+        console.error('Error al actualizar producto en MySQL:', e);
+        return { success: false, error: 'Error de conexión con el servidor MySQL.' };
+      }
+    }
+
+    // Fallback local
+    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const idx = localProds.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      localProds[idx] = { ...localProds[idx], ...productData };
+      localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+      return { success: true, message: 'Producto actualizado localmente.', data: localProds[idx] };
+    }
+    return { success: true, message: 'Producto actualizado.', data: { id, ...productData } };
+  },
+
+  // Eliminar producto
+  async deleteProduct(id) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/productos.php`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        return await res.json();
+      } catch (e) {
+        console.error('Error al eliminar producto en MySQL:', e);
+        return { success: false, error: 'Error de conexión con el servidor MySQL.' };
+      }
+    }
+
+    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const filtered = localProds.filter(p => p.id !== id);
+    localStorage.setItem('dp_productos_custom', JSON.stringify(filtered));
+    return { success: true, message: 'Producto eliminado localmente.' };
+  },
+
+  // Subir imagen de producto
+  async uploadProductImage(file) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const formData = new FormData();
+        formData.append('imagen', file);
+        const res = await fetch(`${this.baseUrl}/upload.php`, {
+          method: 'POST',
+          body: formData
+        });
+        return await res.json();
+      } catch (e) {
+        console.error('Error al subir imagen:', e);
+        return { success: false, error: 'No se pudo subir la imagen al servidor.' };
+      }
+    }
+
+    // Fallback: Convertir a DataURL Base64 para persistencia local
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve({ success: true, url: e.target.result });
+      };
+      reader.onerror = () => {
+        resolve({ success: false, error: 'Error al procesar la imagen localmente.' });
+      };
+      reader.readAsDataURL(file);
+    });
+  },
+
+  // Listar usuarios registrados
+  async getUsers(params = {}) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const query = new URLSearchParams(params).toString();
+        const res = await fetch(`${this.baseUrl}/usuarios.php${query ? '?' + query : ''}`);
+        const json = await res.json();
+        if (json.success) return json;
+      } catch (e) {
+        console.warn('Error al obtener usuarios de MySQL, listando respaldo local.');
+      }
+    }
+
+    // Fallback local
+    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
+    const stats = {
+      total: users.length,
+      clientes: users.filter(u => u.rol === 'cliente').length,
+      admins: users.filter(u => u.rol === 'admin').length,
+      empresas: users.filter(u => u.tipo_documento === 'RUC').length,
+      naturales: users.filter(u => u.tipo_documento === 'DNI').length
+    };
+    return { success: true, data: users, stats };
+  },
+
+  // Actualizar rol de usuario
+  async updateUserRole(id, role) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/usuarios.php`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, rol: role })
+        });
+        return await res.json();
+      } catch (e) {
+        console.error('Error al actualizar rol:', e);
+      }
+    }
+
+    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
+    const idx = users.findIndex(u => u.id === id);
+    if (idx !== -1) {
+      users[idx].rol = role;
+      localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
+    }
+    return { success: true, message: `Rol actualizado a ${role} localmente.` };
+  },
+
+  // Eliminar usuario
+  async deleteUser(id) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/usuarios.php`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        return await res.json();
+      } catch (e) {
+        console.error('Error al eliminar usuario:', e);
+      }
+    }
+
+    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
+    const filtered = users.filter(u => u.id !== id);
+    localStorage.setItem('dp_usuarios_registrados', JSON.stringify(filtered));
+    return { success: true, message: 'Usuario eliminado localmente.' };
+  },
+
+  getCatalogCategoryName(catId) {
+    const map = {
+      1: 'Contenedores Térmicos Pamolsa',
+      2: 'Vasos y Tapas Proplas',
+      3: 'Cubiertos y Vajilla',
+      4: 'Servilletas y Papelería',
+      5: 'Limpieza y Desinfección',
+      6: 'Línea Eco-Biodegradable'
+    };
+    return map[catId] || 'General';
   }
 };
 

@@ -51,11 +51,20 @@ const Auth = {
             <!-- Dropdown Menú sin brecha de cursor y con toggle interactivo -->
             <div id="${dropdownId}" class="user-dropdown-menu absolute right-0 top-full mt-1.5 w-60 bg-white rounded-2xl shadow-2xl border border-[#EAE3DA] py-2 hidden z-50 animate-fade-in divide-y divide-stone-100">
               <div class="px-4 py-2.5 bg-gradient-to-r from-warm-sand to-warm-cream rounded-t-xl">
-                <p class="text-xs font-bold text-[#1F1815] truncate" title="${user.nombre_razon_social}">${user.nombre_razon_social}</p>
+                <div class="flex items-center justify-between">
+                  <p class="text-xs font-bold text-[#1F1815] truncate" title="${user.nombre_razon_social}">${user.nombre_razon_social}</p>
+                  ${user.rol === 'admin' ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-[#C85A32] text-white font-black uppercase">ADMIN</span>' : ''}
+                </div>
                 <p class="text-[10px] text-[#C85A32] font-semibold">${user.tipo_documento}: ${user.numero_documento}</p>
                 <p class="text-[10px] text-stone-500 truncate">${user.email || ''}</p>
               </div>
               <div class="py-1">
+                ${user.rol === 'admin' ? `
+                  <a href="admin.html" class="flex items-center gap-2.5 px-4 py-2 text-xs text-[#C85A32] bg-amber-50 hover:bg-amber-100 font-bold transition-colors">
+                    <svg class="w-4 h-4 text-[#C85A32] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>Panel de Administración</span>
+                  </a>
+                ` : ''}
                 <a href="perfil.html" class="flex items-center gap-2.5 px-4 py-2 text-xs text-[#1F1815] hover:bg-[#F4EFEA] font-medium transition-colors">
                   <svg class="w-4 h-4 text-[#C85A32] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                   <span>Mi Perfil y Facturación</span>
@@ -179,7 +188,11 @@ const Auth = {
 
       if (result.success) {
         if (window.showToast) window.showToast('¡Bienvenido(a)!', 'success');
-        window.location.href = 'perfil.html';
+        if (result.user && result.user.rol === 'admin') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'perfil.html';
+        }
       } else {
         this.showFormError(errorBox, result.error || 'Credenciales incorrectas');
       }
@@ -444,6 +457,20 @@ const Auth = {
     setTimeout(() => {
       container.classList.add('hidden');
     }, 5000);
+  },
+
+  initAdminPage() {
+    const user = this.getCurrentUser();
+    if (!user || user.rol !== 'admin') {
+      alert('Acceso Restringido: Debe iniciar sesión con una cuenta de Administrador.');
+      window.location.href = 'login.html';
+      return false;
+    }
+    const nameEl = document.getElementById('adminNombreHeader');
+    if (nameEl) nameEl.textContent = user.nombre_razon_social;
+    const docEl = document.getElementById('adminDocHeader');
+    if (docEl) docEl.textContent = `${user.tipo_documento}: ${user.numero_documento}`;
+    return true;
   },
 
   toggleUserDropdown(e, menuId) {
