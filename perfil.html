@@ -47,19 +47,20 @@
 <body class="bg-warm-cream text-espresso antialiased selection:bg-terracota selection:text-white">
 
   <!-- Header Glassmorphism -->
+  <!-- Header Glassmorphism -->
   <header class="sticky top-0 z-40 glass-warm border-b border-warm-border">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-20 gap-4">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
         
-        <a href="index.html" class="flex items-center gap-3 flex-shrink-0 group">
-          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-terracota to-amberPeru flex items-center justify-center shadow-md shadow-terracota/20 group-hover:scale-105 transition-transform">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+        <a href="index.html" class="flex items-center gap-2 sm:gap-3 flex-shrink-0 group">
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-terracota to-amberPeru flex items-center justify-center shadow-md shadow-terracota/20 group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
           </div>
           <div>
-            <span class="font-heading font-extrabold text-xl tracking-tight text-espresso block leading-none">
+            <span class="font-heading font-extrabold text-base sm:text-xl tracking-tight text-espresso block leading-none">
               DESCARTABLES
             </span>
-            <span class="text-[11px] font-bold tracking-widest text-terracota uppercase block">
+            <span class="text-[9px] sm:text-[11px] font-bold tracking-widest text-terracota uppercase block">
               PERUANOS
             </span>
           </div>
@@ -72,38 +73,51 @@
           <a href="contacto.html" class="nav-link hover:text-terracota transition-colors">Contacto</a>
         </nav>
 
-        <div class="flex items-center gap-3">
-          <button class="open-cart-trigger relative p-2.5 rounded-xl bg-white hover:bg-warm-sand border border-warm-border text-espresso transition-colors shadow-sm" aria-label="Ver Cotizador">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button class="open-cart-trigger relative p-2 sm:p-2.5 rounded-xl bg-white hover:bg-warm-sand border border-warm-border text-espresso transition-colors shadow-sm tap-target" aria-label="Ver Cotizador">
             <svg class="w-5 h-5 text-espresso" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-            <span class="cart-count-badge hidden absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-terracota text-white text-[11px] font-bold flex items-center justify-center shadow-md">0</span>
+            <span class="cart-count-badge hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-terracota text-white text-[10px] font-bold flex items-center justify-center shadow-md">0</span>
           </button>
 
-          <button onclick="Auth.logout()" class="py-2 px-3.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-semibold border border-rose-200 transition-colors">
-            Cerrar Sesión
+          <button onclick="Auth.logout()" class="py-2 px-3 sm:px-3.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-semibold border border-rose-200 transition-colors tap-target">
+            Salir
+          </button>
+
+          <button id="mobileMenuBtn" class="p-2 rounded-xl text-espresso lg:hidden hover:bg-warm-sand tap-target" aria-label="Abrir Menú">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
 
+      </div>
+
+      <div id="mobileNav" class="lg:hidden hidden border-t border-warm-border py-4 space-y-3">
+        <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
+          <a href="index.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Inicio</a>
+          <a href="catalogo.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Catálogo</a>
+          <a href="libro-de-reclamaciones.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Reclamaciones</a>
+          <a href="contacto.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Contacto</a>
+        </div>
       </div>
     </div>
   </header>
 
   <!-- Banner Perfil -->
-  <section class="bg-gradient-to-r from-warm-sand via-warm-cream to-warm-sand border-b border-warm-border py-8">
+  <section class="bg-gradient-to-r from-warm-sand via-warm-cream to-warm-sand border-b border-warm-border py-6 sm:py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <div id="perfilAvatar" class="w-16 h-16 rounded-2xl bg-gradient-to-br from-terracota to-amberPeru text-white flex items-center justify-center font-heading font-black text-2xl shadow-md shadow-terracota/20">
+        <div class="flex items-center gap-3 sm:gap-4">
+          <div id="perfilAvatar" class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-terracota to-amberPeru text-white flex items-center justify-center font-heading font-black text-xl sm:text-2xl shadow-md shadow-terracota/20 flex-shrink-0">
             C
           </div>
           <div>
-            <h1 id="perfilNombreDisplay" class="font-heading text-2xl font-bold text-espresso">Cargando perfil...</h1>
+            <h1 id="perfilNombreDisplay" class="font-heading text-lg sm:text-2xl font-bold text-espresso">Cargando perfil...</h1>
             <p id="perfilDocDisplay" class="text-xs text-terracota font-bold">DNI / RUC</p>
-            <p id="perfilEmailDisplay" class="text-xs text-espresso-muted">email@ejemplo.com</p>
+            <p id="perfilEmailDisplay" class="text-[11px] sm:text-xs text-espresso-muted">email@ejemplo.com</p>
           </div>
         </div>
 
         <div>
-          <a href="catalogo.html" class="px-5 py-2.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
+          <a href="catalogo.html" class="w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-1.5 tap-target">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
             <span>Nueva Cotización</span>
           </a>
@@ -113,17 +127,17 @@
   </section>
 
   <!-- Contenido Panel de Cliente -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
       
       <!-- Columna Izquierda: Formulario de Actualización de Datos -->
-      <div class="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border border-warm-border shadow-sm space-y-6">
+      <div class="lg:col-span-7 bg-white p-5 sm:p-8 rounded-3xl border border-warm-border shadow-sm space-y-5 sm:space-y-6">
         <div class="border-b border-warm-border pb-3 flex items-center justify-between">
-          <h2 class="font-heading font-bold text-lg text-espresso flex items-center gap-2">
+          <h2 class="font-heading font-bold text-base sm:text-lg text-espresso flex items-center gap-2">
             <svg class="w-5 h-5 text-terracota" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             <span>Datos Fiscales y de Despacho</span>
           </h2>
-          <span class="text-[11px] text-stone-400">Actualización en tiempo real</span>
+          <span class="text-[10px] sm:text-[11px] text-stone-400">Actualización en tiempo real</span>
         </div>
 
         <form id="profileForm" class="space-y-4">
@@ -162,7 +176,7 @@
           </div>
 
           <div class="pt-4 flex justify-end">
-            <button type="submit" class="px-6 py-3 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-md transition-all">
+            <button type="submit" class="w-full sm:w-auto px-6 py-3.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-md transition-all tap-target">
               Guardar Cambios
             </button>
           </div>

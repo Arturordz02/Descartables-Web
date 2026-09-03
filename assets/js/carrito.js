@@ -111,22 +111,22 @@ const Carrito = {
       <div id="cartBackdrop" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 transition-opacity duration-300 opacity-0 pointer-events-none"></div>
 
       <!-- Drawer Lateral -->
-      <aside id="cartDrawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-[#FDFBF7] shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-l border-[#EAE3DA]">
+      <aside id="cartDrawer" class="fixed top-0 right-0 h-full w-full max-w-[100vw] sm:max-w-md bg-[#FDFBF7] shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-l border-[#EAE3DA]">
         
         <!-- Header del Carrito -->
-        <div class="px-6 py-4 bg-white/80 backdrop-blur border-b border-[#EAE3DA] flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-[#C85A32]/10 text-[#C85A32] flex items-center justify-center">
+        <div class="px-4 sm:px-6 py-3.5 sm:py-4 bg-white/90 backdrop-blur border-b border-[#EAE3DA] flex items-center justify-between">
+          <div class="flex items-center gap-2.5 sm:gap-3">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#C85A32]/10 text-[#C85A32] flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </div>
             <div>
-              <h3 class="font-bold text-lg text-[#1F1815]">Cotizador Express</h3>
-              <p class="text-xs text-[#574B46]">Atención comercial y WhatsApp directo</p>
+              <h3 class="font-bold text-base sm:text-lg text-[#1F1815]">Cotizador Express</h3>
+              <p class="text-[11px] text-[#574B46]">Atención comercial y WhatsApp directo</p>
             </div>
           </div>
-          <button id="closeCartBtn" class="p-2 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors" aria-label="Cerrar carrito">
+          <button id="closeCartBtn" class="p-2 sm:p-2.5 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors tap-target" aria-label="Cerrar carrito">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -134,41 +134,41 @@ const Carrito = {
         </div>
 
         <!-- Lista de Productos (Scrollable) -->
-        <div id="cartItemsList" class="flex-1 overflow-y-auto p-6 space-y-4">
+        <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4 touch-scroll">
           <!-- Renderizado dinámico -->
         </div>
 
         <!-- Formulario y Footer de Cotización -->
-        <div id="cartFooterArea" class="p-6 bg-white border-t border-[#EAE3DA] space-y-4">
+        <div id="cartFooterArea" class="p-4 sm:p-5 bg-white border-t border-[#EAE3DA] space-y-3 max-h-[50vh] sm:max-h-[55vh] overflow-y-auto touch-scroll">
           
-          <div class="bg-[#F4EFEA] p-3.5 rounded-xl text-xs text-[#574B46] space-y-2">
+          <div class="bg-[#F4EFEA] p-3 sm:p-3.5 rounded-xl text-xs text-[#574B46] space-y-2">
             <div class="font-semibold text-[#1F1815] flex items-center justify-between">
-              <span>Datos del Comprador (Perú)</span>
-              <span class="text-[11px] font-normal text-[#C85A32]">*Recomendado</span>
+              <span>Datos de Cotización (Perú)</span>
+              <span class="text-[10px] font-normal text-[#C85A32]">*Recomendado</span>
             </div>
             
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <label class="block text-[11px] text-[#574B46] mb-0.5">Comprobante:</label>
-                <select id="cotizacionTipoComp" class="w-full text-xs bg-white border border-[#EAE3DA] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#C85A32]">
+                <select id="cotizacionTipoComp" class="w-full text-xs bg-white border border-[#EAE3DA] rounded-lg px-2.5 py-2 sm:py-1.5 focus:outline-none focus:border-[#C85A32]">
                   <option value="Factura">Factura con RUC</option>
                   <option value="Boleta">Boleta de Venta</option>
                 </select>
               </div>
               <div>
                 <label class="block text-[11px] text-[#574B46] mb-0.5">RUC / DNI:</label>
-                <input type="text" id="cotizacionDoc" placeholder="11 o 8 dígitos" class="w-full text-xs bg-white border border-[#EAE3DA] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#C85A32]" maxlength="11">
+                <input type="text" id="cotizacionDoc" placeholder="11 u 8 dígitos" class="w-full text-xs bg-white border border-[#EAE3DA] rounded-lg px-2.5 py-2 sm:py-1.5 focus:outline-none focus:border-[#C85A32]" maxlength="11">
               </div>
             </div>
 
             <div>
               <label class="block text-[11px] text-[#574B46] mb-0.5">Cliente / Razón Social:</label>
-              <input type="text" id="cotizacionNombre" placeholder="Ej: Distribuidora Gastronómica / Juan Pérez" class="w-full text-xs bg-white border border-[#EAE3DA] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#C85A32]">
+              <input type="text" id="cotizacionNombre" placeholder="Ej: Distribuidora Gastronómica / Juan Pérez" class="w-full text-xs bg-white border border-[#EAE3DA] rounded-lg px-2.5 py-2 sm:py-1.5 focus:outline-none focus:border-[#C85A32]">
             </div>
 
             <div>
               <label class="block text-[11px] text-[#574B46] mb-0.5">Destino / Agencia de Envíos:</label>
-              <select id="cotizacionDestino" class="w-full text-xs bg-white border border-[#EAE3DA] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#C85A32]">
+              <select id="cotizacionDestino" class="w-full text-xs bg-white border border-[#EAE3DA] rounded-lg px-2.5 py-2 sm:py-1.5 focus:outline-none focus:border-[#C85A32]">
                 <option value="Lima Metropolitana (Entrega Directa)">Lima Metropolitana (Entrega Directa)</option>
                 <option value="Provincia - Agencia Shalom">Provincia - Agencia Shalom</option>
                 <option value="Provincia - Agencia Marvisur">Provincia - Agencia Marvisur</option>
@@ -179,17 +179,17 @@ const Carrito = {
           </div>
 
           <!-- Acciones Principales -->
-          <div class="space-y-2">
-            <button id="btnSendWhatsApp" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
+          <div class="space-y-2 pt-1">
+            <button id="btnSendWhatsApp" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all tap-target">
               <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
               </svg>
               <span>Enviar Cotización por WhatsApp</span>
             </button>
 
-            <div class="flex items-center justify-between pt-2 text-xs text-[#574B46]">
-              <button id="btnClearCart" class="text-rose-600 hover:underline">Vaciar lista</button>
-              <button id="btnCopyCart" class="text-[#C85A32] hover:underline flex items-center gap-1">
+            <div class="flex items-center justify-between pt-1 text-xs text-[#574B46]">
+              <button id="btnClearCart" class="text-rose-600 hover:underline py-1">Vaciar lista</button>
+              <button id="btnCopyCart" class="text-[#C85A32] hover:underline flex items-center gap-1 py-1">
                 <span>Copiar texto</span>
               </button>
             </div>

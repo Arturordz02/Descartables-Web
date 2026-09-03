@@ -166,29 +166,29 @@ const Reclamaciones = {
     if (document.getElementById('modalHojaReclamacion')) return;
 
     const modalHTML = `
-      <div id="modalHojaReclamacion" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-md hidden animate-fade-in overflow-y-auto">
-        <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-300 relative my-8">
+      <div id="modalHojaReclamacion" class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-stone-900/70 backdrop-blur-md hidden animate-fade-in overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[94vh] overflow-y-auto shadow-2xl border border-stone-300 relative my-4 sm:my-8 touch-scroll">
           
-          <!-- Barra de Acciones Superior -->
-          <div class="no-print sticky top-0 z-20 bg-[#FDFBF7] px-6 py-4 border-b border-[#EAE3DA] flex items-center justify-between">
-            <div class="flex items-center gap-2 text-emerald-700 font-bold text-sm">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-              <span>Hoja de Reclamación Registrada Exitosamente</span>
+          <!-- Barra de Acciones Superior Responsiva -->
+          <div class="no-print sticky top-0 z-20 bg-[#FDFBF7] px-4 sm:px-6 py-3 sm:py-4 border-b border-[#EAE3DA] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2 text-emerald-700 font-bold text-xs sm:text-sm">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              <span>Hoja Registrada con Éxito</span>
             </div>
             
-            <div class="flex items-center gap-2">
-              <button onclick="window.print()" class="allow-print px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+            <div class="flex items-center justify-end gap-2">
+              <button onclick="window.print()" class="allow-print px-3 sm:px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm tap-target">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                <span>Imprimir / Guardar PDF</span>
+                <span>Imprimir / PDF</span>
               </button>
-              <button onclick="Reclamaciones.closeHojaOficialModal()" class="p-2 text-stone-500 hover:text-stone-800 rounded-xl hover:bg-stone-100">
+              <button onclick="Reclamaciones.closeHojaOficialModal()" class="p-2 text-stone-500 hover:text-stone-800 rounded-xl hover:bg-stone-100 tap-target" aria-label="Cerrar ventana">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
           </div>
 
           <!-- ÁREA IMPRIMIBLE OFICIAL INDECOPI -->
-          <div id="hojaReclamacionPrintArea" class="p-6 md:p-10 font-sans text-[#1F1815] text-xs leading-normal">
+          <div id="hojaReclamacionPrintArea" class="p-4 sm:p-6 md:p-10 font-sans text-[#1F1815] text-xs leading-normal">
             <!-- Renderizado dinámico -->
           </div>
 
@@ -207,23 +207,23 @@ const Reclamaciones = {
     if (!modal || !container) return;
 
     container.innerHTML = `
-      <div class="hoja-print-border border-2 border-stone-800 p-6 rounded-2xl bg-white space-y-5">
+      <div class="hoja-print-border border-2 border-stone-800 p-4 sm:p-6 rounded-2xl bg-white space-y-4 sm:space-y-5">
         
         <!-- Encabezado Oficial -->
-        <div class="flex flex-col sm:flex-row justify-between items-start border-b-2 border-stone-800 pb-4 gap-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start border-b-2 border-stone-800 pb-4 gap-3 sm:gap-4">
           <div>
-            <span class="inline-block px-2.5 py-1 bg-amber-100 text-amber-900 font-bold text-[10px] rounded uppercase tracking-wider mb-1">
+            <span class="inline-block px-2.5 py-1 bg-amber-100 text-amber-900 font-bold text-[9px] sm:text-[10px] rounded uppercase tracking-wider mb-1">
               Reglamento del Libro de Reclamaciones (D.S. 011-2011-PCM)
             </span>
-            <h2 class="text-lg font-black text-[#1F1815] uppercase tracking-wide">LIBRO DE RECLAMACIONES VIRTUAL</h2>
-            <p class="font-bold text-sm text-[#C85A32]">${this.empresa.razon_social}</p>
-            <p class="text-[11px] text-stone-600">RUC: ${this.empresa.ruc} | Dirección: ${this.empresa.direccion}</p>
+            <h2 class="text-base sm:text-lg font-black text-[#1F1815] uppercase tracking-wide">LIBRO DE RECLAMACIONES VIRTUAL</h2>
+            <p class="font-bold text-xs sm:text-sm text-[#C85A32]">${this.empresa.razon_social}</p>
+            <p class="text-[10px] sm:text-[11px] text-stone-600">RUC: ${this.empresa.ruc} | Dirección: ${this.empresa.direccion}</p>
           </div>
 
-          <div class="bg-stone-50 p-3 rounded-xl border border-stone-300 text-right min-w-[200px]">
+          <div class="bg-stone-50 p-2.5 sm:p-3 rounded-xl border border-stone-300 w-full sm:w-auto text-left sm:text-right sm:min-w-[190px]">
             <p class="text-[10px] text-stone-500 uppercase font-semibold">Hoja de Reclamación N°</p>
             <p class="font-mono text-base font-black text-rose-700 tracking-wider">${data.codigo_hoja}</p>
-            <p class="text-[11px] text-stone-600 mt-1"><strong>Fecha y Hora:</strong> ${data.fecha}</p>
+            <p class="text-[10px] sm:text-[11px] text-stone-600 mt-0.5"><strong>Fecha:</strong> ${data.fecha}</p>
           </div>
         </div>
 

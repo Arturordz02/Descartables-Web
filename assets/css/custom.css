@@ -1,6 +1,7 @@
 /* ====================================================================
    PLATAFORMA DESCARTABLES PERUANOS - ESTILOS PERSONALIZADOS
    Sistema Visual: WARM EDITORIAL (Shadcn Warm + Bento Architecture)
+   Optimizado para 100% Responsividad Móvil, Tablet y Escritorio
    ==================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
@@ -18,48 +19,82 @@
   --border-warm: #EAE3DA;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-cream);
   color: var(--text-espresso);
   overflow-x: hidden;
+  width: 100%;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, .font-heading {
   font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 }
 
+/* Evitar zoom forzado en inputs de iOS manteniendo legibilidad */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Glassmorphism cálido */
 .glass-warm {
-  background: rgba(253, 251, 247, 0.85);
+  background: rgba(253, 251, 247, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(234, 227, 218, 0.7);
+  border-bottom: 1px solid rgba(234, 227, 218, 0.85);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(234, 227, 218, 0.9);
 }
 
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #F4EFEA;
-}
-::-webkit-scrollbar-thumb {
-  background: #D5C6B7;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #C85A32;
+/* Scrollbar personalizada para escritorio */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F4EFEA;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D5C6B7;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #C85A32;
+  }
 }
 
-/* Animaciones sutiles */
+/* Scroll táctil fluido para móviles */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Animaciones */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -71,20 +106,22 @@ h1, h2, h3, h4, .font-heading {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .pulse-primary {
   animation: pulseGlow 2.5s infinite;
 }
 
-/* Hover effects */
+/* Tarjetas Bento y Micro-interacciones */
 .bento-card {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.bento-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(31, 24, 21, 0.08), 0 8px 10px -6px rgba(31, 24, 21, 0.04);
+@media (min-width: 1024px) {
+  .bento-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(31, 24, 21, 0.08), 0 8px 10px -6px rgba(31, 24, 21, 0.04);
+  }
 }
 
 /* Badges */
@@ -94,13 +131,21 @@ h1, h2, h3, h4, .font-heading {
   border: 1px solid rgba(74, 93, 78, 0.25);
 }
 
+/* Tap targets móviles mínimos de 44px */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ====================================================================
    ESTILOS DE IMPRESIÓN OFICIAL - LIBRO DE RECLAMACIONES INDECOPI
    ==================================================================== */
 @media print {
-  /* Ocultar elementos de interfaz al imprimir */
   header, footer, #cartDrawer, #cartBackdrop, #toastContainer, 
-  .no-print, button:not(.allow-print) {
+  .no-print, button:not(.allow-print), .mobile-quick-bar {
     display: none !important;
   }
 
@@ -130,4 +175,3 @@ h1, h2, h3, h4, .font-heading {
     page-break-inside: avoid;
   }
 }
-

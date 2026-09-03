@@ -30,13 +30,14 @@ const Auth = {
   updateNavbarUserUI() {
     const user = this.getCurrentUser();
     const navUserContainers = document.querySelectorAll('.nav-user-container');
+    const mobileUserContainers = document.querySelectorAll('.nav-user-container-mobile');
 
     navUserContainers.forEach(container => {
       if (user) {
         const shortName = user.nombre_razon_social.split(' ')[0] || 'Mi Cuenta';
         container.innerHTML = `
           <div class="relative group">
-            <button class="flex items-center gap-2 py-1.5 px-3 rounded-xl bg-[#F4EFEA] hover:bg-[#EAE3DA] text-[#1F1815] text-xs font-semibold border border-[#EAE3DA] transition-colors">
+            <button class="flex items-center gap-2 py-1.5 px-3 rounded-xl bg-[#F4EFEA] hover:bg-[#EAE3DA] text-[#1F1815] text-xs font-semibold border border-[#EAE3DA] transition-colors tap-target">
               <span class="w-6 h-6 rounded-full bg-[#C85A32] text-white flex items-center justify-center font-bold text-[10px]">
                 ${shortName.charAt(0).toUpperCase()}
               </span>
@@ -63,11 +64,43 @@ const Auth = {
       } else {
         container.innerHTML = `
           <div class="flex items-center gap-2">
-            <a href="login.html" class="text-xs font-semibold text-[#1F1815] hover:text-[#C85A32] py-2 px-3 transition-colors">
+            <a href="login.html" class="text-xs font-semibold text-[#1F1815] hover:text-[#C85A32] py-2 px-3 transition-colors tap-target">
               Ingresar
             </a>
-            <a href="registro.html" class="text-xs font-semibold bg-[#C85A32] hover:bg-[#B84A22] text-white py-2 px-3.5 rounded-xl shadow-sm transition-colors">
+            <a href="registro.html" class="text-xs font-semibold bg-[#C85A32] hover:bg-[#B84A22] text-white py-2 px-3.5 rounded-xl shadow-sm transition-colors tap-target">
               Registrarme
+            </a>
+          </div>
+        `;
+      }
+    });
+
+    mobileUserContainers.forEach(container => {
+      if (user) {
+        container.innerHTML = `
+          <div class="p-3 bg-white rounded-2xl border border-[#EAE3DA] flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-full bg-[#C85A32] text-white flex items-center justify-center font-bold text-xs">
+                ${(user.nombre_razon_social || 'C').charAt(0).toUpperCase()}
+              </span>
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-[#1F1815] truncate max-w-[160px]">${user.nombre_razon_social}</p>
+                <p class="text-[10px] text-[#574B46]">${user.tipo_documento}: ${user.numero_documento}</p>
+              </div>
+            </div>
+            <a href="perfil.html" class="px-3 py-1.5 bg-[#F4EFEA] text-[#C85A32] rounded-xl text-xs font-bold hover:bg-[#EAE3DA]">
+              Mi Cuenta
+            </a>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <a href="login.html" class="text-center py-2 px-3 rounded-xl border border-[#EAE3DA] text-xs font-semibold text-[#1F1815] bg-white">
+              Iniciar Sesión
+            </a>
+            <a href="registro.html" class="text-center py-2 px-3 rounded-xl bg-[#C85A32] text-white text-xs font-semibold shadow-sm">
+              Crear Cuenta
             </a>
           </div>
         `;

@@ -256,22 +256,35 @@ const Catalogo = {
     });
   },
 
+  toggleMobileFilters() {
+    const sidebar = document.getElementById('catalogoSidebar');
+    const badge = document.getElementById('activeFilterBadge');
+    if (!sidebar) return;
+
+    const isHidden = sidebar.classList.contains('hidden');
+    if (isHidden) {
+      sidebar.classList.remove('hidden');
+      if (badge) badge.textContent = 'Ocultar';
+    } else {
+      sidebar.classList.add('hidden');
+      if (badge) badge.textContent = 'Mostrar';
+    }
+  },
+
   injectQuickViewModal() {
     if (document.getElementById('modalQuickView')) return;
 
     const modalHTML = `
-      <div id="modalQuickView" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm hidden animate-fade-in">
-        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-[#EAE3DA] overflow-hidden">
+      <div id="modalQuickView" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/60 backdrop-blur-sm hidden animate-fade-in">
+        <div class="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-[#EAE3DA] overflow-hidden relative">
           
-          <div class="relative">
-            <button onclick="Catalogo.closeQuickView()" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/80 backdrop-blur text-stone-700 hover:bg-white flex items-center justify-center shadow-md">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          <button onclick="Catalogo.closeQuickView()" class="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 backdrop-blur text-stone-700 hover:bg-white flex items-center justify-center shadow-md tap-target" aria-label="Cerrar modal">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
-          <div id="quickViewContent" class="p-6 md:p-8 space-y-6">
+          <div id="quickViewContent" class="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
             <!-- Dinámico -->
           </div>
 
@@ -295,18 +308,21 @@ const Catalogo = {
     const specs = prod.especificaciones || {};
 
     container.innerHTML = `
-      <div class="grid md:grid-cols-2 gap-6 items-center">
-        <div class="rounded-2xl overflow-hidden bg-[#F4EFEA] aspect-square">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-center">
+        <div class="rounded-2xl overflow-hidden bg-[#F4EFEA] aspect-video sm:aspect-square max-h-64 md:max-h-none">
           <img src="${prod.imagen_url}" alt="${prod.nombre}" class="w-full h-full object-cover">
         </div>
-        <div>
-          <span class="inline-block px-2.5 py-1 rounded-lg bg-[#C85A32]/10 text-[#C85A32] font-mono text-xs font-bold mb-2">
-            ${prod.sku}
-          </span>
-          <h3 class="font-bold text-xl text-[#1F1815] mb-2 leading-tight">${prod.nombre}</h3>
-          <p class="text-xs text-[#574B46] mb-4">${prod.descripcion}</p>
+        <div class="space-y-2">
+          <div class="flex items-center gap-2">
+            <span class="inline-block px-2.5 py-1 rounded-lg bg-[#C85A32]/10 text-[#C85A32] font-mono text-[11px] sm:text-xs font-bold">
+              ${prod.sku}
+            </span>
+            ${prod.biodegradable ? '<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">100% Bio</span>' : ''}
+          </div>
+          <h3 class="font-bold text-lg sm:text-xl text-[#1F1815] leading-tight">${prod.nombre}</h3>
+          <p class="text-xs text-[#574B46]">${prod.descripcion}</p>
           
-          <div class="space-y-2 bg-[#FDFBF7] p-4 rounded-2xl border border-[#EAE3DA] text-xs">
+          <div class="space-y-2 bg-[#FDFBF7] p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-[#EAE3DA] text-xs">
             <div class="flex justify-between">
               <span class="text-[#574B46]">Categoría:</span>
               <span class="font-semibold text-[#1F1815]">${prod.categoria_nombre}</span>
@@ -321,7 +337,7 @@ const Catalogo = {
             </div>
             <div class="flex justify-between">
               <span class="text-[#574B46]">Impacto Ecológico:</span>
-              <span class="font-semibold ${prod.biodegradable ? 'text-emerald-600' : 'text-stone-600'}">
+              <span class="font-semibold ${prod.biodegradable ? 'text-emerald-700' : 'text-stone-600'}">
                 ${prod.biodegradable ? 'Biodegradable / Compostable' : 'Reciclable'}
               </span>
             </div>
@@ -330,24 +346,24 @@ const Catalogo = {
       </div>
 
       <!-- Ficha Técnica Adicional -->
-      <div class="border-t border-[#EAE3DA] pt-4">
-        <h4 class="font-bold text-sm text-[#1F1815] mb-3">Especificaciones Técnicas de Rendimiento</h4>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+      <div class="border-t border-[#EAE3DA] pt-3 sm:pt-4">
+        <h4 class="font-bold text-xs sm:text-sm text-[#1F1815] mb-2 sm:mb-3">Especificaciones Técnicas de Rendimiento</h4>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-xs">
           ${Object.entries(specs).map(([k, v]) => `
-            <div class="p-3 bg-[#F4EFEA] rounded-xl">
-              <p class="text-[10px] text-[#574B46] uppercase font-semibold">${k.replace(/_/g, ' ')}</p>
-              <p class="font-bold text-[#1F1815] text-xs mt-0.5">${v}</p>
+            <div class="p-2.5 sm:p-3 bg-[#F4EFEA] rounded-xl">
+              <p class="text-[9px] sm:text-[10px] text-[#574B46] uppercase font-semibold">${k.replace(/_/g, ' ')}</p>
+              <p class="font-bold text-[#1F1815] text-[11px] sm:text-xs mt-0.5 break-words">${v}</p>
             </div>
           `).join('')}
         </div>
       </div>
 
-      <div class="pt-2 flex gap-3">
-        <button onclick="Carrito.addItem(PRODUCTOS.find(p=>p.sku==='${prod.sku}'), 1); Catalogo.closeQuickView();" class="flex-1 py-3 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2">
+      <div class="pt-2 flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <button onclick="Carrito.addItem(PRODUCTOS.find(p=>p.sku==='${prod.sku}'), 1); Catalogo.closeQuickView();" class="flex-1 py-3 px-4 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2 tap-target">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-          Agregar a Cotización
+          <span>Agregar a Cotización</span>
         </button>
-        <button onclick="Catalogo.closeQuickView()" class="px-5 py-3 border border-[#EAE3DA] rounded-xl text-xs font-semibold text-[#574B46] hover:bg-stone-50">
+        <button onclick="Catalogo.closeQuickView()" class="px-5 py-3 border border-[#EAE3DA] rounded-xl text-xs font-semibold text-[#574B46] hover:bg-stone-50 tap-target">
           Cerrar
         </button>
       </div>

@@ -51,36 +51,36 @@
 <body class="bg-warm-cream text-espresso antialiased selection:bg-terracota selection:text-white">
 
   <!-- TopBar -->
-  <div class="bg-espresso text-warm-cream text-[11px] py-2 px-4 border-b border-stone-800">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-      <div class="flex items-center gap-4">
-        <span class="flex items-center gap-1.5 text-amber-400 font-medium">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-          Sede Central: Av. Alejandro Bertello 732-C, Cercado de Lima
+  <div class="bg-espresso text-warm-cream text-[10px] sm:text-[11px] py-2 px-3 sm:px-4 border-b border-stone-800">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1.5 sm:gap-2 text-center sm:text-left">
+      <div class="flex items-center gap-2 sm:gap-4 flex-wrap justify-center sm:justify-start">
+        <span class="flex items-center gap-1 text-amber-400 font-medium">
+          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span>Sede: Av. Bertello 732-C, Cercado de Lima</span>
         </span>
         <span class="hidden md:inline text-stone-500">|</span>
         <span class="hidden md:inline text-stone-300">Central: (01) 564-1450</span>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="text-stone-300">Normativa D.S. N° 011-2011-PCM • INDECOPI</span>
+      <div class="flex items-center gap-2">
+        <span class="text-stone-300 text-[10px] sm:text-[11px]">Normativa D.S. N° 011-2011-PCM • INDECOPI</span>
       </div>
     </div>
   </div>
 
   <!-- Header Glassmorphism -->
   <header class="sticky top-0 z-40 glass-warm border-b border-warm-border">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-20 gap-4">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
         
-        <a href="index.html" class="flex items-center gap-3 flex-shrink-0 group">
-          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-terracota to-amberPeru flex items-center justify-center shadow-md shadow-terracota/20 group-hover:scale-105 transition-transform">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+        <a href="index.html" class="flex items-center gap-2 sm:gap-3 flex-shrink-0 group">
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-terracota to-amberPeru flex items-center justify-center shadow-md shadow-terracota/20 group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
           </div>
           <div>
-            <span class="font-heading font-extrabold text-xl tracking-tight text-espresso block leading-none">
+            <span class="font-heading font-extrabold text-base sm:text-xl tracking-tight text-espresso block leading-none">
               DESCARTABLES
             </span>
-            <span class="text-[11px] font-bold tracking-widest text-terracota uppercase block">
+            <span class="text-[9px] sm:text-[11px] font-bold tracking-widest text-terracota uppercase block">
               PERUANOS
             </span>
           </div>
@@ -93,15 +93,15 @@
           <a href="contacto.html" class="nav-link hover:text-terracota transition-colors">Contacto</a>
         </nav>
 
-        <div class="flex items-center gap-3">
-          <div class="nav-user-container"></div>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="nav-user-container hidden sm:block"></div>
           
-          <button class="open-cart-trigger relative p-2.5 rounded-xl bg-white hover:bg-warm-sand border border-warm-border text-espresso transition-colors shadow-sm" aria-label="Ver Cotizador">
+          <button class="open-cart-trigger relative p-2 sm:p-2.5 rounded-xl bg-white hover:bg-warm-sand border border-warm-border text-espresso transition-colors shadow-sm tap-target" aria-label="Ver Cotizador">
             <svg class="w-5 h-5 text-espresso" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-            <span class="cart-count-badge hidden absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-terracota text-white text-[11px] font-bold flex items-center justify-center shadow-md">0</span>
+            <span class="cart-count-badge hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-terracota text-white text-[10px] font-bold flex items-center justify-center shadow-md">0</span>
           </button>
 
-          <button id="mobileMenuBtn" class="p-2.5 rounded-xl text-espresso lg:hidden hover:bg-warm-sand" aria-label="Abrir Menú">
+          <button id="mobileMenuBtn" class="p-2 rounded-xl text-espresso lg:hidden hover:bg-warm-sand tap-target" aria-label="Abrir Menú">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
@@ -109,31 +109,36 @@
       </div>
 
       <div id="mobileNav" class="lg:hidden hidden border-t border-warm-border py-4 space-y-3">
-        <a href="index.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Inicio</a>
-        <a href="catalogo.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Catálogo</a>
-        <a href="libro-de-reclamaciones.html" class="block px-3 py-2 rounded-xl text-xs font-semibold text-terracota font-bold">Libro de Reclamaciones</a>
-        <a href="contacto.html" class="block px-3 py-2 rounded-xl text-xs font-semibold hover:bg-warm-sand">Contacto</a>
+        <!-- Usuario Móvil -->
+        <div class="nav-user-container-mobile"></div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
+          <a href="index.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Inicio</a>
+          <a href="catalogo.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Catálogo</a>
+          <a href="libro-de-reclamaciones.html" class="p-3 rounded-xl bg-warm-sand text-terracota font-bold">Reclamaciones</a>
+          <a href="contacto.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Contacto</a>
+        </div>
       </div>
     </div>
   </header>
 
   <!-- Banner Normativo -->
-  <section class="bg-gradient-to-r from-warm-sand via-warm-cream to-warm-sand border-b border-warm-border py-8">
+  <section class="bg-gradient-to-r from-warm-sand via-warm-cream to-warm-sand border-b border-warm-border py-6 sm:py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <span class="px-2.5 py-1 rounded bg-amber-100 text-amber-900 text-[10px] font-bold uppercase tracking-wider">
             Normativa INDECOPI • D.S. N° 011-2011-PCM
           </span>
-          <h1 class="font-heading text-3xl font-extrabold text-espresso mt-2">
+          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-espresso mt-2">
             Libro de Reclamaciones Virtual
           </h1>
-          <p class="text-xs sm:text-sm text-espresso-muted mt-1">
+          <p class="text-xs sm:text-sm text-espresso-muted mt-1 leading-relaxed">
             Conforme a lo establecido en el Código de Protección y Defensa del Consumidor, ponemos a su disposición nuestro libro virtual de reclamaciones.
           </p>
         </div>
 
-        <div class="w-28 flex-shrink-0">
+        <div class="w-24 sm:w-28 flex-shrink-0">
           <img src="assets/images/libro-reclamaciones.svg" alt="Isotipo Oficial INDECOPI" class="w-full h-auto rounded-xl shadow-sm">
         </div>
       </div>
@@ -141,15 +146,15 @@
   </section>
 
   <!-- FORMULARIO OFICIAL INDECOPI -->
-  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+  <main class="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-10">
     
     <!-- DATOS DEL PROVEEDOR (OBLIGATORIO SEGÚN LEY) -->
-    <div class="bg-white p-6 rounded-3xl border border-warm-border shadow-sm mb-8 space-y-3">
+    <div class="bg-white p-4 sm:p-6 rounded-3xl border border-warm-border shadow-sm mb-6 sm:mb-8 space-y-3">
       <div class="flex items-center gap-2 text-xs font-bold text-terracota uppercase tracking-wider">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
         <span>Identificación del Proveedor / Establecimiento Comercial</span>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs pt-1 border-t border-warm-border">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-xs pt-2 border-t border-warm-border">
         <div>
           <span class="text-espresso-muted block text-[11px]">Razón Social:</span>
           <strong class="text-espresso">DESCARTABLES PERUANOS S.A.C.</strong>
