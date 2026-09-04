@@ -1384,9 +1384,39 @@
         printWindow.document.close();
       },
 
+      cleanText(str) {
+        if (!str || typeof str !== 'string') return str || '';
+        return str
+          .replace(/├®|Ã©/g, 'é')
+          .replace(/├¡|Ã­/g, 'í')
+          .replace(/├│|Ã³/g, 'ó')
+          .replace(/├║|Ãº/g, 'ú')
+          .replace(/├▒|Ã±/g, 'ñ')
+          .replace(/├ü|Ã /g, 'Á')
+          .replace(/├ë|Ã‰/g, 'É')
+          .replace(/├ì|Ã /g, 'Í')
+          .replace(/├У|Ã“/g, 'Ó')
+          .replace(/├Ъ|Ãš/g, 'Ú')
+          .replace(/├С|Ã‘/g, 'Ñ')
+          .replace(/├á|Ã¡/g, 'á')
+          .replace(/├╝|Ã¼/g, 'ü')
+          .replace(/Â°/g, '°');
+      },
+
       // ================= EXPORTADOR CSV / EXCEL =================
-      downloadCSV(filename, csvContent) {
-        // UTF-8 BOM (\uFEFF) para compatibilidad total con Microsoft Excel en español
+      downloadCSV(filename, headers, rows) {
+        const delimiter = ';';
+        const escapeField = (val) => {
+          const str = this.cleanText(String(val ?? ''));
+          return `"${str.replace(/"/g, '""')}"`;
+        };
+
+        const headerLine = headers.map(escapeField).join(delimiter);
+        const rowLines = rows.map(r => r.map(escapeField).join(delimiter));
+        // sep=;\r\n indica a Microsoft Excel en Windows que use punto y coma como separador de columnas nativo
+        const csvContent = 'sep=;\r\n' + [headerLine, ...rowLines].join('\r\n');
+
+        // UTF-8 BOM (\uFEFF) para compatibilidad total con tildes y caracteres especiales en Excel
         const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
@@ -1396,7 +1426,7 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        Toast.success(`Archivo "${filename}" descargado con éxito.`);
+        Toast.success(`Archivo "${filename}" exportado para Excel.`);
       },
 
       exportProductsCSV() {
@@ -1408,19 +1438,18 @@
         const headers = ['ID', 'SKU', 'Nombre del Producto', 'Categoría', 'Presentación', 'Material', 'Biodegradable', 'Destacado', 'URL Imagen'];
         const rows = this.products.map(p => [
           p.id,
-          `"${(p.sku || '').replace(/"/g, '""')}"`,
-          `"${(p.nombre || '').replace(/"/g, '""')}"`,
-          `"${(p.categoria_nombre || ApiService.getCatalogCategoryName(p.categoria_id) || '').replace(/"/g, '""')}"`,
-          `"${(p.presentacion || '').replace(/"/g, '""')}"`,
-          `"${(p.material || '').replace(/"/g, '""')}"`,
+          p.sku || '',
+          p.nombre || '',
+          p.categoria_nombre || ApiService.getCatalogCategoryName(p.categoria_id) || '',
+          p.presentacion || '',
+          p.material || '',
           p.biodegradable ? 'SÍ' : 'NO',
           p.destacado ? 'SÍ' : 'NO',
-          `"${(p.imagen_url || '').replace(/"/g, '""')}"`
+          p.imagen_url || ''
         ]);
 
-        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
         const dateStr = new Date().toISOString().slice(0, 10);
-        this.downloadCSV(`catalogo_descartables_${dateStr}.csv`, csvContent);
+        this.downloadCSV(`catalogo_descartables_${dateStr}.csv`, headers, rows);
       },
 
       exportUsersCSV() {
@@ -1432,22 +1461,21 @@
         const headers = ['ID', 'Tipo Documento', 'N° Documento', 'Nombre o Razón Social', 'Email', 'Teléfono', 'Departamento', 'Provincia', 'Distrito', 'Dirección', 'Rol', 'Fecha Registro'];
         const rows = this.users.map(u => [
           u.id,
-          u.tipo_documento,
-          `"${u.numero_documento}"`,
-          `"${(u.nombre_razon_social || '').replace(/"/g, '""')}"`,
-          `"${(u.email || '').replace(/"/g, '""')}"`,
-          `"${(u.telefono || '').replace(/"/g, '""')}"`,
-          `"${(u.departamento || 'Lima').replace(/"/g, '""')}"`,
-          `"${(u.provincia || 'Lima').replace(/"/g, '""')}"`,
-          `"${(u.distrito || 'Cercado de Lima').replace(/"/g, '""')}"`,
-          `"${(u.direccion || '').replace(/"/g, '""')}"`,
-          u.rol,
-          `"${(u.creado_en || '').slice(0, 10)}"`
+          u.tipo_documento || 'DNI',
+          u.numero_documento || '',
+          u.nombre_razon_social || '',
+          u.email || '',
+          u.telefono || '',
+          u.departamento || 'Lima',
+          u.provincia || 'Lima',
+          u.distrito || 'Cercado de Lima',
+          u.direccion || '',
+          u.rol || 'cliente',
+          (u.creado_en || '').slice(0, 10)
         ]);
 
-        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
         const dateStr = new Date().toISOString().slice(0, 10);
-        this.downloadCSV(`clientes_descartables_${dateStr}.csv`, csvContent);
+        this.downloadCSV(`clientes_descartables_${dateStr}.csv`, headers, rows);
       },
 
       exportReclamacionesCSV() {
@@ -1458,27 +1486,26 @@
 
         const headers = ['Código Hoja', 'Fecha', 'Tipo', 'Consumidor', 'Tipo Doc', 'N° Documento', 'Teléfono', 'Email', 'Ubicación', 'Bien Contratado', 'Monto S/', 'Detalle de Reclamo', 'Pedido Concreto', 'Estado', 'Respuesta Oficial', 'Fecha Respuesta'];
         const rows = this.reclamaciones.map(r => [
-          `"${r.codigo_hoja || r.codigo_seguimiento || ('REC-' + r.id)}"`,
-          `"${(r.creado_en || r.fecha || '').slice(0, 10)}"`,
-          `"${r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo'}"`,
-          `"${(r.nombre_completo || r.nombre_consumidor || '').replace(/"/g, '""')}"`,
+          r.codigo_hoja || r.codigo_seguimiento || ('REC-' + r.id),
+          (r.creado_en || r.fecha || '').slice(0, 10),
+          r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo',
+          r.nombre_completo || r.nombre_consumidor || '',
           r.tipo_documento || 'DNI',
-          `"${r.numero_documento || ''}"`,
-          `"${r.telefono || ''}"`,
-          `"${r.email || ''}"`,
-          `"${(r.distrito || 'Lima') + ' - ' + (r.departamento || 'Lima')}"`,
-          `"${(r.tipo_bien || 'Producto').replace(/"/g, '""')}"`,
+          r.numero_documento || '',
+          r.telefono || '',
+          r.email || '',
+          (r.distrito || 'Lima') + ' - ' + (r.departamento || 'Lima'),
+          r.tipo_bien || 'Producto',
           parseFloat(r.monto_reclamado || 0).toFixed(2),
-          `"${(r.detalle_reclamacion || '').replace(/"/g, '""')}"`,
-          `"${(r.pedido_consumidor || '').replace(/"/g, '""')}"`,
-          `"${r.estado || 'Pendiente'}"`,
-          `"${(r.respuesta_proveedor || '').replace(/"/g, '""')}"`,
-          `"${(r.fecha_respuesta || '').slice(0, 10)}"`
+          r.detalle_reclamacion || '',
+          r.pedido_consumidor || '',
+          r.estado || 'Pendiente',
+          r.respuesta_proveedor || '',
+          (r.fecha_respuesta || '').slice(0, 10)
         ]);
 
-        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
         const dateStr = new Date().toISOString().slice(0, 10);
-        this.downloadCSV(`libro_reclamaciones_indecopi_${dateStr}.csv`, csvContent);
+        this.downloadCSV(`libro_reclamaciones_indecopi_${dateStr}.csv`, headers, rows);
       },
 
       updateStats() {

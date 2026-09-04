@@ -155,7 +155,38 @@ const ApiService = {
       }
     }
 
-    return results;
+    return results.map(p => this.cleanProduct(p));
+  },
+
+  cleanString(str) {
+    if (!str || typeof str !== 'string') return str || '';
+    return str
+      .replace(/├®|Ã©/g, 'é')
+      .replace(/├¡|Ã­/g, 'í')
+      .replace(/├│|Ã³/g, 'ó')
+      .replace(/├║|Ãº/g, 'ú')
+      .replace(/├▒|Ã±/g, 'ñ')
+      .replace(/├ü|Ã /g, 'Á')
+      .replace(/├ë|Ã‰/g, 'É')
+      .replace(/├ì|Ã /g, 'Í')
+      .replace(/├У|Ã“/g, 'Ó')
+      .replace(/├Ъ|Ãš/g, 'Ú')
+      .replace(/├С|Ã‘/g, 'Ñ')
+      .replace(/├á|Ã¡/g, 'á')
+      .replace(/├╝|Ã¼/g, 'ü')
+      .replace(/Â°/g, '°');
+  },
+
+  cleanProduct(p) {
+    if (!p || typeof p !== 'object') return p;
+    return {
+      ...p,
+      nombre: this.cleanString(p.nombre),
+      descripcion: this.cleanString(p.descripcion),
+      presentacion: this.cleanString(p.presentacion),
+      material: this.cleanString(p.material),
+      categoria_nombre: this.cleanString(p.categoria_nombre)
+    };
   },
 
   // Registrar Hoja de Reclamación INDECOPI

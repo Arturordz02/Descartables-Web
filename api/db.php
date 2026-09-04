@@ -19,6 +19,7 @@ function getDbConnection() {
             PDO::ATTR_EMULATE_PREPARES   => false,
         ];
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+        $pdo->exec("SET NAMES utf8mb4");
         return $pdo;
     } catch (PDOException $e) {
         // En caso de que la BD no esté iniciada o configurada, respondemos con código 503
