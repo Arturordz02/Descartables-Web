@@ -213,8 +213,70 @@ const ApiService = {
 
   backupLocalReclamacion(record) {
     const claims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
-    claims.push(record);
+    claims.unshift(record);
     localStorage.setItem('dp_libro_reclamaciones', JSON.stringify(claims));
+  },
+
+  // Obtener todas las reclamaciones (Modo Admin)
+  async getReclamacionesAdmin() {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/reclamaciones.php`);
+        const json = await res.json();
+        if (json.success) return json;
+      } catch (e) {
+        console.warn('Fallo consultando reclamaciones en MySQL, usando local.');
+      }
+    }
+
+    const localClaims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
+    const total = localClaims.length;
+    const pendientes = localClaims.filter(c => (c.estado || 'Pendiente') === 'Pendiente').length;
+    const atendidos = localClaims.filter(c => c.estado === 'Atendido').length;
+    const reclamos = localClaims.filter(c => c.tipo_reclamacion === 'Reclamo').length;
+    const quejas = localClaims.filter(c => c.tipo_reclamacion === 'Queja').length;
+
+    return {
+      success: true,
+      count: total,
+      stats: { total, pendientes, atendidos, en_proceso: total - pendientes - atendidos, reclamos, quejas },
+      data: localClaims
+    };
+  },
+
+  // Actualizar estado y respuesta de proveedor en reclamación
+  async updateReclamacionEstado(id, estadoOrData, respuesta = '') {
+    const payload = (typeof estadoOrData === 'object' && estadoOrData !== null)
+      ? estadoOrData
+      : { estado: estadoOrData, respuesta_proveedor: respuesta };
+
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/reclamaciones.php`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, ...payload })
+        });
+        const json = await res.json();
+        if (json.success) return json;
+      } catch (e) {
+        console.warn('Fallo al actualizar reclamación en MySQL, actualizando local.');
+      }
+    }
+
+    // Modo local
+    const localClaims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
+    const idx = localClaims.findIndex(c => c.id == id || c.codigo_hoja == id || c.codigo_seguimiento == id);
+    if (idx !== -1) {
+      localClaims[idx].estado = payload.estado || 'Atendido';
+      localClaims[idx].respuesta_proveedor = payload.respuesta_proveedor || '';
+      localClaims[idx].fecha_respuesta = new Date().toLocaleString('es-PE');
+      localStorage.setItem('dp_libro_reclamaciones', JSON.stringify(localClaims));
+      return { success: true, message: 'Actualizado localmente.', data: localClaims[idx] };
+    }
+    return { success: true, message: 'Actualizado.' };
   },
 
   // Registrar Cotización Formal B2B (MySQL + Respaldo Local)

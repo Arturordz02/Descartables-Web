@@ -107,6 +107,12 @@
           <span>Directorio de Usuarios</span>
         </button>
 
+        <button id="tabBtnReclamaciones" onclick="Admin.switchTab('reclamaciones')" class="tab-btn px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-warm-sand text-espresso-muted hover:bg-stone-200">
+          <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Libro Reclamaciones</span>
+          <span id="badgeReclamosPendientes" class="hidden px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black">0</span>
+        </button>
+
         <button id="tabBtnMetricas" onclick="Admin.switchTab('metricas')" class="tab-btn px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-warm-sand text-espresso-muted hover:bg-stone-200">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
           <span>Resumen y Métricas</span>
@@ -231,7 +237,119 @@
 
     </section>
 
-    <!-- ==================== TAB 3: MÉTRICAS ==================== -->
+    <!-- ==================== TAB 3: LIBRO DE RECLAMACIONES INDECOPI ==================== -->
+    <section id="tabReclamaciones" class="space-y-6 hidden">
+      
+      <!-- Bento Cards Resumen Reclamaciones -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-terracota">
+            <span class="text-xs font-bold uppercase tracking-wider">Total Hojas</span>
+            <div class="w-8 h-8 rounded-xl bg-terracota-light flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+          </div>
+          <p id="metricTotalReclamos" class="font-heading font-black text-3xl text-espresso">0</p>
+          <p class="text-[11px] text-espresso-muted">Registradas en la web</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-amber-600">
+            <span class="text-xs font-bold uppercase tracking-wider">Pendientes de Respuesta</span>
+            <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+          </div>
+          <p id="metricPendientesReclamos" class="font-heading font-black text-3xl text-amber-600">0</p>
+          <p class="text-[11px] text-rose-600 font-bold">Plazo legal: 15 días hábiles (Ley 31435)</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-emerald-600">
+            <span class="text-xs font-bold uppercase tracking-wider">Hojas Atendidas</span>
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+          </div>
+          <p id="metricAtendidasReclamos" class="font-heading font-black text-3xl text-emerald-700">0</p>
+          <p class="text-[11px] text-espresso-muted">Con respuesta formal emitida</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-blue-600">
+            <span class="text-xs font-bold uppercase tracking-wider">Reclamos vs Quejas</span>
+            <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+            </div>
+          </div>
+          <p id="metricRatioReclamos" class="font-heading font-black text-2xl text-espresso">0 / 0</p>
+          <p class="text-[11px] text-espresso-muted">Disconformidad / Malestar atención</p>
+        </div>
+
+      </div>
+
+      <!-- Barra de Búsqueda y Filtros de Reclamaciones -->
+      <div class="bg-white p-4 sm:p-5 rounded-3xl border border-warm-border shadow-sm space-y-3">
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          
+          <div class="flex-1 relative">
+            <input type="text" id="searchReclamosInput" oninput="Admin.filterReclamaciones()" placeholder="Buscar por Código (REC-...), DNI/RUC o Nombre del consumidor..." class="w-full bg-warm-cream border border-warm-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+            <svg class="w-4 h-4 text-stone-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <select id="filterReclamoEstado" onchange="Admin.filterReclamaciones()" class="bg-warm-cream border border-warm-border rounded-xl px-3 py-2 text-xs text-espresso focus:outline-none focus:border-terracota">
+              <option value="todos">Todos los Estados</option>
+              <option value="Pendiente">Pendientes</option>
+              <option value="En Proceso">En Proceso</option>
+              <option value="Atendido">Atendidos</option>
+            </select>
+
+            <select id="filterReclamoTipo" onchange="Admin.filterReclamaciones()" class="bg-warm-cream border border-warm-border rounded-xl px-3 py-2 text-xs text-espresso focus:outline-none focus:border-terracota">
+              <option value="todos">Todos los Tipos</option>
+              <option value="Reclamo">Reclamos (Producto)</option>
+              <option value="Queja">Quejas (Atención)</option>
+            </select>
+
+            <span id="adminReclamosCountBadge" class="px-3 py-2 rounded-xl bg-warm-sand text-[11px] font-bold text-espresso-muted whitespace-nowrap">
+              0 hojas
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tabla de Reclamaciones -->
+      <div class="bg-white rounded-3xl border border-warm-border shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-warm-sand/70 text-espresso font-bold border-b border-warm-border uppercase text-[10px] tracking-wider">
+                <th class="py-3.5 px-4">Código Hoja</th>
+                <th class="py-3.5 px-3">Consumidor Reclamante</th>
+                <th class="py-3.5 px-3">Bien Reclamado</th>
+                <th class="py-3.5 px-3 text-center">Tipo</th>
+                <th class="py-3.5 px-3 text-center">Estado</th>
+                <th class="py-3.5 px-3">Fecha</th>
+                <th class="py-3.5 px-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="adminReclamosTableBody" class="divide-y divide-warm-border/60">
+              <tr>
+                <td colspan="7" class="py-12 text-center text-stone-400">
+                  <div class="inline-block w-6 h-6 border-2 border-terracota border-t-transparent rounded-full animate-spin mb-2"></div>
+                  <p>Cargando libro de reclamaciones...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 4: MÉTRICAS ==================== -->
     <section id="tabMetricas" class="space-y-6 hidden">
       
       <!-- Bento Cards Resumen -->
@@ -418,6 +536,112 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL DETALLE Y RESPUESTA RECLAMACIÓN INDECOPI ==================== -->
+  <div id="modalDetalleReclamacion" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto">
+    <div class="bg-white w-full max-w-3xl rounded-3xl border border-warm-border shadow-2xl p-5 sm:p-8 space-y-5 my-8">
+      
+      <div class="flex items-center justify-between border-b border-warm-border pb-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="modalReclamoCodigo" class="font-mono font-bold text-terracota text-sm">REC-2026-00001</span>
+            <span id="modalReclamoTipoBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Reclamo</span>
+          </div>
+          <h2 class="font-heading font-extrabold text-lg text-espresso mt-0.5">Hoja de Reclamación Virtual INDECOPI</h2>
+        </div>
+        <button onclick="Admin.closeReclamacionModal()" class="p-2 rounded-xl text-stone-400 hover:text-espresso hover:bg-stone-100 transition-colors tap-target">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs text-espresso">
+        
+        <!-- Fila 1: Consumidor -->
+        <div class="p-4 bg-warm-cream rounded-2xl border border-warm-border grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <p class="text-espresso-muted text-[11px]">Consumidor Reclamante:</p>
+            <p id="modalReclamoNombre" class="font-bold text-sm text-espresso">—</p>
+            <p class="text-[11px] text-espresso-muted mt-1"><span id="modalReclamoDocTipo">DNI</span>: <strong id="modalReclamoDocNum" class="font-mono text-espresso">—</strong></p>
+          </div>
+          <div class="space-y-1">
+            <p class="text-espresso-muted text-[11px]">Contacto y Notificación:</p>
+            <p id="modalReclamoEmail" class="font-medium text-espresso">—</p>
+            <p id="modalReclamoTel" class="font-medium text-espresso">—</p>
+            <p id="modalReclamoUbicacion" class="text-[11px] text-stone-500">—</p>
+          </div>
+        </div>
+
+        <!-- Fila 2: Bien contratado y monto -->
+        <div class="p-4 bg-white rounded-2xl border border-warm-border grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <p class="text-espresso-muted text-[11px]">Tipo de Bien:</p>
+            <p id="modalReclamoTipoBien" class="font-bold text-espresso">—</p>
+          </div>
+          <div>
+            <p class="text-espresso-muted text-[11px]">Monto Reclamado:</p>
+            <p id="modalReclamoMonto" class="font-bold text-terracota font-mono text-sm">S/. 0.00</p>
+          </div>
+          <div>
+            <p class="text-espresso-muted text-[11px]">Descripción del Bien:</p>
+            <p id="modalReclamoDescBien" class="text-espresso font-medium truncate">—</p>
+          </div>
+        </div>
+
+        <!-- Fila 3: Detalle de Reclamación y Pedido del Consumidor -->
+        <div class="space-y-3">
+          <div class="p-4 bg-warm-sand/50 rounded-2xl border border-warm-border space-y-1">
+            <p class="font-bold text-espresso text-xs">Detalle de la Reclamación (Hechos expuestos por el consumidor):</p>
+            <p id="modalReclamoDetalle" class="text-espresso-muted leading-relaxed text-xs whitespace-pre-wrap">—</p>
+          </div>
+
+          <div class="p-4 bg-amber-50/70 rounded-2xl border border-amber-200/60 space-y-1">
+            <p class="font-bold text-amber-900 text-xs">Pedido Concreto del Consumidor:</p>
+            <p id="modalReclamoPedido" class="text-amber-800 leading-relaxed text-xs whitespace-pre-wrap">—</p>
+          </div>
+        </div>
+
+        <!-- Formulario de Respuesta Oficial del Proveedor -->
+        <form id="formRespuestaReclamacion" onsubmit="Admin.saveReclamacionRespuesta(event)" class="space-y-3 pt-2 border-t border-warm-border">
+          <input type="hidden" id="modalReclamoId" value="">
+
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <label class="font-heading font-bold text-xs text-espresso">
+              Respuesta Formal del Proveedor (Conforme Ley N° 31435):
+            </label>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-espresso-muted">Estado del Reclamo:</span>
+              <select id="modalReclamoEstadoSelect" class="bg-warm-cream border border-warm-border rounded-xl px-3 py-1.5 text-xs font-bold text-espresso focus:outline-none focus:border-terracota">
+                <option value="Pendiente">Pendiente</option>
+                <option value="En Proceso">En Proceso</option>
+                <option value="Atendido">Atendido (Cerrado)</option>
+              </select>
+            </div>
+          </div>
+
+          <textarea id="modalReclamoRespuestaTexto" rows="3" required placeholder="Escriba aquí la respuesta formal y fundamentada que se notificará al consumidor..." class="w-full bg-warm-cream border border-warm-border rounded-xl p-3 text-xs text-espresso focus:outline-none focus:border-terracota leading-relaxed"></textarea>
+
+          <div class="flex items-center justify-between pt-1">
+            <button type="button" onclick="Admin.printCurrentReclamacion()" class="px-4 py-2.5 rounded-xl bg-warm-sand hover:bg-stone-200 text-espresso text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer tap-target">
+              <svg class="w-4 h-4 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              <span>Imprimir Hoja INDECOPI</span>
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="Admin.closeReclamacionModal()" class="px-4 py-2.5 rounded-xl border border-warm-border text-xs font-bold text-espresso hover:bg-warm-sand transition-colors tap-target">
+                Cerrar
+              </button>
+              <button type="submit" id="btnGuardarRespuestaReclamo" class="px-5 py-2.5 bg-salvia hover:bg-[#3d4d40] text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2 tap-target cursor-pointer">
+                <span>Guardar Respuesta Oficial</span>
+              </button>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+
   <!-- SCRIPTS -->
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
@@ -426,6 +650,8 @@
     const Admin = {
       products: [],
       users: [],
+      reclamaciones: [],
+      currentReclamacion: null,
       currentTab: 'productos',
 
       async init() {
@@ -435,14 +661,16 @@
 
         await this.loadProducts();
         await this.loadUsers();
+        await this.loadReclamaciones();
         this.updateStats();
       },
 
       switchTab(tabName) {
         this.currentTab = tabName;
-        ['productos', 'usuarios', 'metricas'].forEach(tab => {
+        ['productos', 'usuarios', 'reclamaciones', 'metricas'].forEach(tab => {
           const el = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
           const btn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+          if (!el || !btn) return;
           if (tab === tabName) {
             el.classList.remove('hidden');
             btn.className = 'tab-btn active px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-terracota text-white shadow-md shadow-terracota/20';
@@ -774,6 +1002,370 @@
         }
       },
 
+      // ================= LIBRO DE RECLAMACIONES INDECOPI =================
+      async loadReclamaciones() {
+        try {
+          const res = await ApiService.getReclamacionesAdmin();
+          if (res && res.success) {
+            this.reclamaciones = res.data || [];
+            this.updateReclamacionesStats(res.stats);
+            this.renderReclamaciones(this.reclamaciones);
+          }
+        } catch (e) {
+          console.error('Error cargando libro de reclamaciones:', e);
+        }
+      },
+
+      updateReclamacionesStats(stats) {
+        const total = stats ? stats.total : this.reclamaciones.length;
+        const pendientes = stats ? stats.pendientes : this.reclamaciones.filter(r => (r.estado || 'Pendiente') === 'Pendiente').length;
+        const atendidos = stats ? stats.atendidos : this.reclamaciones.filter(r => r.estado === 'Atendido').length;
+        const reclamos = stats ? stats.reclamos : this.reclamaciones.filter(r => (r.tipo_reclamo || '').toLowerCase().includes('reclamo')).length;
+        const quejas = stats ? stats.quejas : this.reclamaciones.filter(r => (r.tipo_reclamo || '').toLowerCase().includes('queja')).length;
+
+        const elTotal = document.getElementById('metricTotalReclamos');
+        if (elTotal) elTotal.textContent = total;
+
+        const elPendientes = document.getElementById('metricPendientesReclamos');
+        if (elPendientes) elPendientes.textContent = pendientes;
+
+        const elAtendidas = document.getElementById('metricAtendidasReclamos');
+        if (elAtendidas) elAtendidas.textContent = atendidos;
+
+        const elRatio = document.getElementById('metricRatioReclamos');
+        if (elRatio) elRatio.textContent = `${reclamos} / ${quejas}`;
+
+        const badge = document.getElementById('adminReclamosCountBadge');
+        if (badge) badge.textContent = `${this.reclamaciones.length} hojas`;
+      },
+
+      renderReclamaciones(list) {
+        const tbody = document.getElementById('adminReclamosTableBody');
+        const badge = document.getElementById('adminReclamosCountBadge');
+        if (badge) badge.textContent = `${list.length} hojas`;
+
+        if (!tbody) return;
+
+        if (list.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="py-10 text-center text-stone-400">
+                No se encontraron registros en el Libro de Reclamaciones.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = list.map(r => {
+          const code = r.codigo_hoja || r.codigo_seguimiento || `REC-${r.id}`;
+          const tipoTexto = r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo';
+          const isReclamo = tipoTexto.toLowerCase().includes('reclamo');
+          const tipoBadge = isReclamo 
+            ? '<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">Reclamo</span>' 
+            : '<span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold">Queja</span>';
+
+          let estadoBadge = '<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">Pendiente</span>';
+          if (r.estado === 'En Proceso') {
+            estadoBadge = '<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">En Proceso</span>';
+          } else if (r.estado === 'Atendido') {
+            estadoBadge = '<span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Atendido</span>';
+          }
+
+          const fechaStr = (r.creado_en || r.fecha || '').slice(0, 10);
+          const safeId = r.id;
+          const nombreConsumidor = r.nombre_completo || r.nombre_consumidor || '—';
+
+          return `
+            <tr class="hover:bg-warm-sand/40 transition-colors">
+              <td class="py-3 px-4">
+                <span class="font-mono font-bold text-terracota text-xs">${code}</span>
+              </td>
+              <td class="py-3 px-3">
+                <div>
+                  <p class="font-bold text-espresso">${nombreConsumidor}</p>
+                  <p class="text-[10px] text-espresso-muted">${r.tipo_documento || 'DNI'}: ${r.numero_documento || '—'} • ${r.email || ''}</p>
+                </div>
+              </td>
+              <td class="py-3 px-3">
+                <div>
+                  <p class="font-medium text-espresso capitalize">${r.tipo_bien || 'Producto'}</p>
+                  <p class="text-[10px] text-stone-400 truncate max-w-[170px]">${r.descripcion_bien || ('Monto: S/. ' + (r.monto_reclamado || '0.00'))}</p>
+                </div>
+              </td>
+              <td class="py-3 px-3 text-center">
+                ${tipoBadge}
+              </td>
+              <td class="py-3 px-3 text-center">
+                ${estadoBadge}
+              </td>
+              <td class="py-3 px-3 text-espresso-muted text-[11px] whitespace-nowrap">
+                ${fechaStr}
+              </td>
+              <td class="py-3 px-4 text-right">
+                <button onclick="Admin.openReclamacionModal('${safeId}')" class="px-3 py-1.5 rounded-xl bg-warm-sand hover:bg-terracota hover:text-white text-espresso text-[11px] font-bold transition-all inline-flex items-center gap-1.5 tap-target cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  <span>Gestionar</span>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      },
+
+      filterReclamaciones() {
+        const query = (document.getElementById('searchReclamosInput')?.value || '').toLowerCase().trim();
+        const estado = document.getElementById('filterReclamoEstado')?.value || 'todos';
+        const tipo = document.getElementById('filterReclamoTipo')?.value || 'todos';
+
+        const filtered = this.reclamaciones.filter(r => {
+          const code = (r.codigo_hoja || r.codigo_seguimiento || `REC-${r.id}`).toLowerCase();
+          const name = (r.nombre_completo || r.nombre_consumidor || '').toLowerCase();
+          const doc = (r.numero_documento || '').toLowerCase();
+          const email = (r.email || '').toLowerCase();
+          const tipoTexto = r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo';
+
+          const matchQuery = !query || code.includes(query) || name.includes(query) || doc.includes(query) || email.includes(query);
+          const matchEstado = (estado === 'todos') || (r.estado === estado);
+          const matchTipo = (tipo === 'todos') || (tipoTexto === tipo);
+
+          return matchQuery && matchEstado && matchTipo;
+        });
+
+        this.renderReclamaciones(filtered);
+      },
+
+      openReclamacionModal(id) {
+        const r = this.reclamaciones.find(item => item.id == id || item.codigo_hoja == id || item.codigo_seguimiento == id);
+        if (!r) return;
+
+        this.currentReclamacion = r;
+
+        document.getElementById('modalReclamoId').value = r.id;
+        document.getElementById('modalReclamoCodigo').textContent = r.codigo_hoja || r.codigo_seguimiento || `REC-${r.id}`;
+        
+        const badge = document.getElementById('modalReclamoTipoBadge');
+        const tipoTexto = r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo';
+        const isReclamo = tipoTexto.toLowerCase().includes('reclamo');
+        badge.textContent = tipoTexto;
+        badge.className = isReclamo 
+          ? 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800' 
+          : 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800';
+
+        document.getElementById('modalReclamoNombre').textContent = r.nombre_completo || r.nombre_consumidor || '—';
+        document.getElementById('modalReclamoDocTipo').textContent = r.tipo_documento || 'DNI';
+        document.getElementById('modalReclamoDocNum').textContent = r.numero_documento || '—';
+        document.getElementById('modalReclamoEmail').textContent = r.email ? `✉ ${r.email}` : '—';
+        document.getElementById('modalReclamoTel').textContent = r.telefono ? `☎ ${r.telefono}` : '—';
+        
+        const ubicacionParts = [r.direccion, r.distrito, r.departamento].filter(Boolean);
+        document.getElementById('modalReclamoUbicacion').textContent = ubicacionParts.join(' - ') || '—';
+
+        document.getElementById('modalReclamoTipoBien').textContent = r.tipo_bien || 'Producto';
+        const montoNum = parseFloat(r.monto_reclamado || 0);
+        document.getElementById('modalReclamoMonto').textContent = `S/. ${montoNum.toFixed(2)}`;
+        document.getElementById('modalReclamoDescBien').textContent = r.descripcion_bien || '—';
+
+        document.getElementById('modalReclamoDetalle').textContent = r.detalle_reclamacion || '—';
+        document.getElementById('modalReclamoPedido').textContent = r.pedido_consumidor || '—';
+
+        document.getElementById('modalReclamoEstadoSelect').value = r.estado || 'Pendiente';
+        document.getElementById('modalReclamoRespuestaTexto').value = r.respuesta_proveedor || '';
+
+        const modal = document.getElementById('modalDetalleReclamacion');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      },
+
+      closeReclamacionModal() {
+        const modal = document.getElementById('modalDetalleReclamacion');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      },
+
+      async saveReclamacionRespuesta(e) {
+        e.preventDefault();
+        const id = document.getElementById('modalReclamoId').value;
+        const estado = document.getElementById('modalReclamoEstadoSelect').value;
+        const respuesta = document.getElementById('modalReclamoRespuestaTexto').value.trim();
+        const btn = document.getElementById('btnGuardarRespuestaReclamo');
+
+        if (!id) return;
+        if (!respuesta && estado === 'Atendido') {
+          alert('Por favor ingrese la respuesta formal y fundamentada para dar por atendida la hoja de reclamación conforme a la Ley N° 31435.');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span>Guardando...</span>';
+
+        const res = await ApiService.updateReclamacionEstado(id, estado, respuesta);
+
+        btn.disabled = false;
+        btn.innerHTML = '<span>Guardar Respuesta Oficial</span>';
+
+        if (res.success) {
+          alert('¡Respuesta oficial registrada correctamente y estado actualizado!');
+          this.closeReclamacionModal();
+          await this.loadReclamaciones();
+          this.updateStats();
+        } else {
+          alert(res.error || 'Ocurrió un error al actualizar la reclamación.');
+        }
+      },
+
+      printCurrentReclamacion() {
+        if (!this.currentReclamacion) return;
+        const r = this.currentReclamacion;
+        const printWindow = window.open('', '_blank', 'width=800,height=900');
+        if (!printWindow) {
+          alert('Por favor habilite las ventanas emergentes (popups) para imprimir la hoja.');
+          return;
+        }
+
+        const codigoPrint = r.codigo_hoja || r.codigo_seguimiento || ('REC-' + r.id);
+        const tipoPrint = r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo';
+        const nombrePrint = r.nombre_completo || r.nombre_consumidor || '—';
+
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <title>Hoja de Reclamación INDECOPI - ${codigoPrint}</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 30px; color: #2D2522; line-height: 1.4; font-size: 12px; }
+              .header { display: flex; justify-content: space-between; border-bottom: 2px solid #C85A32; padding-bottom: 12px; margin-bottom: 15px; }
+              .company { font-size: 16px; font-weight: 800; color: #2D2522; }
+              .ruc { font-size: 11px; color: #666; margin-top: 2px; }
+              .sheet-title { text-align: right; }
+              .sheet-title h1 { margin: 0; font-size: 14px; color: #C85A32; letter-spacing: 0.5px; }
+              .code { font-family: monospace; font-size: 13px; font-weight: bold; margin-top: 2px; }
+              .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+              .badge-reclamo { background: #fef3c7; color: #92400e; }
+              .badge-queja { background: #ede9fe; color: #5b21b6; }
+              .badge-estado { background: #dcfce7; color: #166534; }
+              .section { margin-bottom: 14px; border: 1px solid #e5e5e5; border-radius: 8px; padding: 10px 14px; }
+              .section-title { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #786F6A; margin-bottom: 6px; letter-spacing: 0.5px; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
+              .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+              .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+              .label { font-size: 10px; color: #888; margin-bottom: 2px; }
+              .value { font-size: 12px; font-weight: 600; }
+              .box-text { background: #faf8f5; border: 1px solid #ede8e3; border-radius: 6px; padding: 8px 10px; font-size: 11px; white-space: pre-wrap; }
+              .footer { margin-top: 25px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 10px; color: #888; text-align: center; }
+              @media print {
+                body { margin: 15mm; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div>
+                <div class="company">DESCARTABLES PERUANOS S.A.C.</div>
+                <div class="ruc">RUC: 20601234567 | Av. Alejandro Bertello 732-C, Cercado de Lima</div>
+                <div class="ruc">Teléfono: (01) 564-1450 | Email: ventas@descartablesperu.com</div>
+              </div>
+              <div class="sheet-title">
+                <h1>LIBRO DE RECLAMACIONES VIRTUAL</h1>
+                <div class="code">${codigoPrint}</div>
+                <div style="margin-top: 4px;">
+                  <span class="badge ${tipoPrint === 'Queja' ? 'badge-queja' : 'badge-reclamo'}">${tipoPrint}</span>
+                  <span class="badge badge-estado">${r.estado || 'Pendiente'}</span>
+                </div>
+                <div style="font-size: 10px; color: #888; margin-top: 3px;">Fecha: ${(r.creado_en || r.fecha || new Date().toISOString()).slice(0, 10)}</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">1. Identificación del Consumidor Reclamante</div>
+              <div class="grid">
+                <div>
+                  <div class="label">Nombre o Razón Social:</div>
+                  <div class="value">${nombrePrint}</div>
+                </div>
+                <div>
+                  <div class="label">Documento de Identidad:</div>
+                  <div class="value">${r.tipo_documento || 'DNI'}: ${r.numero_documento || '—'}</div>
+                </div>
+                <div>
+                  <div class="label">Correo Electrónico:</div>
+                  <div class="value">${r.email || '—'}</div>
+                </div>
+                <div>
+                  <div class="label">Teléfono:</div>
+                  <div class="value">${r.telefono || '—'}</div>
+                </div>
+                <div style="grid-column: 1 / -1;">
+                  <div class="label">Domicilio:</div>
+                  <div class="value">${r.direccion || '—'} (${r.distrito || 'Lima'} - ${r.departamento || 'Lima'})</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">2. Identificación del Bien Contratado</div>
+              <div class="grid-3">
+                <div>
+                  <div class="label">Tipo de Bien:</div>
+                  <div class="value">${r.tipo_bien || 'Producto'}</div>
+                </div>
+                <div>
+                  <div class="label">Monto Reclamado:</div>
+                  <div class="value" style="color: #C85A32;">S/. ${parseFloat(r.monto_reclamado || 0).toFixed(2)}</div>
+                </div>
+                <div>
+                  <div class="label">Descripción:</div>
+                  <div class="value">${r.descripcion_bien || '—'}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">3. Detalle de la Reclamación y Pedido del Consumidor</div>
+              <div style="margin-bottom: 8px;">
+                <div class="label">Detalle de los hechos expuestos:</div>
+                <div class="box-text">${r.detalle_reclamacion || '—'}</div>
+              </div>
+              <div>
+                <div class="label">Pedido concreto del consumidor:</div>
+                <div class="box-text" style="background: #fefce8; border-color: #fef08a;">${r.pedido_consumidor || '—'}</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">4. Acciones Adoptadas y Respuesta Oficial del Proveedor</div>
+              <div style="margin-bottom: 6px;">
+                <div class="label">Respuesta fundamentada (Ley N° 31435):</div>
+                <div class="box-text" style="background: #f0fdf4; border-color: #bbf7d0;">${r.respuesta_proveedor || 'En proceso de evaluación legal dentro del plazo de 15 días hábiles establecido por el Código de Protección y Defensa del Consumidor.'}</div>
+              </div>
+              <div class="grid">
+                <div>
+                  <div class="label">Estado actual:</div>
+                  <div class="value">${r.estado || 'Pendiente'}</div>
+                </div>
+                <div>
+                  <div class="label">Fecha de Respuesta:</div>
+                  <div class="value">${r.fecha_respuesta || 'Pendiente de emisión'}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="footer">
+              Documento emitido en cumplimiento de la Ley N° 29571 (Código de Protección y Defensa del Consumidor) y Ley N° 31435.<br>
+              INDECOPI supervisa el estricto cumplimiento de la atención a los reclamos y quejas virtuales.
+            </div>
+
+            <script>
+              window.onload = function() {
+                window.print();
+              };
+            <\/script>
+          </body>
+          </html>
+        `);
+        printWindow.document.close();
+      },
+
       updateStats() {
         const metricProd = document.getElementById('metricTotalProd');
         if (metricProd) metricProd.textContent = this.products.length;
@@ -785,6 +1377,8 @@
         if (metricEmpresas) {
           metricEmpresas.textContent = this.users.filter(u => u.tipo_documento === 'RUC').length;
         }
+
+        this.updateReclamacionesStats();
       }
     };
 

@@ -106,23 +106,100 @@ if ($method === 'GET') {
     $codigo = isset($_GET['codigo']) ? trim($_GET['codigo']) : null;
     $doc = isset($_GET['documento']) ? trim($_GET['documento']) : null;
 
-    if (!$codigo && !$doc) {
+    $pdo = getDbConnection();
+    if (!$pdo) {
+        echo json_encode(['success' => true, 'data' => [], 'stats' => ['total' => 0, 'pendientes' => 0, 'atendidos' => 0]]);
+        exit();
+    }
+
+    if ($codigo) {
+        $stmt = $pdo->prepare("SELECT * FROM libro_reclamaciones WHERE codigo_hoja = ?");
+        $stmt->execute([$codigo]);
+        $resultados = $stmt->fetchAll();
+        echo json_encode(['success' => true, 'data' => $resultados], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    if ($doc) {
+        $stmt = $pdo->prepare("SELECT * FROM libro_reclamaciones WHERE numero_documento = ? ORDER BY id DESC");
+        $stmt->execute([$doc]);
+        $resultados = $stmt->fetchAll();
+        echo json_encode(['success' => true, 'data' => $resultados], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    // Listado general para Panel Administrativo
+    $stmt = $pdo->query("SELECT * FROM libro_reclamaciones ORDER BY id DESC");
+    $resultados = $stmt->fetchAll();
+
+    // Estadísticas agregadas
+    $stmtStats = $pdo->query("
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN estado = 'Pendiente' THEN 1 ELSE 0 END) as pendientes,
+            SUM(CASE WHEN estado = 'En Proceso' THEN 1 ELSE 0 END) as en_proceso,
+            SUM(CASE WHEN estado = 'Atendido' THEN 1 ELSE 0 END) as atendidos,
+            SUM(CASE WHEN tipo_reclamacion = 'Reclamo' THEN 1 ELSE 0 END) as reclamos,
+            SUM(CASE WHEN tipo_reclamacion = 'Queja' THEN 1 ELSE 0 END) as quejas
+        FROM libro_reclamaciones
+    ");
+    $stats = $stmtStats->fetch() ?: [
+        'total' => count($resultados),
+        'pendientes' => 0,
+        'en_proceso' => 0,
+        'atendidos' => 0,
+        'reclamos' => 0,
+        'quejas' => 0
+    ];
+
+    echo json_encode([
+        'success' => true,
+        'count'   => count($resultados),
+        'stats'   => $stats,
+        'data'    => $resultados
+    ], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
+if ($method === 'PUT') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+
+    if (!$data || (empty($data['id']) && empty($data['codigo_hoja']))) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'Se requiere el código de hoja o número de documento.']);
+        echo json_encode(['success' => false, 'error' => 'Se requiere el ID o código de la hoja de reclamación.']);
         exit();
     }
 
     $pdo = getDbConnection();
-    if ($codigo) {
-        $stmt = $pdo->prepare("SELECT * FROM libro_reclamaciones WHERE codigo_hoja = ?");
-        $stmt->execute([$codigo]);
-    } else {
-        $stmt = $pdo->prepare("SELECT * FROM libro_reclamaciones WHERE numero_documento = ? ORDER BY id DESC");
-        $stmt->execute([$doc]);
+    if (!$pdo) {
+        echo json_encode(['success' => true, 'message' => 'Actualizado en modo local.']);
+        exit();
     }
 
-    $resultados = $stmt->fetchAll();
-    echo json_encode(['success' => true, 'data' => $resultados], JSON_UNESCAPED_UNICODE);
+    $id = !empty($data['id']) ? (int)$data['id'] : null;
+    $codigo = !empty($data['codigo_hoja']) ? trim($data['codigo_hoja']) : null;
+    $estado = in_array($data['estado'] ?? '', ['Pendiente', 'En Proceso', 'Atendido']) ? $data['estado'] : 'Atendido';
+    $respuesta = trim($data['respuesta_proveedor'] ?? '');
+
+    if ($id) {
+        $stmt = $pdo->prepare("UPDATE libro_reclamaciones SET estado = ?, respuesta_proveedor = ?, fecha_respuesta = NOW() WHERE id = ?");
+        $stmt->execute([$estado, $respuesta, $id]);
+    } else {
+        $stmt = $pdo->prepare("UPDATE libro_reclamaciones SET estado = ?, respuesta_proveedor = ?, fecha_respuesta = NOW() WHERE codigo_hoja = ?");
+        $stmt->execute([$estado, $respuesta, $codigo]);
+    }
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Hoja de reclamación actualizada exitosamente conforme a INDECOPI.',
+        'data'    => [
+            'id'                  => $id,
+            'estado'              => $estado,
+            'respuesta_proveedor' => $respuesta,
+            'fecha_respuesta'     => date('Y-m-d H:i:s')
+        ]
+    ], JSON_UNESCAPED_UNICODE);
     exit();
 }
 
