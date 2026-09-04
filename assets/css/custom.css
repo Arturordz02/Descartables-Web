@@ -143,10 +143,10 @@ h1, h2, h3, h4, .font-heading {
 }
 
 /* ====================================================================
-   ESTILOS DE IMPRESIÓN OFICIAL - LIBRO DE RECLAMACIONES INDECOPI
+   ESTILOS DE IMPRESIÓN OFICIAL - COTIZACIÓN B2B Y RECLAMACIONES INDECOPI
    ==================================================================== */
 @media print {
-  header, footer, #cartDrawer, #cartBackdrop, #toastContainer, 
+  header, footer, #cartDrawer, #cartBackdrop, #toastContainer, #dpTermsConsentCard,
   .no-print, button:not(.allow-print), .mobile-quick-bar {
     display: none !important;
   }
@@ -154,18 +154,26 @@ h1, h2, h3, h4, .font-heading {
   body {
     background-color: #FFFFFF !important;
     color: #000000 !important;
-    font-size: 11pt !important;
+    font-size: 10pt !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  #modalHojaReclamacion, #hojaReclamacionPrintArea {
+  #modalHojaReclamacion, #hojaReclamacionPrintArea,
+  #modalCotizacionFormal, #cotizacionPrintArea {
     position: static !important;
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
-    background: transparent !important;
+    background: #FFFFFF !important;
+  }
+
+  .cotizacion-print-border {
+    border: 1px solid #333333 !important;
   }
 
   .hoja-print-border {

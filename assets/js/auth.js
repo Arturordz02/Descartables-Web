@@ -407,7 +407,7 @@ const Auth = {
         <p class="text-xs text-[#574B46] mb-2">
           <strong>Tipo:</strong> ${cot.comprobante} | <strong>Destino:</strong> ${cot.destino}
         </p>
-        <div class="bg-[#F4EFEA] p-2.5 rounded-xl text-xs space-y-1">
+        <div class="bg-[#F4EFEA] p-2.5 rounded-xl text-xs space-y-1 mb-2.5">
           ${cot.items.map(item => `
             <div class="flex justify-between text-[#1F1815]">
               <span>${item.cantidad} x ${item.nombre}</span>
@@ -415,6 +415,10 @@ const Auth = {
             </div>
           `).join('')}
         </div>
+        <button type="button" onclick="Carrito.items = JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(cot.items))}')); Carrito.openFormalQuoteModal();" class="w-full py-2 px-3 rounded-xl bg-[#FDFBF7] hover:bg-[#F4EFEA] text-[#1F1815] text-xs font-bold flex items-center justify-center gap-1.5 border border-[#EAE3DA] transition-colors cursor-pointer tap-target">
+          <svg class="w-3.5 h-3.5 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Descargar Proforma Formal en PDF</span>
+        </button>
       </div>
     `).join('');
   },

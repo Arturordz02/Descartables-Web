@@ -180,16 +180,24 @@ const Carrito = {
 
           <!-- Acciones Principales -->
           <div class="space-y-2 pt-1">
-            <button id="btnSendWhatsApp" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all tap-target">
+            <button id="btnSendWhatsApp" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all tap-target cursor-pointer">
               <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
               </svg>
               <span>Enviar Cotización por WhatsApp</span>
             </button>
 
+            <!-- Botón Cotización Formal en PDF -->
+            <button id="btnOpenFormalQuote" type="button" class="w-full py-2.5 px-4 rounded-xl bg-[#F4EFEA] hover:bg-stone-200 text-[#1F1815] font-bold text-xs flex items-center justify-center gap-2 border border-[#EAE3DA] transition-all shadow-xs tap-target cursor-pointer">
+              <svg class="w-4 h-4 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span>Descargar Proforma Formal (PDF / Imprimir)</span>
+            </button>
+
             <div class="flex items-center justify-between pt-1 text-xs text-[#574B46]">
-              <button id="btnClearCart" class="text-rose-600 hover:underline py-1">Vaciar lista</button>
-              <button id="btnCopyCart" class="text-[#C85A32] hover:underline flex items-center gap-1 py-1">
+              <button id="btnClearCart" class="text-rose-600 hover:underline py-1 cursor-pointer">Vaciar lista</button>
+              <button id="btnCopyCart" class="text-[#C85A32] hover:underline flex items-center gap-1 py-1 cursor-pointer">
                 <span>Copiar texto</span>
               </button>
             </div>
@@ -352,16 +360,252 @@ const Carrito = {
     window.open(waUrl, '_blank');
   },
 
-  copyCartText() {
-    const text = this.buildWhatsAppText();
-    if (!text) return;
-    navigator.clipboard.writeText(text).then(() => {
-      if (window.showToast) {
-        window.showToast('¡Texto de la cotización copiado al portapapeles!', 'success');
+  getItemReferencePrice(item) {
+    if (item.precio && typeof item.precio === 'number') return item.precio;
+    const nameLower = (item.nombre || '').toLowerCase();
+    const skuLower = (item.sku || '').toLowerCase();
+
+    if (nameLower.includes('ct-4') || skuLower.includes('ct4')) return 48.00;
+    if (nameLower.includes('vaso') && nameLower.includes('8 oz')) return 85.00;
+    if (nameLower.includes('vaso') && nameLower.includes('12 oz')) return 98.00;
+    if (nameLower.includes('domo')) return 65.00;
+    if (nameLower.includes('vacío') || nameLower.includes('vacio')) return 95.00;
+    if (nameLower.includes('film')) return 78.00;
+    if (nameLower.includes('stand-up') || nameLower.includes('bilaminada')) return 120.00;
+    if (nameLower.includes('cuchara') || nameLower.includes('tenedor') || nameLower.includes('cuchillo')) return 32.00;
+    if (nameLower.includes('servilleta')) return 28.00;
+    if (nameLower.includes('basura')) return 42.00;
+    if (nameLower.includes('guante')) return 35.00;
+    if (nameLower.includes('bagazo') || nameLower.includes('kraft')) return 89.00;
+
+    return 55.00;
+  },
+
+  async openFormalQuoteModal() {
+    if (this.items.length === 0) {
+      alert('Tu carrito de cotización está vacío. Agrega productos para generar la proforma.');
+      return;
+    }
+
+    const tipoComp = document.getElementById('cotizacionTipoComp')?.value || 'Factura';
+    const doc = document.getElementById('cotizacionDoc')?.value.trim() || 'No especificado';
+    const nombre = document.getElementById('cotizacionNombre')?.value.trim() || 'Cliente Corporativo';
+    const destino = document.getElementById('cotizacionDestino')?.value || 'Lima Metropolitana';
+
+    // Registrar cotización en API o local
+    let quoteCode = 'COT-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+    let fechaHoy = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
+    let fechaVence = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    if (window.ApiService && typeof ApiService.registerQuote === 'function') {
+      try {
+        const res = await ApiService.registerQuote({
+          documento: doc,
+          nombre_cliente: nombre,
+          tipo_comprobante: tipoComp,
+          destino: destino,
+          items: this.items
+        });
+        if (res && res.codigo_cotizacion) {
+          quoteCode = res.codigo_cotizacion;
+        }
+      } catch (e) {
+        console.warn('Error registrando cotización, usando correlativo local.');
       }
-    }).catch(() => {
-      alert('No se pudo copiar automáticamente. Por favor use el botón de WhatsApp.');
+    }
+
+    // Calcular montos
+    let totalSoles = 0;
+    const itemsWithPrices = this.items.map(item => {
+      const pUnit = this.getItemReferencePrice(item);
+      const sub = pUnit * item.cantidad;
+      totalSoles += sub;
+      return { ...item, pUnit, sub };
     });
+
+    const subtotalNeto = totalSoles / 1.18;
+    const igv = totalSoles - subtotalNeto;
+
+    // Inyectar o actualizar modal
+    let modal = document.getElementById('modalCotizacionFormal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'modalCotizacionFormal';
+      modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-stone-900/80 backdrop-blur-md hidden animate-fade-in overflow-y-auto';
+      document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+      <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[96vh] overflow-y-auto shadow-2xl border border-stone-200 relative my-4 sm:my-8 touch-scroll">
+        
+        <!-- Barra de Herramientas Superior (No imprimible) -->
+        <div class="no-print sticky top-0 z-20 bg-[#FDFBF7] px-4 sm:px-6 py-3.5 border-b border-[#EAE3DA] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-heading font-extrabold text-xs sm:text-sm text-[#1F1815]">Proforma Oficial B2B Generada (${quoteCode})</span>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button onclick="window.print()" class="allow-print flex-1 sm:flex-initial px-4 py-2 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-terracota/20 transition-all cursor-pointer tap-target">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              <span>Guardar como PDF / Imprimir</span>
+            </button>
+            <button onclick="Carrito.sendToWhatsApp()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer tap-target">
+              <span>WhatsApp</span>
+            </button>
+            <button onclick="Carrito.closeFormalQuoteModal()" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-colors cursor-pointer tap-target">
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- HOJA A4 MEMBRETADA OFICIAL (Área de Impresión) -->
+        <div id="cotizacionPrintArea" class="p-6 sm:p-10 space-y-6 text-[#1F1815] bg-white">
+          
+          <!-- Encabezado Corporativo SUNAT -->
+          <div class="flex flex-col sm:flex-row items-start justify-between gap-6 border-b-2 border-[#1F1815] pb-6">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#C85A32] to-[#D9822B] text-white flex items-center justify-center font-heading font-black text-lg shadow-sm">
+                  DP
+                </div>
+                <div>
+                  <h1 class="font-heading font-black text-lg sm:text-xl tracking-tight text-[#1F1815] leading-tight">
+                    DESCARTABLES PERUANOS S.A.C.
+                  </h1>
+                  <p class="text-[11px] font-bold text-[#C85A32] tracking-wider uppercase">Distribución Mayorista de Envases y Embalajes</p>
+                </div>
+              </div>
+              <p class="text-[11px] text-[#574B46] pt-1 leading-relaxed">
+                <strong>Domicilio Fiscal:</strong> Av. Alejandro Bertello 732-C, Cercado de Lima, Lima - Perú<br>
+                <strong>Central Telefónica:</strong> (01) 564-1450 | <strong>WhatsApp Ventas:</strong> +51 994 195 430<br>
+                <strong>Correo Corporativo:</strong> ventas@descartablesperuanos.pe | <strong>Web:</strong> www.descartablesperuanos.pe
+              </p>
+            </div>
+
+            <!-- Recuadro Oficial RUC / Cotización -->
+            <div class="border-2 border-[#1F1815] rounded-2xl p-4 text-center min-w-[220px] bg-[#FDFBF7] shadow-xs flex-shrink-0">
+              <span class="block text-xs font-black tracking-widest text-[#1F1815]">R.U.C. 20601234567</span>
+              <span class="block py-1.5 my-1 text-sm font-black bg-[#1F1815] text-white uppercase tracking-wider rounded-lg">
+                COTIZACIÓN
+              </span>
+              <span class="block font-mono text-sm font-black text-[#C85A32] tracking-tight">${quoteCode}</span>
+            </div>
+          </div>
+
+          <!-- Cuadrícula de Datos del Cliente y Emisión -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-[#FDFBF7] p-4 rounded-2xl border border-[#EAE3DA]">
+            <div class="space-y-1">
+              <p><strong>Cliente / Razón Social:</strong> <span class="text-[#1F1815] font-semibold">${nombre}</span></p>
+              <p><strong>N° RUC / DNI:</strong> <span class="font-mono font-bold">${doc}</span></p>
+              <p><strong>Comprobante Solicitado:</strong> <span class="font-semibold text-[#C85A32]">${tipoComp} Electrónica</span></p>
+              <p><strong>Destino de Entrega:</strong> <span>${destino}</span></p>
+            </div>
+            <div class="space-y-1 sm:text-right">
+              <p><strong>Fecha de Emisión:</strong> <span>${fechaHoy}</span></p>
+              <p><strong>Válido Hasta:</strong> <span class="text-rose-700 font-semibold">${fechaVence} (7 días)</span></p>
+              <p><strong>Moneda Comercial:</strong> <strong>Soles Peruanos (PEN - S/.)</strong></p>
+              <p><strong>Atendido por:</strong> <span>Dpto. de Ventas Corporativas</span></p>
+            </div>
+          </div>
+
+          <!-- Tabla de Productos Cotizados -->
+          <div class="overflow-x-auto border border-[#EAE3DA] rounded-2xl">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-[#F4EFEA] text-[#1F1815] font-bold border-b border-[#EAE3DA] uppercase text-[10px] tracking-wider">
+                  <th class="py-2.5 px-3 text-center w-10">Ítem</th>
+                  <th class="py-2.5 px-3">Código SKU</th>
+                  <th class="py-2.5 px-4">Descripción del Producto</th>
+                  <th class="py-2.5 px-3">Presentación</th>
+                  <th class="py-2.5 px-3 text-center">Cant.</th>
+                  <th class="py-2.5 px-3 text-right">P. Unit. (S/.)</th>
+                  <th class="py-2.5 px-4 text-right">Importe (S/.)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#EAE3DA]">
+                ${itemsWithPrices.map((item, idx) => `
+                  <tr class="hover:bg-[#FDFBF7] transition-colors">
+                    <td class="py-2.5 px-3 text-center font-mono font-semibold text-stone-500">${idx + 1}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold text-[#C85A32]">${item.sku}</td>
+                    <td class="py-2.5 px-4">
+                      <span class="font-bold text-[#1F1815] block">${item.nombre}</span>
+                      <span class="text-[10px] text-[#574B46] block">${item.material} ${item.biodegradable ? '• 🌿 Eco-Biodegradable' : ''}</span>
+                    </td>
+                    <td class="py-2.5 px-3 text-[11px]">${item.presentacion}</td>
+                    <td class="py-2.5 px-3 text-center font-bold text-sm text-[#1F1815]">${item.cantidad}</td>
+                    <td class="py-2.5 px-3 text-right font-mono">S/. ${item.pUnit.toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-right font-mono font-bold text-[#1F1815]">S/. ${item.sub.toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Cuadro de Totales SUNAT (I.G.V. 18%) -->
+          <div class="flex flex-col sm:flex-row items-start justify-between gap-4 pt-2">
+            <div class="text-[11px] text-[#574B46] space-y-1 max-w-sm">
+              <p class="font-bold text-[#1F1815]">Condiciones Comerciales y Logísticas:</p>
+              <p>• Los precios unitarios incluyen el 18% del Impuesto General a las Ventas (I.G.V.).</p>
+              <p>• Plazo de entrega en Lima Metropolitana: 24 a 48 horas hábiles tras validación del abono.</p>
+              <p>• Envíos a Provincias: Puesto en agencia terrestre en Lima (Shalom, Marvisur, Flores) con flete contraentrega en destino.</p>
+            </div>
+
+            <div class="w-full sm:w-72 bg-[#FDFBF7] p-3.5 rounded-2xl border border-[#EAE3DA] space-y-2 font-mono text-xs">
+              <div class="flex justify-between text-[#574B46]">
+                <span>OP. GRAVADA:</span>
+                <span>S/. ${subtotalNeto.toFixed(2)}</span>
+              </div>
+              <div class="flex justify-between text-[#574B46]">
+                <span>I.G.V. (18%):</span>
+                <span>S/. ${igv.toFixed(2)}</span>
+              </div>
+              <div class="flex justify-between font-black text-sm text-[#1F1815] border-t-2 border-[#1F1815] pt-2">
+                <span>TOTAL GENERAL:</span>
+                <span class="text-[#C85A32]">S/. ${totalSoles.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cuentas Bancarias Oficiales & Sello de Seguridad -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#EAE3DA] items-end text-xs">
+            <div class="p-3.5 bg-warm-sand/50 rounded-2xl border border-[#EAE3DA] space-y-1.5">
+              <span class="font-bold text-[#1F1815] block text-[11px] uppercase tracking-wider">Cuentas Corrientes Oficiales (Soles):</span>
+              <p class="text-[11px] text-[#574B46] leading-relaxed">
+                <strong>BCP Cta. Cte. Soles:</strong> 193-2645890-0-45<br>
+                <strong>CCI Interbancario:</strong> 002-19300264589004502<br>
+                <strong>BBVA Cta. Cte. Soles:</strong> 0011-0175-0100054890<br>
+                <strong>Billeteras Digitales:</strong> Yape / Plin al <strong>+51 994 195 430</strong>
+              </p>
+            </div>
+
+            <!-- Sello Digital y Firma de Autorización -->
+            <div class="text-center p-3 border border-stone-300 rounded-2xl bg-[#FDFBF7]">
+              <div class="h-10 flex items-center justify-center">
+                <span class="font-heading font-black text-stone-300 tracking-widest text-sm uppercase">DESCARTABLES PERUANOS S.A.C.</span>
+              </div>
+              <div class="border-t border-stone-400 pt-1 text-[11px]">
+                <p class="font-bold text-[#1F1815]">DEPARTAMENTO DE VENTAS CORPORATIVAS</p>
+                <p class="text-stone-500 text-[10px]">Firma y Sello Oficial Autorizado • RUC 20601234567</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeFormalQuoteModal() {
+    const modal = document.getElementById('modalCotizacionFormal');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
   },
 
   attachEvents() {
@@ -386,6 +630,12 @@ const Carrito = {
         return;
       }
 
+      // Abrir Proforma Formal en PDF
+      if (e.target.closest('#btnOpenFormalQuote')) {
+        this.openFormalQuoteModal();
+        return;
+      }
+
       // Vaciar
       if (e.target.closest('#btnClearCart')) {
         this.clearCart();
@@ -395,6 +645,12 @@ const Carrito = {
       // Copiar
       if (e.target.closest('#btnCopyCart')) {
         this.copyCartText();
+        return;
+      }
+
+      // Cerrar modal de proforma al hacer clic fuera del card
+      if (e.target.id === 'modalCotizacionFormal') {
+        this.closeFormalQuoteModal();
         return;
       }
 
@@ -423,6 +679,7 @@ const Carrito = {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         this.closeDrawer();
+        this.closeFormalQuoteModal();
       }
     });
   }

@@ -217,6 +217,48 @@ const ApiService = {
     localStorage.setItem('dp_libro_reclamaciones', JSON.stringify(claims));
   },
 
+  // Registrar Cotización Formal B2B (MySQL + Respaldo Local)
+  async registerQuote(quoteData) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/cotizaciones.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(quoteData)
+        });
+        const json = await res.json();
+        if (json.success) {
+          return json;
+        }
+      } catch (e) {
+        console.warn('Fallo al guardar cotización en MySQL, utilizando generación local.');
+      }
+    }
+
+    const correlativo = 'COT-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+    return {
+      success: true,
+      codigo_cotizacion: correlativo,
+      fecha: new Date().toLocaleDateString('es-PE') + ' ' + new Date().toLocaleTimeString('es-PE')
+    };
+  },
+
+  // Obtener cotizaciones
+  async getQuotes() {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/cotizaciones.php`);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) return json.data;
+      } catch (e) {
+        console.warn('Error consultando cotizaciones en MySQL');
+      }
+    }
+    return JSON.parse(localStorage.getItem('dp_historial_cotizaciones') || '[]');
+  },
+
   // Autenticación: Login
   async login(identificador, password) {
     const isAvailable = await this.checkBackendAvailability();
