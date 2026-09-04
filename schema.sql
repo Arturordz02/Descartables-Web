@@ -3,9 +3,6 @@
 -- ESQUEMA DE BASE DE DATOS MYSQL (NORMATIVA PERÚ - SUNAT / INDECOPI)
 -- ====================================================================
 
-CREATE DATABASE IF NOT EXISTS descartables_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE descartables_db;
-
 -- 1. Tabla de Usuarios (Soporte para DNI, RUC y Carné de Extranjería en Perú)
 CREATE TABLE IF NOT EXISTS usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
