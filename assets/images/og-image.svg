@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDFBF7"/>
+      <stop offset="100%" stop-color="#F4EFEA"/>
+    </linearGradient>
+    <linearGradient id="terracotaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D96B43"/>
+      <stop offset="100%" stop-color="#B84A22"/>
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#1F1815" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Fondo base -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Bordes decorativos modernos -->
+  <rect x="30" y="30" width="1140" height="570" rx="32" fill="#FFFFFF" stroke="#EAE3DA" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="30" y="30" width="1140" height="12" rx="6" fill="url(#terracotaGrad)"/>
+
+  <!-- Círculos decorativos en el fondo -->
+  <circle cx="1020" cy="315" r="220" fill="#F4EFEA" fill-opacity="0.6"/>
+  <circle cx="1060" cy="280" r="140" fill="#FDF0EB" fill-opacity="0.8"/>
+
+  <!-- CONTENIDO IZQUIERDA -->
+  <g transform="translate(80, 100)">
+    
+    <!-- Badge Corporativo -->
+    <rect width="360" height="38" rx="12" fill="#FDF0EB" stroke="#C85A32" stroke-opacity="0.3"/>
+    <circle cx="20" cy="19" r="6" fill="#C85A32"/>
+    <text x="36" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#C85A32" letter-spacing="1">
+      DESCARTABLES PERUANOS S.A.C.
+    </text>
+
+    <!-- Título Principal -->
+    <text x="0" y="105" font-family="'Outfit', -apple-system, sans-serif" font-size="52" font-weight="900" fill="#1F1815" line-height="1.1">
+      Distribuidora Mayorista
+    </text>
+    <text x="0" y="165" font-family="'Outfit', -apple-system, sans-serif" font-size="52" font-weight="900" fill="#C85A32">
+      de Envases y Descartables
+    </text>
+
+    <!-- Bajada Comercial -->
+    <text x="0" y="215" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="500" fill="#574B46">
+      Líneas Pamolsa, Proplas, Empaques Biodegradables, Cubiertos
+    </text>
+    <text x="0" y="245" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="500" fill="#574B46">
+      y Suministros para Restaurantes, Catering y Delivery en Perú.
+    </text>
+
+    <!-- Bento Badges / Beneficios -->
+    <g transform="translate(0, 290)">
+      <!-- Badge 1: Cotizaciones B2B -->
+      <rect x="0" y="0" width="230" height="52" rx="16" fill="#F4EFEA" stroke="#EAE3DA"/>
+      <text x="24" y="32" font-family="-apple-system, sans-serif" font-size="15" font-weight="700" fill="#1F1815">
+        📄 Proformas en PDF
+      </text>
+
+      <!-- Badge 2: Facturación SUNAT -->
+      <rect x="245" y="0" width="220" height="52" rx="16" fill="#F4EFEA" stroke="#EAE3DA"/>
+      <text x="265" y="32" font-family="-apple-system, sans-serif" font-size="15" font-weight="700" fill="#1F1815">
+        🏛️ Factura con RUC
+      </text>
+
+      <!-- Badge 3: Biodegradables -->
+      <rect x="480" y="0" width="230" height="52" rx="16" fill="#EDF2EE" stroke="#4A5D4E" stroke-opacity="0.3"/>
+      <text x="500" y="32" font-family="-apple-system, sans-serif" font-size="15" font-weight="700" fill="#4A5D4E">
+        🌿 100% Eco-Friendly
+      </text>
+    </g>
+
+    <!-- Footer / Ubicación -->
+    <g transform="translate(0, 390)">
+      <text x="0" y="20" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#1F1815">
+        📍 Sede Central: Av. Alejandro Bertello 732-C, Cercado de Lima
+      </text>
+      <text x="0" y="46" font-family="-apple-system, sans-serif" font-size="15" font-weight="500" fill="#574B46">
+        📞 Central: (01) 564-1450 | WhatsApp: +51 994 195 430
+      </text>
+    </g>
+
+  </g>
+
+  <!-- ILUSTRACIÓN DERECHA (Empaque & Isotipo) -->
+  <g transform="translate(870, 180)">
+    <!-- Contenedor del Isotipo -->
+    <rect width="220" height="220" rx="48" fill="url(#terracotaGrad)" filter="url(#shadow)"/>
+    <rect x="8" y="8" width="204" height="204" rx="40" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="4"/>
+
+    <!-- Tapa del envase -->
+    <path d="M50 85 C50 78, 56 72, 66 72 L154 72 C164 72, 170 78, 170 85 L164 96 L56 96 Z" fill="#FFFFFF" fill-opacity="0.95"/>
+    
+    <!-- Cuerpo del envase / bowl kraft -->
+    <path d="M56 102 L70 156 C73 166, 80 171, 91 171 L129 171 C140 171, 147 166, 150 156 L164 102 Z" fill="#FDFBF7"/>
+
+    <!-- Pliegues del vaso/bowl -->
+    <path d="M88 112 L92 156 M110 112 L110 156 M132 112 L128 156" stroke="#EAE3DA" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Hoja ecológica que brota -->
+    <path d="M142 48 C166 48, 180 62, 176 82 C152 86, 138 72, 142 48 Z" fill="url(#leafGrad)"/>
+    <path d="M142 78 C152 68, 162 58, 176 52" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+    <!-- Monograma DP -->
+    <rect x="25" y="245" width="170" height="42" rx="12" fill="#1F1815"/>
+    <text x="110" y="272" font-family="'Outfit', sans-serif" font-size="20" font-weight="900" fill="#FDFBF7" text-anchor="middle" letter-spacing="3">
+      DESCARTABLES
+    </text>
+  </g>
+
+</svg>

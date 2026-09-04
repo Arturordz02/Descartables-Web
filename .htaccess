@@ -1,0 +1,43 @@
+# ====================================================================
+# PLATAFORMA DESCARTABLES PERUANOS S.A.C.
+# CONFIGURACIÓN APACHE / SERVIDOR PRODUCCIÓN & XAMPP
+# ====================================================================
+
+# 1. Manejo de Errores Personalizado
+ErrorDocument 404 /descartables/404.html
+
+# 2. Codificación UTF-8 predeterminada
+AddDefaultCharset UTF-8
+
+# 3. Evitar listado de directorios abierto
+Options -Indexes
+
+# 4. Protección de archivos y scripts sensibles de configuración
+<FilesMatch "^(schema\.sql|config\.php|db\.php|\.env|\.git)">
+    Require all denied
+</FilesMatch>
+
+# 5. Compresión GZIP (mod_deflate) para acelerar velocidad de carga
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json application/xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# 6. Cabeceras de Caché para Estáticos (mod_expires)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
+
+# 7. Cabeceras de Seguridad Básicas
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>
