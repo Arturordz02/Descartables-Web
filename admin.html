@@ -153,6 +153,11 @@
             <option value="6">Línea Eco-Biodegradable</option>
           </select>
 
+          <button type="button" onclick="Admin.exportProductsCSV()" class="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap tap-target cursor-pointer" title="Descargar catálogo en CSV / Excel">
+            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Exportar Excel</span>
+          </button>
+
           <span id="adminProdCountBadge" class="text-xs font-bold text-espresso-muted px-3 py-2 bg-warm-sand rounded-xl whitespace-nowrap">
             0 productos
           </span>
@@ -204,6 +209,11 @@
             <option value="cliente">Solo Clientes</option>
             <option value="admin">Solo Administradores</option>
           </select>
+
+          <button type="button" onclick="Admin.exportUsersCSV()" class="px-3.5 py-2 rounded-xl bg-purple-50 text-purple-900 border border-purple-200 hover:bg-purple-100 text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap tap-target cursor-pointer" title="Descargar clientes en CSV / Excel">
+            <svg class="w-3.5 h-3.5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Exportar Clientes</span>
+          </button>
 
           <span id="adminUserCountBadge" class="text-xs font-bold text-espresso-muted px-3 py-2 bg-warm-sand rounded-xl whitespace-nowrap">
             0 usuarios
@@ -314,6 +324,11 @@
               <option value="Reclamo">Reclamos (Producto)</option>
               <option value="Queja">Quejas (Atención)</option>
             </select>
+
+            <button type="button" onclick="Admin.exportReclamacionesCSV()" class="px-3.5 py-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap tap-target cursor-pointer" title="Descargar libro de reclamaciones en CSV / Excel para INDECOPI">
+              <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Exportar INDECOPI</span>
+            </button>
 
             <span id="adminReclamosCountBadge" class="px-3 py-2 rounded-xl bg-warm-sand text-[11px] font-bold text-espresso-muted whitespace-nowrap">
               0 hojas
@@ -866,12 +881,12 @@
         btn.innerHTML = '<span>Guardar Producto</span>';
 
         if (res.success) {
-          alert(id ? '¡Producto actualizado correctamente!' : '¡Producto agregado al catálogo con éxito!');
+          Toast.success(id ? '¡Producto actualizado correctamente!' : '¡Producto agregado al catálogo con éxito!');
           this.closeProductModal();
           await this.loadProducts();
           this.updateStats();
         } else {
-          alert(res.error || 'Ocurrió un error al guardar el producto.');
+          Toast.error(res.error || 'Ocurrió un error al guardar el producto.');
         }
       },
 
@@ -879,11 +894,11 @@
         if (confirm(`¿Estás seguro de que deseas eliminar permanentemente "${nombre}" del catálogo?`)) {
           const res = await ApiService.deleteProduct(id);
           if (res.success) {
-            alert('Producto eliminado correctamente.');
+            Toast.success('Producto eliminado correctamente.');
             await this.loadProducts();
             this.updateStats();
           } else {
-            alert(res.error || 'No se pudo eliminar el producto.');
+            Toast.error(res.error || 'No se pudo eliminar el producto.');
           }
         }
       },
@@ -996,11 +1011,11 @@
         if (confirm(`¿Eliminar la cuenta del usuario "${nombre}" de la base de datos?`)) {
           const res = await ApiService.deleteUser(id);
           if (res.success) {
-            alert('Usuario eliminado correctamente.');
+            Toast.success('Usuario eliminado correctamente.');
             await this.loadUsers();
             this.updateStats();
           } else {
-            alert(res.error || 'No se pudo eliminar el usuario.');
+            Toast.error(res.error || 'No se pudo eliminar el usuario.');
           }
         }
       },
@@ -1195,7 +1210,7 @@
 
         if (!id) return;
         if (!respuesta && estado === 'Atendido') {
-          alert('Por favor ingrese la respuesta formal y fundamentada para dar por atendida la hoja de reclamación conforme a la Ley N° 31435.');
+          Toast.warning('Por favor ingrese la respuesta formal y fundamentada para dar por atendida la hoja de reclamación conforme a la Ley N° 31435.');
           return;
         }
 
@@ -1208,12 +1223,12 @@
         btn.innerHTML = '<span>Guardar Respuesta Oficial</span>';
 
         if (res.success) {
-          alert('¡Respuesta oficial registrada correctamente y estado actualizado!');
+          Toast.success('¡Respuesta oficial registrada correctamente y estado actualizado!');
           this.closeReclamacionModal();
           await this.loadReclamaciones();
           this.updateStats();
         } else {
-          alert(res.error || 'Ocurrió un error al actualizar la reclamación.');
+          Toast.error(res.error || 'Ocurrió un error al actualizar la reclamación.');
         }
       },
 
@@ -1222,7 +1237,7 @@
         const r = this.currentReclamacion;
         const printWindow = window.open('', '_blank', 'width=800,height=900');
         if (!printWindow) {
-          alert('Por favor habilite las ventanas emergentes (popups) para imprimir la hoja.');
+          Toast.info('Por favor habilite las ventanas emergentes (popups) en su navegador para imprimir la hoja.');
           return;
         }
 
@@ -1367,6 +1382,103 @@
           </html>
         `);
         printWindow.document.close();
+      },
+
+      // ================= EXPORTADOR CSV / EXCEL =================
+      downloadCSV(filename, csvContent) {
+        // UTF-8 BOM (\uFEFF) para compatibilidad total con Microsoft Excel en español
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        Toast.success(`Archivo "${filename}" descargado con éxito.`);
+      },
+
+      exportProductsCSV() {
+        if (!this.products || this.products.length === 0) {
+          Toast.warning('No hay productos para exportar.');
+          return;
+        }
+
+        const headers = ['ID', 'SKU', 'Nombre del Producto', 'Categoría', 'Presentación', 'Material', 'Biodegradable', 'Destacado', 'URL Imagen'];
+        const rows = this.products.map(p => [
+          p.id,
+          `"${(p.sku || '').replace(/"/g, '""')}"`,
+          `"${(p.nombre || '').replace(/"/g, '""')}"`,
+          `"${(p.categoria_nombre || ApiService.getCatalogCategoryName(p.categoria_id) || '').replace(/"/g, '""')}"`,
+          `"${(p.presentacion || '').replace(/"/g, '""')}"`,
+          `"${(p.material || '').replace(/"/g, '""')}"`,
+          p.biodegradable ? 'SÍ' : 'NO',
+          p.destacado ? 'SÍ' : 'NO',
+          `"${(p.imagen_url || '').replace(/"/g, '""')}"`
+        ]);
+
+        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        this.downloadCSV(`catalogo_descartables_${dateStr}.csv`, csvContent);
+      },
+
+      exportUsersCSV() {
+        if (!this.users || this.users.length === 0) {
+          Toast.warning('No hay clientes para exportar.');
+          return;
+        }
+
+        const headers = ['ID', 'Tipo Documento', 'N° Documento', 'Nombre o Razón Social', 'Email', 'Teléfono', 'Departamento', 'Provincia', 'Distrito', 'Dirección', 'Rol', 'Fecha Registro'];
+        const rows = this.users.map(u => [
+          u.id,
+          u.tipo_documento,
+          `"${u.numero_documento}"`,
+          `"${(u.nombre_razon_social || '').replace(/"/g, '""')}"`,
+          `"${(u.email || '').replace(/"/g, '""')}"`,
+          `"${(u.telefono || '').replace(/"/g, '""')}"`,
+          `"${(u.departamento || 'Lima').replace(/"/g, '""')}"`,
+          `"${(u.provincia || 'Lima').replace(/"/g, '""')}"`,
+          `"${(u.distrito || 'Cercado de Lima').replace(/"/g, '""')}"`,
+          `"${(u.direccion || '').replace(/"/g, '""')}"`,
+          u.rol,
+          `"${(u.creado_en || '').slice(0, 10)}"`
+        ]);
+
+        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        this.downloadCSV(`clientes_descartables_${dateStr}.csv`, csvContent);
+      },
+
+      exportReclamacionesCSV() {
+        if (!this.reclamaciones || this.reclamaciones.length === 0) {
+          Toast.warning('No hay registros en el libro de reclamaciones.');
+          return;
+        }
+
+        const headers = ['Código Hoja', 'Fecha', 'Tipo', 'Consumidor', 'Tipo Doc', 'N° Documento', 'Teléfono', 'Email', 'Ubicación', 'Bien Contratado', 'Monto S/', 'Detalle de Reclamo', 'Pedido Concreto', 'Estado', 'Respuesta Oficial', 'Fecha Respuesta'];
+        const rows = this.reclamaciones.map(r => [
+          `"${r.codigo_hoja || r.codigo_seguimiento || ('REC-' + r.id)}"`,
+          `"${(r.creado_en || r.fecha || '').slice(0, 10)}"`,
+          `"${r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo'}"`,
+          `"${(r.nombre_completo || r.nombre_consumidor || '').replace(/"/g, '""')}"`,
+          r.tipo_documento || 'DNI',
+          `"${r.numero_documento || ''}"`,
+          `"${r.telefono || ''}"`,
+          `"${r.email || ''}"`,
+          `"${(r.distrito || 'Lima') + ' - ' + (r.departamento || 'Lima')}"`,
+          `"${(r.tipo_bien || 'Producto').replace(/"/g, '""')}"`,
+          parseFloat(r.monto_reclamado || 0).toFixed(2),
+          `"${(r.detalle_reclamacion || '').replace(/"/g, '""')}"`,
+          `"${(r.pedido_consumidor || '').replace(/"/g, '""')}"`,
+          `"${r.estado || 'Pendiente'}"`,
+          `"${(r.respuesta_proveedor || '').replace(/"/g, '""')}"`,
+          `"${(r.fecha_respuesta || '').slice(0, 10)}"`
+        ]);
+
+        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        this.downloadCSV(`libro_reclamaciones_indecopi_${dateStr}.csv`, csvContent);
       },
 
       updateStats() {

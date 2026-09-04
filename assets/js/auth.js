@@ -373,7 +373,8 @@ const Auth = {
           if (window.showToast) window.showToast('Datos de perfil actualizados con éxito', 'success');
           if (elNombre) elNombre.textContent = res.user.nombre_razon_social;
         } else {
-          alert('Hubo un inconveniente al actualizar: ' + (res.error || 'intente de nuevo.'));
+          if (window.Toast) Toast.error('Hubo un inconveniente al actualizar: ' + (res.error || 'intente de nuevo.'));
+          else alert('Hubo un inconveniente al actualizar: ' + (res.error || 'intente de nuevo.'));
         }
       });
     }
@@ -462,7 +463,7 @@ const Auth = {
   initAdminPage() {
     const user = this.getCurrentUser();
     if (!user || user.rol !== 'admin') {
-      alert('Acceso Restringido: Debe iniciar sesión con una cuenta de Administrador.');
+      sessionStorage.setItem('dp_auth_message', 'Acceso Restringido: Debe iniciar sesión con una cuenta de Administrador.');
       window.location.href = 'login.html';
       return false;
     }

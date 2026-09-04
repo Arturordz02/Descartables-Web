@@ -335,7 +335,7 @@ const Carrito = {
 
   sendToWhatsApp() {
     if (this.items.length === 0) {
-      alert('Tu carrito de cotización está vacío. Agrega productos para cotizar.');
+      Toast.warning('Tu carrito de cotización está vacío. Agrega productos para cotizar.');
       return;
     }
 
@@ -383,7 +383,7 @@ const Carrito = {
 
   async openFormalQuoteModal() {
     if (this.items.length === 0) {
-      alert('Tu carrito de cotización está vacío. Agrega productos para generar la proforma.');
+      Toast.warning('Tu carrito de cotización está vacío. Agrega productos para generar la proforma.');
       return;
     }
 

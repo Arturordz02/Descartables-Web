@@ -103,15 +103,18 @@ const Reclamaciones = {
 
     // Validaciones legales
     if (tipoDoc === 'DNI' && numDoc.length !== 8) {
-      alert('El DNI debe contener exactamente 8 dígitos según RENIEC.');
+      if (window.Toast) Toast.warning('El DNI debe contener exactamente 8 dígitos según RENIEC.');
+      else alert('El DNI debe contener exactamente 8 dígitos según RENIEC.');
       return;
     }
     if (tipoDoc === 'RUC' && numDoc.length !== 11) {
-      alert('El RUC debe contener exactamente 11 dígitos según SUNAT.');
+      if (window.Toast) Toast.warning('El RUC debe contener exactamente 11 dígitos según SUNAT.');
+      else alert('El RUC debe contener exactamente 11 dígitos según SUNAT.');
       return;
     }
     if (esMenor && !nombreTutor) {
-      alert('Debe ingresar los nombres del Padre, Madre o Tutor si el consumidor es menor de edad.');
+      if (window.Toast) Toast.warning('Debe ingresar los nombres del Padre, Madre o Tutor si el consumidor es menor de edad.');
+      else alert('Debe ingresar los nombres del Padre, Madre o Tutor si el consumidor es menor de edad.');
       return;
     }
 
@@ -158,7 +161,8 @@ const Reclamaciones = {
         empresa: this.empresa
       });
     } else {
-      alert('No se pudo registrar la reclamación: ' + (res.error || 'Intente nuevamente.'));
+      if (window.Toast) Toast.error('No se pudo registrar la reclamación: ' + (res.error || 'Intente nuevamente.'));
+      else alert('No se pudo registrar la reclamación: ' + (res.error || 'Intente nuevamente.'));
     }
   },
 

@@ -695,3 +695,99 @@ const ApiService = {
   }
 };
 
+// ====================================================================
+// SISTEMA GLOBAL DE NOTIFICACIONES TOAST (Warm Editorial)
+// ====================================================================
+const Toast = {
+  container: null,
+
+  init() {
+    if (!this.container) {
+      this.container = document.getElementById('toast-container');
+      if (!this.container) {
+        this.container = document.createElement('div');
+        this.container.id = 'toast-container';
+        this.container.className = 'fixed bottom-5 right-5 z-[9999] flex flex-col gap-2.5 pointer-events-none max-w-sm w-full px-4';
+        document.body.appendChild(this.container);
+      }
+    }
+  },
+
+  show(message, type = 'info', duration = 3500) {
+    this.init();
+    if (!this.container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'pointer-events-auto transform transition-all duration-300 ease-out translate-y-3 opacity-0 rounded-2xl p-3.5 shadow-xl border flex items-start gap-3 backdrop-blur-md text-xs font-medium';
+
+    let iconSvg = '';
+    let typeStyles = '';
+
+    if (type === 'success') {
+      typeStyles = 'bg-white/95 text-espresso border-emerald-500/30 shadow-emerald-950/10';
+      iconSvg = `
+        <div class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        </div>
+      `;
+    } else if (type === 'error') {
+      typeStyles = 'bg-white/95 text-espresso border-rose-500/30 shadow-rose-950/10';
+      iconSvg = `
+        <div class="w-7 h-7 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+        </div>
+      `;
+    } else if (type === 'warning') {
+      typeStyles = 'bg-white/95 text-espresso border-amber-500/30 shadow-amber-950/10';
+      iconSvg = `
+        <div class="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+      `;
+    } else {
+      typeStyles = 'bg-white/95 text-espresso border-warm-border shadow-espresso/10';
+      iconSvg = `
+        <div class="w-7 h-7 rounded-xl bg-terracota/10 text-terracota flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      `;
+    }
+
+    toast.className += ` ${typeStyles}`;
+    toast.innerHTML = `
+      ${iconSvg}
+      <div class="flex-1 pt-0.5 leading-snug">
+        <p class="font-bold text-espresso">${type === 'success' ? 'Éxito' : type === 'error' ? 'Atención' : type === 'warning' ? 'Aviso' : 'Información'}</p>
+        <p class="text-espresso-muted text-[11px] mt-0.5">${message}</p>
+      </div>
+      <button type="button" onclick="this.parentElement.remove()" class="text-stone-400 hover:text-espresso p-1 rounded-lg transition-colors flex-shrink-0 cursor-pointer">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    `;
+
+    this.container.appendChild(toast);
+
+    // Animación de entrada
+    requestAnimationFrame(() => {
+      toast.classList.remove('translate-y-3', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+    });
+
+    // Auto cierre
+    setTimeout(() => {
+      if (toast.parentElement) {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }
+    }, duration);
+  },
+
+  success(msg, duration) { this.show(msg, 'success', duration); },
+  error(msg, duration) { this.show(msg, 'error', duration); },
+  warning(msg, duration) { this.show(msg, 'warning', duration); },
+  info(msg, duration) { this.show(msg, 'info', duration); }
+};
+
+window.Toast = Toast;
+window.showToast = (msg, type, duration) => Toast.show(msg, type, duration);
+
