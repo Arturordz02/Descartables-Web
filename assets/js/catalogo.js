@@ -109,13 +109,18 @@ const Catalogo = {
             ` : ''}
           </div>
 
-          <!-- Botón de Ficha Técnica Rápida -->
-          <button onclick="Catalogo.openQuickView('${prod.sku}')" class="absolute bottom-3 right-3 p-2 rounded-xl bg-white/90 backdrop-blur text-[#1F1815] hover:bg-white shadow-md transition-colors" title="Ver especificaciones técnicas">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
+          <!-- Botones de Acción Rápida (Ficha PDF + QuickView) -->
+          <div class="absolute bottom-3 right-3 flex items-center gap-1.5">
+            <button type="button" onclick="Catalogo.descargarFichaPDF('${prod.sku}')" class="p-2 rounded-xl bg-white/90 backdrop-blur text-[#C85A32] hover:bg-white shadow-md transition-colors cursor-pointer tap-target" title="Descargar Ficha Técnica PDF">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </button>
+            <button type="button" onclick="Catalogo.openQuickView('${prod.sku}')" class="p-2 rounded-xl bg-white/90 backdrop-blur text-[#1F1815] hover:bg-white shadow-md transition-colors cursor-pointer tap-target" title="Ver especificaciones técnicas">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <!-- Contenido -->
@@ -359,11 +364,15 @@ const Catalogo = {
       </div>
 
       <div class="pt-2 flex flex-col sm:flex-row gap-2 sm:gap-3">
-        <button onclick="Carrito.addItem(PRODUCTOS.find(p=>p.sku==='${prod.sku}'), 1); Catalogo.closeQuickView();" class="flex-1 py-3 px-4 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2 tap-target">
+        <button onclick="Carrito.addItem((Catalogo.products && Catalogo.products.find(p=>p.sku==='${prod.sku}')) || (typeof PRODUCTOS !== 'undefined' ? PRODUCTOS.find(p=>p.sku==='${prod.sku}') : null), 1); Catalogo.closeQuickView();" class="flex-1 py-3 px-4 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2 tap-target cursor-pointer">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
           <span>Agregar a Cotización</span>
         </button>
-        <button onclick="Catalogo.closeQuickView()" class="px-5 py-3 border border-[#EAE3DA] rounded-xl text-xs font-semibold text-[#574B46] hover:bg-stone-50 tap-target">
+        <button onclick="Catalogo.descargarFichaPDF('${prod.sku}')" class="py-3 px-4 bg-warm-sand hover:bg-stone-200 text-espresso rounded-xl text-xs font-bold border border-warm-border flex items-center justify-center gap-2 tap-target cursor-pointer" title="Descargar Ficha Técnica en PDF">
+          <svg class="w-4 h-4 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Ficha Técnica PDF</span>
+        </button>
+        <button onclick="Catalogo.closeQuickView()" class="px-5 py-3 border border-[#EAE3DA] rounded-xl text-xs font-semibold text-[#574B46] hover:bg-stone-50 tap-target cursor-pointer">
           Cerrar
         </button>
       </div>
@@ -371,6 +380,140 @@ const Catalogo = {
 
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+  },
+
+  descargarFichaPDF(sku) {
+    const prod = (this.products && this.products.find(p => p.sku === sku)) || 
+                 (typeof PRODUCTOS !== 'undefined' ? PRODUCTOS.find(p => p.sku === sku) : null);
+    if (!prod) {
+      if (window.Toast) Toast.error('No se encontró el producto para generar la ficha.');
+      return;
+    }
+
+    const printWin = window.open('', '_blank', 'width=900,height=1000');
+    if (!printWin) {
+      alert('Por favor permita ventanas emergentes para descargar la ficha técnica.');
+      return;
+    }
+
+    const specs = prod.especificaciones || {
+      "temperatura_operativa": "-10°C a +100°C",
+      "apto_microondas": (prod.material || '').includes('Polipropileno') || (prod.material || '').includes('Caña') ? 'Sí (Hasta 100°C)' : 'No (Solo alimentos tibios o fríos)',
+      "resistencia_grasas": "Alta resistencia a aceites y grasas alimentarias",
+      "grado_alimentario": "Certificación DIGESA / FDA Contacto Directo",
+      "biodegradabilidad": prod.biodegradable ? "100% Compostable (Norma EN 13432)" : "100% Reciclable Mecánicamente",
+      "almacenamiento": "Lugar fresco, seco y bajo sombra"
+    };
+
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Ficha Técnica - ${prod.sku} - DESCARTABLES PERUANOS S.A.C.</title>
+        <style>
+          @page { size: A4 portrait; margin: 15mm; }
+          body { font-family: 'Calibri', Arial, sans-serif; color: #1F1815; margin: 0; padding: 25px; font-size: 13px; line-height: 1.4; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #C85A32; padding-bottom: 12px; margin-bottom: 20px; }
+          .logo-box { display: flex; align-items: center; gap: 12px; }
+          .logo-badge { background: #C85A32; color: #fff; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; }
+          .title-box h1 { margin: 0; font-size: 18px; font-weight: bold; color: #1F1815; }
+          .title-box p { margin: 2px 0 0 0; font-size: 11px; color: #C85A32; font-weight: bold; text-transform: uppercase; }
+          .doc-badge { border: 2px solid #1F1815; padding: 8px 16px; text-align: center; border-radius: 10px; background: #FDFBF7; }
+          .doc-badge .ruc { font-size: 11px; font-weight: bold; display: block; }
+          .doc-badge .type { font-size: 13px; font-weight: 900; color: #C85A32; margin-top: 2px; }
+          .prod-hero { display: flex; gap: 20px; margin-bottom: 20px; background: #FDFBF7; border: 1px solid #EAE3DA; border-radius: 14px; padding: 18px; }
+          .prod-img { width: 170px; height: 170px; object-fit: cover; border-radius: 10px; border: 1px solid #ddd; background: #fff; flex-shrink: 0; }
+          .prod-info { flex: 1; }
+          .prod-sku { font-family: monospace; font-size: 14px; font-weight: bold; color: #C85A32; }
+          .prod-name { font-size: 17px; font-weight: bold; margin: 4px 0 8px 0; color: #1F1815; }
+          .prod-desc { font-size: 12px; color: #574B46; margin-bottom: 12px; }
+          .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          .data-table th, .data-table td { padding: 9px 12px; border: 1px solid #EAE3DA; font-size: 12px; }
+          .data-table th { background: #F4EFEA; text-align: left; font-weight: bold; color: #1F1815; width: 35%; }
+          .data-table td { background: #fff; }
+          .section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; color: #C85A32; margin: 18px 0 8px 0; border-bottom: 1px solid #EAE3DA; padding-bottom: 4px; }
+          .footer { margin-top: 35px; border-top: 1px solid #EAE3DA; padding-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; color: #574B46; }
+          .stamp { text-align: center; border: 1px dashed #999; padding: 8px 20px; border-radius: 8px; }
+          @media print {
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo-box">
+            <div class="logo-badge">DP</div>
+            <div class="title-box">
+              <h1>DESCARTABLES PERUANOS S.A.C.</h1>
+              <p>Ficha Técnica Oficial y Especificaciones de Calidad</p>
+            </div>
+          </div>
+          <div class="doc-badge">
+            <span class="ruc">RUC: 20601234567</span>
+            <span class="type">FICHA TÉCNICA</span>
+          </div>
+        </div>
+
+        <div class="prod-hero">
+          <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" class="prod-img" onerror="this.src='https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=300&q=80'">
+          <div class="prod-info">
+            <span class="prod-sku">SKU: ${prod.sku}</span>
+            <h2 class="prod-name">${prod.nombre}</h2>
+            <p class="prod-desc">${prod.descripcion || 'Empaque descartable de alto rendimiento para el sector gastronómico, retail y delivery corporativo.'}</p>
+            <p style="margin:4px 0;"><strong>Categoría:</strong> ${prod.categoria_nombre || 'Envases Descartables'}</p>
+            <p style="margin:4px 0;"><strong>Presentación / Empaque:</strong> ${prod.presentacion || 'Caja mayorista'}</p>
+            <p style="margin:4px 0;"><strong>Clasificación Ambiental:</strong> ${prod.biodegradable ? '<span style="color:#059669; font-weight:bold;">🌿 100% Eco-Biodegradable / Compostable</span>' : '100% Reciclable Mecánicamente'}</p>
+          </div>
+        </div>
+
+        <div class="section-title">Parámetros Técnicos y Físico-Químicos</div>
+        <table class="data-table">
+          <tr>
+            <th>Material de Fabricación</th>
+            <td>${prod.material || 'Polímero Grado Alimentario'}</td>
+          </tr>
+          ${Object.entries(specs).map(([k, v]) => `
+            <tr>
+              <th>${k.replace(/_/g, ' ').toUpperCase()}</th>
+              <td>${v}</td>
+            </tr>
+          `).join('')}
+        </table>
+
+        <div class="section-title">Normativa y Control Sanitario (Perú / Internacional)</div>
+        <table class="data-table">
+          <tr>
+            <th>Inocuidad Alimentaria</th>
+            <td>Cumple con los estándares sanitarios para contacto directo con alimentos (Resolución Ministerial N° 461-2007/MINSA y normas FDA).</td>
+          </tr>
+          <tr>
+            <th>Uso y Aplicaciones</th>
+            <td>Apto para porcionado, transporte, almacenamiento y despacho en pollerías, restaurantes, servicios de catering, pastelerías e industria alimentaria.</td>
+          </tr>
+        </table>
+
+        <div class="footer">
+          <div>
+            <strong>DESCARTABLES PERUANOS S.A.C.</strong><br>
+            Av. Alejandro Bertello 732-C, Cercado de Lima, Perú<br>
+            ventas@descartablesperuanos.pe | Central: (01) 564-1450 | WhatsApp: +51 994 195 430
+          </div>
+          <div class="stamp">
+            <strong>CONTROL DE CALIDAD Y EMISIÓN</strong><br>
+            <span style="font-size:10px; color:#888;">Validado por Dpto. Técnico • Emisión ${new Date().toLocaleDateString('es-PE')}</span>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        <\/script>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
   },
 
   closeQuickView() {

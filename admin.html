@@ -1403,30 +1403,68 @@
           .replace(/Â°/g, '°');
       },
 
-      // ================= EXPORTADOR CSV / EXCEL =================
-      downloadCSV(filename, headers, rows) {
-        const delimiter = ';';
-        const escapeField = (val) => {
-          const str = this.cleanText(String(val ?? ''));
-          return `"${str.replace(/"/g, '""')}"`;
+      // ================= EXPORTADOR NATIVO EXCEL (.XLS / UTF-8) =================
+      downloadCSV(filename, headers, rows, sheetName = 'Datos') {
+        const cleanVal = (val) => {
+          let str = this.cleanText(String(val ?? ''));
+          // Escapar entidades HTML básicas para XML/HTML Excel
+          return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
         };
 
-        const headerLine = headers.map(escapeField).join(delimiter);
-        const rowLines = rows.map(r => r.map(escapeField).join(delimiter));
-        // sep=;\r\n indica a Microsoft Excel en Windows que use punto y coma como separador de columnas nativo
-        const csvContent = 'sep=;\r\n' + [headerLine, ...rowLines].join('\r\n');
+        const safeFilename = filename.replace(/\.csv$/, '.xls');
+        const headerHtml = headers.map(h => `<th style="background-color: #C85A32; color: #ffffff; font-weight: bold; padding: 10px; border: 1px solid #dcdcdc; font-size: 12px; font-family: Calibri, Arial, sans-serif;">${cleanVal(h)}</th>`).join('');
+        const rowsHtml = rows.map((row, rIdx) => {
+          const bg = rIdx % 2 === 0 ? '#ffffff' : '#f9f6f0';
+          const cells = row.map(c => `<td style="padding: 8px; border: 1px solid #e5e5e5; font-size: 11px; font-family: Calibri, Arial, sans-serif; background-color: ${bg};">${cleanVal(c)}</td>`).join('');
+          return `<tr>${cells}</tr>`;
+        }).join('');
 
-        // UTF-8 BOM (\uFEFF) para compatibilidad total con tildes y caracteres especiales en Excel
-        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const excelXml = `
+          <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+          <head>
+            <meta http-equiv="Content-Type" content="application/vnd.ms-excel; charset=UTF-8">
+            <!--[if gte mso 9]>
+            <xml>
+              <x:ExcelWorkbook>
+                <x:ExcelWorksheets>
+                  <x:ExcelWorksheet>
+                    <x:Name>${sheetName}</x:Name>
+                    <x:WorksheetOptions>
+                      <x:DisplayGridlines/>
+                    </x:WorksheetOptions>
+                  </x:ExcelWorksheet>
+                </x:ExcelWorksheets>
+              </x:ExcelWorkbook>
+            </xml>
+            <![endif]-->
+          </head>
+          <body>
+            <table border="1" style="border-collapse: collapse;">
+              <thead>
+                <tr>${headerHtml}</tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </body>
+          </html>
+        `.trim();
+
+        // UTF-8 BOM (\uFEFF) para forzar a Excel a leerlo en UTF-8 nativo
+        const blob = new Blob(['\uFEFF' + excelXml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', filename);
+        link.setAttribute('download', safeFilename);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        Toast.success(`Archivo "${filename}" exportado para Excel.`);
+        Toast.success(`Archivo Excel "${safeFilename}" descargado correctamente.`);
       },
 
       exportProductsCSV() {
@@ -1449,7 +1487,7 @@
         ]);
 
         const dateStr = new Date().toISOString().slice(0, 10);
-        this.downloadCSV(`catalogo_descartables_${dateStr}.csv`, headers, rows);
+        this.downloadCSV(`catalogo_descartables_${dateStr}.xls`, headers, rows, 'Catálogo');
       },
 
       exportUsersCSV() {
@@ -1475,7 +1513,7 @@
         ]);
 
         const dateStr = new Date().toISOString().slice(0, 10);
-        this.downloadCSV(`clientes_descartables_${dateStr}.csv`, headers, rows);
+        this.downloadCSV(`clientes_descartables_${dateStr}.xls`, headers, rows, 'Clientes');
       },
 
       exportReclamacionesCSV() {
@@ -1505,7 +1543,7 @@
         ]);
 
         const dateStr = new Date().toISOString().slice(0, 10);
-        this.downloadCSV(`libro_reclamaciones_indecopi_${dateStr}.csv`, headers, rows);
+        this.downloadCSV(`libro_reclamaciones_indecopi_${dateStr}.xls`, headers, rows, 'Reclamaciones INDECOPI');
       },
 
       updateStats() {
