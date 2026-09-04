@@ -147,26 +147,36 @@ const Catalogo = {
             </div>
 
             <!-- Selector de Cantidad y Botón Cotizar -->
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 mb-2">
               <div class="flex items-center border border-[#EAE3DA] rounded-xl overflow-hidden bg-[#FDFBF7] w-24">
-                <button type="button" onclick="Catalogo.stepQty(this, -1)" class="w-7 h-9 text-xs font-bold text-[#574B46] hover:bg-stone-200 transition-colors">-</button>
+                <button type="button" onclick="Catalogo.stepQty(this, -1)" class="w-7 h-9 text-xs font-bold text-[#574B46] hover:bg-stone-200 transition-colors cursor-pointer">-</button>
                 <input type="number" min="1" value="1" class="input-qty-selector w-10 h-9 text-center text-xs font-semibold text-[#1F1815] bg-transparent focus:outline-none">
-                <button type="button" onclick="Catalogo.stepQty(this, 1)" class="w-7 h-9 text-xs font-bold text-[#574B46] hover:bg-stone-200 transition-colors">+</button>
+                <button type="button" onclick="Catalogo.stepQty(this, 1)" class="w-7 h-9 text-xs font-bold text-[#574B46] hover:bg-stone-200 transition-colors cursor-pointer">+</button>
               </div>
 
-              <button type="button" data-sku="${prod.sku}" class="btn-add-quote flex-1 py-2.5 px-3 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm hover:shadow transition-all">
+              <button type="button" data-sku="${prod.sku}" class="btn-add-quote flex-1 py-2.5 px-3 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm hover:shadow transition-all cursor-pointer tap-target">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
                 <span>Cotizar</span>
               </button>
             </div>
+
+            <!-- Botón Comparador Técnico -->
+            <button type="button" data-compare-sku="${prod.sku}" onclick="Comparador.toggle('${prod.sku}')" class="w-full py-2 px-3 rounded-xl border border-[#EAE3DA] bg-white text-[#574B46] hover:bg-[#F4EFEA] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer tap-target">
+              <svg class="w-3.5 h-3.5 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              <span>Comparar</span>
+            </button>
           </div>
 
         </div>
 
       </div>
     `).join('');
+
+    if (window.Comparador) {
+      window.Comparador.syncCardButtons();
+    }
   },
 
   stepQty(btn, step) {
