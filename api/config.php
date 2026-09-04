@@ -15,12 +15,28 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS
     exit();
 }
 
-// Parámetros de Conexión a MySQL (Valores por defecto compatibles con XAMPP / MariaDB)
-define('DB_HOST', '127.0.0.1');
-define('DB_PORT', '3306');
-define('DB_NAME', 'descartables_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// Parámetros de Conexión a MySQL con detección automática de entorno
+$is_remote = (isset($_SERVER['HTTP_HOST']) && (
+    strpos($_SERVER['HTTP_HOST'], 'free.nf') !== false || 
+    strpos($_SERVER['HTTP_HOST'], 'infinityfree') !== false ||
+    strpos($_SERVER['HTTP_HOST'], 'epizy') !== false
+));
+
+if ($is_remote) {
+    // Entorno Nube: InfinityFree
+    define('DB_HOST', 'sql201.infinityfree.com');
+    define('DB_PORT', '3306');
+    define('DB_NAME', 'if0_42834426_descartables');
+    define('DB_USER', 'if0_42834426');
+    define('DB_PASS', 'Contra246World');
+} else {
+    // Entorno Local: XAMPP / MariaDB
+    define('DB_HOST', '127.0.0.1');
+    define('DB_PORT', '3306');
+    define('DB_NAME', 'descartables_db');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+}
 
 // Datos Oficiales de la Empresa en Perú (INDECOPI / SUNAT)
 define('EMPRESA_RAZON_SOCIAL', 'DESCARTABLES PERUANOS S.A.C.');
