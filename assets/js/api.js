@@ -69,8 +69,28 @@ const ApiService = {
     return CATEGORIAS;
   },
 
+  _cachedProducts: null,
+  _cacheTimestamp: 0,
+  _cacheTTL: 30000, // 30 segundos
+
+  invalidateProductsCache() {
+    this._cachedProducts = null;
+    this._cacheTimestamp = 0;
+    try {
+      localStorage.setItem('dp_catalog_last_updated', Date.now().toString());
+    } catch(e) {}
+    window.dispatchEvent(new CustomEvent('catalog:updated'));
+  },
+
   // Obtener productos con filtros opcionales (Modo MySQL + Modo Local Integrado)
-  async getProducts(filters = {}) {
+  async getProducts(filters = {}, forceRefresh = false) {
+    const isFilterless = Object.keys(filters).length === 0 || (Object.keys(filters).length === 1 && filters.sort);
+    const now = Date.now();
+
+    if (!forceRefresh && isFilterless && this._cachedProducts && (now - this._cacheTimestamp < this._cacheTTL)) {
+      return this._applyMemoryFilters(this._cachedProducts, filters);
+    }
+
     const isAvailable = await this.checkBackendAvailability();
     let results = [];
 
@@ -89,7 +109,11 @@ const ApiService = {
         const res = await fetch(`${this.baseUrl}/productos.php?${queryParams.toString()}`);
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
-          results = json.data;
+          results = json.data.map(p => this.cleanProduct(p));
+          if (isFilterless) {
+            this._cachedProducts = results;
+            this._cacheTimestamp = now;
+          }
           return results;
         }
       } catch (e) {
@@ -129,35 +153,118 @@ const ApiService = {
         }
       });
 
-      // 3. Aplicar filtros en memoria
-      if (filters.categoria && filters.categoria !== 'todos') {
-        results = results.filter(p => 
-          p.categoria_slug === filters.categoria || 
-          p.categoria_id == filters.categoria || 
-          slugMap[p.categoria_id] === filters.categoria
-        );
+      results = results.map(p => this.cleanProduct(p));
+
+      if (isFilterless) {
+        this._cachedProducts = results;
+        this._cacheTimestamp = now;
       }
-      if (filters.material && filters.material !== 'todos') {
-        results = results.filter(p => (p.material || '').toLowerCase().includes(filters.material.toLowerCase()));
-      }
-      if (filters.biodegradable === true || filters.biodegradable === 'true' || filters.biodegradable === 1) {
-        results = results.filter(p => p.biodegradable === true || p.biodegradable == 1);
-      }
-      if (filters.destacado) {
-        results = results.filter(p => p.destacado === true || p.destacado == 1);
-      }
-      if (filters.q) {
-        const q = filters.q.toLowerCase().trim();
-        results = results.filter(p => 
-          (p.nombre || '').toLowerCase().includes(q) || 
-          (p.sku || '').toLowerCase().includes(q) || 
-          (p.descripcion || '').toLowerCase().includes(q) ||
-          (p.material || '').toLowerCase().includes(q)
-        );
-      }
+
+      results = this._applyMemoryFilters(results, filters);
     }
 
-    return results.map(p => this.cleanProduct(p));
+    return results;
+  },
+
+  _applyMemoryFilters(list, filters = {}) {
+    let res = [...list];
+    const slugMap = { 1: 'pamolsa', 2: 'proplas-barrera', 3: 'cubiertos', 4: 'servilletas', 5: 'limpieza', 6: 'novedades' };
+
+    if (filters.categoria && filters.categoria !== 'todos') {
+      res = res.filter(p => 
+        p.categoria_slug === filters.categoria || 
+        p.categoria_id == filters.categoria || 
+        slugMap[p.categoria_id] === filters.categoria
+      );
+    }
+    if (filters.material && filters.material !== 'todos') {
+      res = res.filter(p => (p.material || '').toLowerCase().includes(filters.material.toLowerCase()));
+    }
+    if (filters.biodegradable === true || filters.biodegradable === 'true' || filters.biodegradable === 1) {
+      res = res.filter(p => p.biodegradable === true || p.biodegradable == 1);
+    }
+    if (filters.destacado) {
+      res = res.filter(p => p.destacado === true || p.destacado == 1);
+    }
+    if (filters.q) {
+      const q = filters.q.toLowerCase().trim();
+      res = res.filter(p => 
+        (p.nombre || '').toLowerCase().includes(q) || 
+        (p.sku || '').toLowerCase().includes(q) || 
+        (p.descripcion || '').toLowerCase().includes(q) ||
+        (p.material || '').toLowerCase().includes(q) ||
+        (p.categoria_nombre || '').toLowerCase().includes(q)
+      );
+    }
+    return res;
+  },
+
+  // Obtener un producto por SKU garantizado (usado por comparador, carrito, quickview)
+  async getProductBySku(sku) {
+    if (!sku) return null;
+    sku = String(sku).trim().toUpperCase();
+
+    // 1. Probar en lista en memoria si ya fue cargada
+    if (this._cachedProducts && Array.isArray(this._cachedProducts)) {
+      const found = this._cachedProducts.find(p => p.sku && p.sku.toUpperCase() === sku);
+      if (found) return found;
+    }
+
+    // 2. Probar en Catalogo o IndexFeatured si están disponibles
+    if (window.Catalogo && Array.isArray(window.Catalogo.products)) {
+      const found = window.Catalogo.products.find(p => p.sku && p.sku.toUpperCase() === sku);
+      if (found) return found;
+    }
+    if (window.IndexFeatured && Array.isArray(window.IndexFeatured.products)) {
+      const found = window.IndexFeatured.products.find(p => p.sku && p.sku.toUpperCase() === sku);
+      if (found) return found;
+    }
+
+    // 3. Probar en LocalStorage de productos personalizados
+    try {
+      const customProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+      const foundCustom = customProds.find(p => p.sku && p.sku.toUpperCase() === sku);
+      if (foundCustom) return this.cleanProduct(foundCustom);
+    } catch(e) {}
+
+    // 4. Probar en base estática data.js
+    if (typeof PRODUCTOS !== 'undefined' && Array.isArray(PRODUCTOS)) {
+      const foundBase = PRODUCTOS.find(p => p.sku && p.sku.toUpperCase() === sku);
+      if (foundBase) return this.cleanProduct(foundBase);
+    }
+
+    // 5. Consultar vía API directa si todo lo anterior falló
+    try {
+      const prods = await this.getProducts({ q: sku });
+      const foundApi = prods.find(p => p.sku && p.sku.toUpperCase() === sku);
+      if (foundApi) return foundApi;
+    } catch(e) {}
+
+    return null;
+  },
+
+  // Obtener producto por ID numérico
+  async getProductById(id) {
+    if (!id) return null;
+    id = parseInt(id, 10);
+
+    if (this._cachedProducts && Array.isArray(this._cachedProducts)) {
+      const found = this._cachedProducts.find(p => p.id === id);
+      if (found) return found;
+    }
+
+    try {
+      const customProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+      const foundCustom = customProds.find(p => p.id === id);
+      if (foundCustom) return this.cleanProduct(foundCustom);
+    } catch(e) {}
+
+    if (typeof PRODUCTOS !== 'undefined' && Array.isArray(PRODUCTOS)) {
+      const foundBase = PRODUCTOS.find(p => p.id === id);
+      if (foundBase) return this.cleanProduct(foundBase);
+    }
+
+    return null;
   },
 
   cleanString(str) {
@@ -183,6 +290,7 @@ const ApiService = {
     if (!p || typeof p !== 'object') return p;
     return {
       ...p,
+      precio: p.precio !== undefined && p.precio !== null && p.precio !== '' ? parseFloat(p.precio) : null,
       nombre: this.cleanString(p.nombre),
       descripcion: this.cleanString(p.descripcion),
       presentacion: this.cleanString(p.presentacion),
@@ -520,6 +628,8 @@ const ApiService = {
     localProds.unshift(newLocalProd);
     localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
 
+    let returnData = { success: true, message: 'Producto guardado exitosamente.', data: newLocalProd };
+
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
@@ -530,18 +640,19 @@ const ApiService = {
         });
         const json = await res.json();
         if (json.success && json.data) {
-          // Actualizar id en local si vino de MySQL
           newLocalProd.id = json.data.id;
           localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
-          return json;
+          returnData = json;
+        } else {
+          returnData = json;
         }
-        return json;
       } catch (e) {
         console.error('Error al crear producto en MySQL:', e);
       }
     }
 
-    return { success: true, message: 'Producto guardado exitosamente.', data: newLocalProd };
+    this.invalidateProductsCache();
+    return returnData;
   },
 
   // Editar producto
@@ -564,6 +675,8 @@ const ApiService = {
     }
     localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
 
+    let returnData = { success: true, message: 'Producto actualizado exitosamente.', data: enhancedData };
+
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
@@ -572,13 +685,14 @@ const ApiService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, ...productData })
         });
-        return await res.json();
+        returnData = await res.json();
       } catch (e) {
         console.error('Error al actualizar producto en MySQL:', e);
       }
     }
 
-    return { success: true, message: 'Producto actualizado exitosamente.', data: enhancedData };
+    this.invalidateProductsCache();
+    return returnData;
   },
 
   // Eliminar producto
@@ -594,6 +708,8 @@ const ApiService = {
     const filtered = localProds.filter(p => p.id !== id);
     localStorage.setItem('dp_productos_custom', JSON.stringify(filtered));
 
+    let returnData = { success: true, message: 'Producto eliminado correctamente.' };
+
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
@@ -602,13 +718,14 @@ const ApiService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
         });
-        return await res.json();
+        returnData = await res.json();
       } catch (e) {
         console.error('Error al eliminar producto en MySQL:', e);
       }
     }
 
-    return { success: true, message: 'Producto eliminado correctamente.' };
+    this.invalidateProductsCache();
+    return returnData;
   },
 
   // Subir imagen de producto

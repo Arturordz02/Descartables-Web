@@ -40,17 +40,30 @@ const Comparador = {
   },
 
   getProduct(sku) {
+    if (!sku) return null;
+    sku = String(sku).trim().toUpperCase();
+
+    if (window.ApiService && window.ApiService._cachedProducts && Array.isArray(window.ApiService._cachedProducts)) {
+      const found = window.ApiService._cachedProducts.find(p => p.sku && p.sku.toUpperCase() === sku);
+      if (found) return found;
+    }
     if (window.Catalogo && Array.isArray(window.Catalogo.products)) {
-      const found = window.Catalogo.products.find(p => p.sku === sku);
+      const found = window.Catalogo.products.find(p => p.sku && p.sku.toUpperCase() === sku);
       if (found) return found;
     }
     if (window.IndexFeatured && Array.isArray(window.IndexFeatured.products)) {
-      const found = window.IndexFeatured.products.find(p => p.sku === sku);
+      const found = window.IndexFeatured.products.find(p => p.sku && p.sku.toUpperCase() === sku);
       if (found) return found;
     }
+    try {
+      const customProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+      const found = customProds.find(p => p.sku && p.sku.toUpperCase() === sku);
+      if (found) return window.ApiService ? window.ApiService.cleanProduct(found) : found;
+    } catch(e) {}
+
     if (typeof PRODUCTOS !== 'undefined' && Array.isArray(PRODUCTOS)) {
-      const found = PRODUCTOS.find(p => p.sku === sku);
-      if (found) return found;
+      const found = PRODUCTOS.find(p => p.sku && p.sku.toUpperCase() === sku);
+      if (found) return window.ApiService ? window.ApiService.cleanProduct(found) : found;
     }
     return null;
   },

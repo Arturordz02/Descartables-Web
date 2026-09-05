@@ -85,7 +85,7 @@ function injectMobileBottomBar() {
         <span class="text-[10px] font-bold">Cotizar</span>
       </button>
 
-      <a href="https://wa.me/51994195430" target="_blank" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-emerald-600 tap-target">
+      <a href="javascript:void(0)" onclick="if(window.COMPANY_CONTACT && window.COMPANY_CONTACT.ENABLE_REDIRECTS){window.open(window.COMPANY_CONTACT.whatsapp.url_principal,'_blank');}else{if(window.showToast){showToast('Atención por WhatsApp: ' + (window.COMPANY_CONTACT?.whatsapp.principal || '+51 994 195 430') + ' (Pausado temporalmente)','info');}}" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-emerald-600 tap-target" title="Atención comercial">
         <svg class="w-5 h-5 mb-0.5 fill-current" viewBox="0 0 24 24">
           <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
         </svg>
@@ -186,7 +186,7 @@ const IndexFeatured = {
 
     try {
       if (window.ApiService) {
-        const prods = await ApiService.getProducts({ destacado: true });
+        const prods = await ApiService.getProducts({ destacado: true }, true);
         if (Array.isArray(prods) && prods.length > 0) {
           this.products = prods;
           this.render();
@@ -207,7 +207,7 @@ const IndexFeatured = {
       <div class="product-card bg-white rounded-2xl border border-warm-border p-4 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
         <div>
           <div class="relative h-44 rounded-xl overflow-hidden bg-warm-sand mb-3">
-            <img src="${prod.imagen_url}" alt="${prod.nombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <img src="${prod.imagen_url}" alt="${prod.nombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=600&q=80'">
             <div class="absolute top-2 left-2 flex flex-col gap-1">
               <span class="px-2 py-0.5 rounded bg-espresso text-white font-mono text-[10px] font-bold">${prod.sku}</span>
               ${prod.biodegradable ? '<span class="px-2 py-0.5 rounded bg-emerald-700 text-white text-[9px] font-bold">100% Bio</span>' : ''}
@@ -241,6 +241,276 @@ const IndexFeatured = {
 };
 window.IndexFeatured = IndexFeatured;
 
+// ==========================================
+// BUSCADOR PREDICTIVO EN VIVO (HEADER)
+// ==========================================
+const HeaderSearch = {
+  activeQuery: '',
+  selectedIndex: -1,
+  currentResults: [],
+  debounceTimer: null,
+
+  init() {
+    this.injectSearchOverlayMarkup();
+    this.bindInputs();
+  },
+
+  bindInputs() {
+    const inputs = document.querySelectorAll('#navSearchInput, .header-predictive-input, #mobileSearchInput');
+    inputs.forEach(input => {
+      if (input.dataset.searchBound) return;
+      input.dataset.searchBound = 'true';
+
+      input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        this.activeQuery = query;
+        this.handleSearchInput(query, input);
+      });
+
+      input.addEventListener('keydown', (e) => {
+        this.handleKeydown(e, input);
+      });
+
+      input.addEventListener('focus', (e) => {
+        const query = e.target.value.trim();
+        if (query.length >= 2) {
+          this.handleSearchInput(query, input);
+        }
+      });
+    });
+
+    // Cerrar dropdown al hacer click afuera
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#navSearchDropdown') && !e.target.closest('#navSearchInput') && !e.target.closest('.header-predictive-input') && !e.target.closest('#mobileSearchInput')) {
+        this.closeDropdown();
+      }
+    });
+
+    // Tecla Escape para cerrar
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeDropdown();
+      }
+    });
+  },
+
+  injectSearchOverlayMarkup() {
+    if (document.getElementById('navSearchDropdown')) return;
+    const dropdown = document.createElement('div');
+    dropdown.id = 'navSearchDropdown';
+    dropdown.className = 'fixed z-50 hidden bg-white/95 backdrop-blur-xl border border-[#EAE3DA] rounded-2xl shadow-2xl overflow-hidden transition-all duration-200 text-[#1F1815]';
+    dropdown.style.maxWidth = '460px';
+    dropdown.style.width = 'calc(100vw - 24px)';
+    document.body.appendChild(dropdown);
+  },
+
+  handleSearchInput(query, inputElement) {
+    clearTimeout(this.debounceTimer);
+    if (query.length < 2) {
+      this.closeDropdown();
+      return;
+    }
+
+    this.debounceTimer = setTimeout(async () => {
+      this.positionDropdown(inputElement);
+      this.renderLoading();
+      
+      let products = [];
+      if (window.ApiService) {
+        products = await ApiService.getProducts({ q: query });
+      } else if (typeof PRODUCTOS !== 'undefined') {
+        const q = query.toLowerCase();
+        products = PRODUCTOS.filter(p => 
+          (p.nombre || '').toLowerCase().includes(q) || 
+          (p.sku || '').toLowerCase().includes(q) || 
+          (p.categoria_nombre || '').toLowerCase().includes(q)
+        );
+      }
+
+      this.currentResults = products;
+      this.selectedIndex = -1;
+      this.renderResults(products, query);
+    }, 180);
+  },
+
+  positionDropdown(inputElement) {
+    const dropdown = document.getElementById('navSearchDropdown');
+    if (!dropdown) return;
+
+    const rect = inputElement.getBoundingClientRect();
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+      dropdown.style.left = '12px';
+      dropdown.style.right = '12px';
+      dropdown.style.width = 'calc(100vw - 24px)';
+      dropdown.style.top = `${Math.min(rect.bottom + 6, window.innerHeight - 320)}px`;
+    } else {
+      dropdown.style.left = `${Math.max(12, Math.min(rect.left, window.innerWidth - 470))}px`;
+      dropdown.style.width = `${Math.max(rect.width, 420)}px`;
+      dropdown.style.top = `${rect.bottom + 6}px`;
+    }
+    dropdown.classList.remove('hidden');
+  },
+
+  renderLoading() {
+    const dropdown = document.getElementById('navSearchDropdown');
+    if (!dropdown) return;
+    dropdown.innerHTML = `
+      <div class="p-4 text-center text-xs text-[#574B46] flex items-center justify-center gap-2">
+        <div class="w-4 h-4 border-2 border-[#C85A32] border-t-transparent rounded-full animate-spin"></div>
+        <span>Buscando envases y descartables...</span>
+      </div>
+    `;
+    dropdown.classList.remove('hidden');
+  },
+
+  renderResults(products, query) {
+    const dropdown = document.getElementById('navSearchDropdown');
+    if (!dropdown) return;
+
+    if (products.length === 0) {
+      dropdown.innerHTML = `
+        <div class="p-6 text-center">
+          <div class="w-10 h-10 rounded-full bg-[#F4EFEA] text-[#574B46] flex items-center justify-center mx-auto mb-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <p class="font-bold text-xs text-[#1F1815]">Sin resultados para "${this.escapeHtml(query)}"</p>
+          <p class="text-[11px] text-[#574B46] mt-1">Prueba buscando por SKU, "vaso", "bolsa", "aluminio", "kraft", etc.</p>
+          <a href="catalogo.html" class="inline-block mt-3 px-3 py-1.5 bg-[#F4EFEA] hover:bg-stone-200 text-[#1F1815] rounded-lg text-xs font-semibold transition-colors">Ver todo el catálogo</a>
+        </div>
+      `;
+      dropdown.classList.remove('hidden');
+      return;
+    }
+
+    const itemsToShow = products.slice(0, 5);
+    const highlight = (text) => {
+      if (!text) return '';
+      const regex = new RegExp(`(${this.escapeRegExp(query)})`, 'gi');
+      return text.replace(regex, '<mark class="bg-amber-200 text-[#C85A32] font-bold px-0.5 rounded">$1</mark>');
+    };
+
+    dropdown.innerHTML = `
+      <div class="p-2.5 bg-[#F4EFEA] border-b border-[#EAE3DA] flex items-center justify-between text-[11px]">
+        <span class="font-semibold text-[#574B46]">Sugerencias para "<span class="text-[#C85A32] font-bold">${this.escapeHtml(query)}</span>"</span>
+        <span class="text-[10px] text-[#574B46] font-bold bg-white px-2 py-0.5 rounded-full border border-[#EAE3DA]">${products.length} producto${products.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="max-h-72 overflow-y-auto divide-y divide-[#EAE3DA]/60" id="searchResultList">
+        ${itemsToShow.map((p, idx) => `
+          <div data-index="${idx}" data-sku="${p.sku}" class="search-item group p-2.5 hover:bg-[#FDFBF7] transition-colors flex items-center justify-between gap-3 cursor-pointer">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1" onclick="HeaderSearch.selectItem('${p.sku}')">
+              <img src="${p.imagen_url || 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=100&q=80'}" alt="${p.nombre}" class="w-11 h-11 rounded-lg object-cover bg-white border border-[#EAE3DA] flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=100&q=80'">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="px-1.5 py-0.2 rounded bg-[#1F1815] text-white font-mono text-[9px] font-bold">${highlight(p.sku)}</span>
+                  ${p.biodegradable ? '<span class="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[9px] font-bold">100% Bio</span>' : ''}
+                  <span class="text-[10px] font-semibold text-[#C85A32]">${p.categoria_nombre || 'Descartables'}</span>
+                </div>
+                <h4 class="text-xs font-bold text-[#1F1815] leading-snug truncate mt-0.5" title="${p.nombre}">${highlight(p.nombre)}</h4>
+                <p class="text-[10px] text-[#574B46] truncate">${p.presentacion || ''} • ${p.material || ''}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="HeaderSearch.quickQuote('${p.sku}', event)" class="p-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#C85A32] hover:bg-[#B84A22] text-white text-[10px] font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer tap-target" title="Agregar a cotización">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span class="hidden sm:inline">Cotizar</span>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="p-2.5 bg-white border-t border-[#EAE3DA] text-center">
+        <a href="catalogo.html?q=${encodeURIComponent(query)}" class="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-[#C85A32] hover:text-[#B84A22] transition-colors w-full py-1">
+          <span>Ver los ${products.length} resultados en el catálogo</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </a>
+      </div>
+    `;
+    dropdown.classList.remove('hidden');
+  },
+
+  handleKeydown(e, inputElement) {
+    const dropdown = document.getElementById('navSearchDropdown');
+    const isDropdownVisible = dropdown && !dropdown.classList.contains('hidden');
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (isDropdownVisible && this.selectedIndex >= 0 && this.currentResults[this.selectedIndex]) {
+        this.selectItem(this.currentResults[this.selectedIndex].sku);
+      } else {
+        const query = inputElement.value.trim();
+        if (query) {
+          window.location.href = `catalogo.html?q=${encodeURIComponent(query)}`;
+        }
+      }
+      this.closeDropdown();
+      return;
+    }
+
+    if (!isDropdownVisible || this.currentResults.length === 0) return;
+
+    const items = dropdown.querySelectorAll('.search-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      this.selectedIndex = (this.selectedIndex + 1) % items.length;
+      this.updateActiveItem(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      this.selectedIndex = (this.selectedIndex - 1 + items.length) % items.length;
+      this.updateActiveItem(items);
+    }
+  },
+
+  updateActiveItem(items) {
+    items.forEach((it, idx) => {
+      if (idx === this.selectedIndex) {
+        it.classList.add('bg-[#F4EFEA]');
+        it.scrollIntoView({ block: 'nearest' });
+      } else {
+        it.classList.remove('bg-[#F4EFEA]');
+      }
+    });
+  },
+
+  selectItem(sku) {
+    this.closeDropdown();
+    if (window.Catalogo && typeof window.Catalogo.openQuickView === 'function') {
+      window.Catalogo.openQuickView(sku);
+    } else {
+      window.location.href = `catalogo.html?q=${encodeURIComponent(sku)}`;
+    }
+  },
+
+  async quickQuote(sku, e) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    this.closeDropdown();
+    if (window.Carrito) {
+      await Carrito.addItemBySku(sku, 1);
+    }
+  },
+
+  closeDropdown() {
+    const dropdown = document.getElementById('navSearchDropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+    this.selectedIndex = -1;
+  },
+
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  },
+
+  escapeRegExp(str) {
+    if (!str) return '';
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+};
+window.HeaderSearch = HeaderSearch;
+
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Inicializar Carrito de Cotización en todas las páginas
   if (window.Carrito) {
@@ -249,6 +519,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 1.5. Cargar destacados dinámicos en index si existe el contenedor
   IndexFeatured.init();
+
+  // Sincronización en tiempo real para destacados en Index
+  window.addEventListener('catalog:updated', () => {
+    IndexFeatured.init();
+  });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'dp_catalog_last_updated' || e.key === 'dp_productos_custom' || e.key === 'dp_productos_deleted') {
+      IndexFeatured.init();
+    }
+  });
 
   // 2. Inicializar Estado de Usuario en el Navbar
   if (window.Auth) {
@@ -267,6 +547,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mobileMenuBtn && mobileNav) {
     mobileMenuBtn.addEventListener('click', () => {
       mobileNav.classList.toggle('hidden');
+      if (!mobileNav.classList.contains('hidden')) {
+        const mobSearch = document.getElementById('mobileSearchInput');
+        if (mobSearch) setTimeout(() => mobSearch.focus(), 150);
+      }
     });
 
     // Cerrar al hacer clic en enlaces móviles
@@ -277,18 +561,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 6. Buscador Rápido del Header
-  const navSearchInput = document.getElementById('navSearchInput');
-  if (navSearchInput) {
-    navSearchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        const query = navSearchInput.value.trim();
-        if (query) {
-          window.location.href = `catalogo.html?q=${encodeURIComponent(query)}`;
-        }
-      }
-    });
-  }
+  // 6. Buscador Predictivo en Vivo (Header)
+  HeaderSearch.init();
 
   // 7. Resaltar enlace de navegación activo
   const currentPath = window.location.pathname.split('/').pop() || 'index.html';
@@ -299,3 +573,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+

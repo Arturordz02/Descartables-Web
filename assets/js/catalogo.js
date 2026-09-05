@@ -18,6 +18,16 @@ const Catalogo = {
     this.injectQuickViewModal();
     this.attachFilterEvents();
     await this.loadAndRender();
+
+    // Sincronización en tiempo real ante cambios en admin o base de datos
+    window.addEventListener('catalog:updated', () => {
+      this.loadAndRender();
+    });
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'dp_catalog_last_updated' || e.key === 'dp_productos_custom' || e.key === 'dp_productos_deleted') {
+        this.loadAndRender();
+      }
+    });
   },
 
   readUrlParams() {
@@ -375,7 +385,7 @@ const Catalogo = {
       </div>
 
       <div class="pt-2 flex flex-col sm:flex-row gap-2 sm:gap-3">
-        <button onclick="Carrito.addItem((Catalogo.products && Catalogo.products.find(p=>p.sku==='${prod.sku}')) || (typeof PRODUCTOS !== 'undefined' ? PRODUCTOS.find(p=>p.sku==='${prod.sku}') : null), 1); Catalogo.closeQuickView();" class="flex-1 py-3 px-4 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2 tap-target cursor-pointer">
+        <button onclick="Carrito.addItemBySku('${prod.sku}', 1); Catalogo.closeQuickView();" class="flex-1 py-3 px-4 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2 tap-target cursor-pointer">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
           <span>Agregar a Cotización</span>
         </button>

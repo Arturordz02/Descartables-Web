@@ -96,6 +96,16 @@
           </div>
         </a>
 
+        <!-- Buscador en Tiempo Real para Escritorio -->
+        <div class="hidden md:flex flex-1 max-w-md mx-4">
+          <div class="relative w-full">
+            <input type="text" id="navSearchInput" placeholder="Buscar vasos, contenedores, bolsas, cubiertos..." class="w-full bg-white/90 border border-warm-border rounded-xl pl-10 pr-4 py-2.5 text-xs text-espresso placeholder:text-stone-400 focus:outline-none focus:border-terracota focus:ring-2 focus:ring-terracota/10 transition-all shadow-sm">
+            <svg class="w-4 h-4 text-stone-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
         <nav class="hidden lg:flex items-center gap-6 text-xs font-semibold text-espresso-muted">
           <a href="index.html" class="nav-link hover:text-terracota transition-colors">Inicio</a>
           <a href="catalogo.html" class="nav-link hover:text-terracota transition-colors">Catálogo</a>
@@ -121,6 +131,11 @@
       <div id="mobileNav" class="lg:hidden hidden border-t border-warm-border py-4 space-y-3">
         <!-- Usuario Móvil -->
         <div class="nav-user-container-mobile"></div>
+
+        <div class="pb-1 relative">
+          <input type="text" id="mobileSearchInput" placeholder="Buscar vasos, bolsas, envases..." class="header-predictive-input w-full bg-white border border-warm-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota shadow-xs">
+          <svg class="w-4 h-4 text-stone-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
           <a href="index.html" class="p-3 rounded-xl bg-warm-sand text-espresso hover:bg-stone-200">Inicio</a>
@@ -388,6 +403,7 @@
   </footer>
 
   <!-- Scripts -->
+  <script src="assets/js/contact-config.js?v=20260905_1"></script>
   <script src="assets/js/data.js"></script>
   <script src="assets/js/api.js"></script>
   <script src="assets/js/carrito.js"></script>

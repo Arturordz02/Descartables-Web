@@ -56,6 +56,26 @@ const Carrito = {
     }
   },
 
+  async addItemBySku(sku, cantidad = 1) {
+    if (!sku) return;
+    let prod = null;
+    if (window.ApiService) {
+      prod = await ApiService.getProductBySku(sku);
+    }
+    if (!prod && window.Catalogo && Array.isArray(window.Catalogo.products)) {
+      prod = window.Catalogo.products.find(p => p.sku === sku);
+    }
+    if (!prod && window.IndexFeatured && Array.isArray(window.IndexFeatured.products)) {
+      prod = window.IndexFeatured.products.find(p => p.sku === sku);
+    }
+    if (!prod && typeof PRODUCTOS !== 'undefined' && Array.isArray(PRODUCTOS)) {
+      prod = PRODUCTOS.find(p => p.sku === sku);
+    }
+    if (prod) {
+      this.addItem(prod, cantidad);
+    }
+  },
+
   removeItem(sku) {
     this.items = this.items.filter(item => item.sku !== sku);
     this.saveToStorage();
@@ -365,15 +385,24 @@ const Carrito = {
       }
     }
 
-    const message = this.buildWhatsAppText(quoteCode);
-    const encoded = encodeURIComponent(message);
-    const waUrl = `https://wa.me/${this.whatsappNumber}?text=${encoded}`;
+    const shouldRedirect = (typeof COMPANY_CONTACT !== 'undefined' && COMPANY_CONTACT.ENABLE_REDIRECTS);
+    if (shouldRedirect) {
+      const message = this.buildWhatsAppText(quoteCode);
+      const encoded = encodeURIComponent(message);
+      const waNumber = (typeof COMPANY_CONTACT !== 'undefined' && COMPANY_CONTACT.whatsapp && COMPANY_CONTACT.whatsapp.principal_raw) || this.whatsappNumber;
+      const waUrl = `https://wa.me/${waNumber}?text=${encoded}`;
 
-    if (window.Toast) {
-      Toast.success(quoteCode ? `Cotización ${quoteCode} registrada con éxito. Redirigiendo a WhatsApp...` : 'Redirigiendo a WhatsApp...');
+      if (window.Toast) {
+        Toast.success(quoteCode ? `Cotización ${quoteCode} registrada con éxito. Redirigiendo a WhatsApp...` : 'Redirigiendo a WhatsApp...');
+      }
+      window.open(waUrl, '_blank');
+    } else {
+      if (window.Toast) {
+        Toast.success(`¡Cotización ${quoteCode} registrada exitosamente! (Redirección a WhatsApp pausada).`);
+      }
+      this.closeDrawer();
+      this.openFormalQuoteModal();
     }
-
-    window.open(waUrl, '_blank');
   },
 
   getItemReferencePrice(item) {
@@ -684,11 +713,16 @@ const Carrito = {
           if (qtyInput) qty = parseInt(qtyInput.value, 10) || 1;
         }
 
-        const product = (window.Catalogo && window.Catalogo.products && window.Catalogo.products.find(p => (sku && p.sku === sku) || (id && p.id === id))) ||
-                        (window.IndexFeatured && window.IndexFeatured.products && window.IndexFeatured.products.find(p => (sku && p.sku === sku) || (id && p.id === id))) ||
-                        (typeof PRODUCTOS !== 'undefined' ? PRODUCTOS.find(p => (sku && p.sku === sku) || (id && p.id === id)) : null);
+        let product = (window.Catalogo && window.Catalogo.products && window.Catalogo.products.find(p => (sku && p.sku === sku) || (id && p.id === id))) ||
+                      (window.IndexFeatured && window.IndexFeatured.products && window.IndexFeatured.products.find(p => (sku && p.sku === sku) || (id && p.id === id))) ||
+                      (typeof PRODUCTOS !== 'undefined' ? PRODUCTOS.find(p => (sku && p.sku === sku) || (id && p.id === id)) : null);
+        
         if (product) {
           this.addItem(product, qty);
+        } else if (sku && window.ApiService) {
+          window.ApiService.getProductBySku(sku).then(p => {
+            if (p) this.addItem(p, qty);
+          });
         }
       }
     });

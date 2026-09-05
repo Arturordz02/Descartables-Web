@@ -61,8 +61,11 @@ if ($method === 'GET') {
     }
 
     if ($search) {
-        $sql .= " AND (p.nombre LIKE ? OR p.sku LIKE ? OR p.descripcion LIKE ?)";
+        $sql .= " AND (p.nombre LIKE ? OR p.sku LIKE ? OR p.descripcion LIKE ? OR p.material LIKE ? OR p.presentacion LIKE ? OR c.nombre LIKE ?)";
         $searchWildcard = "%$search%";
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
         $params[] = $searchWildcard;
         $params[] = $searchWildcard;
         $params[] = $searchWildcard;
@@ -89,6 +92,15 @@ if ($method === 'GET') {
 }
 
 $pdo = getDbConnection();
+
+// Auto-migración de columna precio si no existe
+try {
+    $colCheck = $pdo->query("SHOW COLUMNS FROM productos LIKE 'precio'");
+    if (!$colCheck->fetch()) {
+        $pdo->exec("ALTER TABLE productos ADD COLUMN precio DECIMAL(10,2) NULL DEFAULT NULL AFTER material");
+    }
+} catch (Exception $e) {}
+
 $rawInput = file_get_contents('php://input');
 $data = json_decode($rawInput, true);
 if (!$data || !is_array($data)) {
@@ -103,6 +115,7 @@ if ($method === 'POST') {
     $descripcion = trim($data['descripcion'] ?? '');
     $presentacion = trim($data['presentacion'] ?? 'Unidad');
     $material = trim($data['material'] ?? 'Polipropileno');
+    $precio = (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
     $biodegradable = !empty($data['biodegradable']) ? 1 : 0;
     $destacado = !empty($data['destacado']) ? 1 : 0;
     $imagen_url = trim($data['imagen_url'] ?? 'assets/images/productos/default.png');
@@ -122,8 +135,8 @@ if ($method === 'POST') {
         exit();
     }
 
-    $insertSql = "INSERT INTO productos (categoria_id, sku, nombre, descripcion, presentacion, material, biodegradable, imagen_url, destacado) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $insertSql = "INSERT INTO productos (categoria_id, sku, nombre, descripcion, presentacion, material, precio, biodegradable, imagen_url, destacado) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($insertSql);
     $stmt->execute([
         $categoria_id,
@@ -132,6 +145,7 @@ if ($method === 'POST') {
         $descripcion,
         $presentacion,
         $material,
+        $precio,
         $biodegradable,
         $imagen_url,
         $destacado
@@ -170,6 +184,7 @@ if ($method === 'PUT') {
     $descripcion = trim($data['descripcion'] ?? '');
     $presentacion = trim($data['presentacion'] ?? 'Unidad');
     $material = trim($data['material'] ?? 'Polipropileno');
+    $precio = (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
     $biodegradable = !empty($data['biodegradable']) ? 1 : 0;
     $destacado = !empty($data['destacado']) ? 1 : 0;
     $imagen_url = trim($data['imagen_url'] ?? '');
@@ -196,6 +211,7 @@ if ($method === 'PUT') {
                     descripcion = ?, 
                     presentacion = ?, 
                     material = ?, 
+                    precio = ?, 
                     biodegradable = ?, 
                     destacado = ?" . (!empty($imagen_url) ? ", imagen_url = ?" : "") . "
                   WHERE id = ?";
@@ -207,6 +223,7 @@ if ($method === 'PUT') {
         $descripcion,
         $presentacion,
         $material,
+        $precio,
         $biodegradable,
         $destacado
     ];
