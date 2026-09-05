@@ -958,6 +958,81 @@ const ApiService = {
     const filtered = users.filter(u => u.id != id);
     localStorage.setItem('dp_usuarios_registrados', JSON.stringify(filtered));
     return { success: true, message: 'Usuario eliminado localmente.' };
+  },
+
+  // ================= SUBIDA DE IMÁGENES =================
+  async uploadProductImage(file) {
+    if (!file) {
+      return { success: false, error: 'No se seleccionó ningún archivo de imagen.' };
+    }
+
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const formData = new FormData();
+        formData.append('imagen', file);
+
+        const res = await fetch(`${this.baseUrl}/upload.php`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const json = await res.json();
+        if (json && json.success) {
+          return json;
+        }
+      } catch (e) {
+        console.warn('Fallo al subir imagen vía multipart al servidor, aplicando optimización local:', e);
+      }
+    }
+
+    // Fallback con compresión optimizada vía Canvas a Data URL
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          resolve({
+            success: true,
+            url: compressedDataUrl,
+            message: 'Fotografía procesada y cargada con éxito.'
+          });
+        };
+        img.onerror = () => {
+          resolve({
+            success: true,
+            url: event.target.result,
+            message: 'Fotografía cargada con éxito.'
+          });
+        };
+        img.src = event.target.result;
+      };
+      reader.onerror = () => {
+        resolve({ success: false, error: 'No se pudo leer el archivo de imagen seleccionado.' });
+      };
+      reader.readAsDataURL(file);
+    });
   }
 };
 

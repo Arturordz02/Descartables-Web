@@ -629,19 +629,30 @@
 
         <!-- FOTO DEL PRODUCTO (Subida de archivo o URL) -->
         <div class="p-4 bg-warm-sand rounded-2xl border border-warm-border space-y-3">
-          <label class="block text-xs font-bold text-espresso">Fotografía del Producto</label>
-          <div class="flex flex-col sm:flex-row items-center gap-4">
-            <div class="w-24 h-24 rounded-2xl bg-white border border-warm-border flex items-center justify-center overflow-hidden flex-shrink-0 shadow-inner">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-espresso">Fotografía del Producto</label>
+            <span id="prodFormImgStatus" class="text-[10px] font-bold text-espresso-muted">PNG, JPG o WebP</span>
+          </div>
+          
+          <div id="prodImageDropzone" class="flex flex-col sm:flex-row items-center gap-4 p-3 bg-white rounded-2xl border-2 border-dashed border-warm-border hover:border-terracota transition-all">
+            <div class="relative w-24 h-24 rounded-2xl bg-warm-sand border border-warm-border flex items-center justify-center overflow-hidden flex-shrink-0 shadow-inner group">
               <img id="prodFormImgPreview" src="https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=400&q=80" alt="Vista Previa" class="w-full h-full object-cover">
+              <div id="prodFormImgSpinner" class="absolute inset-0 bg-black/50 hidden items-center justify-center text-white">
+                <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              </div>
             </div>
-            <div class="flex-1 space-y-2 w-full">
+
+            <div class="flex-1 space-y-2.5 w-full">
               <div>
-                <label class="block text-[11px] text-espresso-muted font-medium mb-1">Opción A: Subir imagen desde tu computadora (JPG, PNG, WEBP)</label>
+                <label class="block text-[11px] text-espresso font-bold mb-1 flex items-center justify-between">
+                  <span>Opción A: Subir imagen desde tu PC</span>
+                  <button type="button" onclick="Admin.clearProductImage()" class="text-[10px] text-rose-600 hover:underline font-bold">Limpiar foto</button>
+                </label>
                 <input type="file" id="prodFormFileInput" accept="image/*" onchange="Admin.handleImageUpload(this)" class="w-full text-xs text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-terracota file:text-white hover:file:bg-terracota-hover cursor-pointer">
               </div>
               <div>
-                <label class="block text-[11px] text-espresso-muted font-medium mb-1">Opción B: O pegar enlace URL directo de imagen</label>
-                <input type="url" id="prodFormImgUrl" oninput="Admin.updateImagePreview(this.value)" placeholder="https://ejemplo.com/foto-producto.jpg" class="w-full bg-white border border-warm-border rounded-xl px-3 py-1.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+                <label class="block text-[11px] text-espresso font-bold mb-1">Opción B: O pegar enlace URL directo</label>
+                <input type="url" id="prodFormImgUrl" oninput="Admin.updateImagePreview(this.value)" placeholder="https://ejemplo.com/foto-producto.jpg o assets/images/..." class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-1.5 text-xs text-espresso focus:outline-none focus:border-terracota font-mono text-[11px]">
               </div>
             </div>
           </div>
@@ -1027,7 +1038,8 @@
         document.getElementById('modalProductTitle').textContent = 'Agregar Nuevo Producto';
         document.getElementById('formProducto').reset();
         document.getElementById('prodFormId').value = '';
-        document.getElementById('prodFormImgPreview').src = 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=400&q=80';
+        document.getElementById('prodFormImgUrl').value = '';
+        this.clearProductImage();
         const modal = document.getElementById('modalProducto');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -1037,6 +1049,19 @@
         const modal = document.getElementById('modalProducto');
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+      },
+
+      clearProductImage() {
+        const defaultImg = 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=400&q=80';
+        document.getElementById('prodFormImgPreview').src = defaultImg;
+        document.getElementById('prodFormImgUrl').value = '';
+        const fileInput = document.getElementById('prodFormFileInput');
+        if (fileInput) fileInput.value = '';
+        const statusEl = document.getElementById('prodFormImgStatus');
+        if (statusEl) {
+          statusEl.textContent = 'PNG, JPG o WebP';
+          statusEl.className = 'text-[10px] font-bold text-espresso-muted';
+        }
       },
 
       editProduct(id) {
@@ -1054,6 +1079,15 @@
         document.getElementById('prodFormImgUrl').value = prod.imagen_url || '';
         document.getElementById('prodFormBiodegradable').checked = Boolean(prod.biodegradable);
         document.getElementById('prodFormDestacado').checked = Boolean(prod.destacado);
+
+        const fileInput = document.getElementById('prodFormFileInput');
+        if (fileInput) fileInput.value = '';
+
+        const statusEl = document.getElementById('prodFormImgStatus');
+        if (statusEl) {
+          statusEl.textContent = prod.imagen_url ? '✓ Imagen actual cargada' : 'PNG, JPG o WebP';
+          statusEl.className = 'text-[10px] font-bold text-emerald-700';
+        }
 
         this.updateImagePreview(prod.imagen_url);
 
@@ -1074,18 +1108,55 @@
       async handleImageUpload(input) {
         if (!input.files || !input.files[0]) return;
         const file = input.files[0];
-        
-        // Preview temporal
+
+        if (file.size > 10 * 1024 * 1024) {
+          Toast.error('La imagen seleccionada supera el límite de 10 MB.');
+          input.value = '';
+          return;
+        }
+
+        const spinner = document.getElementById('prodFormImgSpinner');
+        const statusEl = document.getElementById('prodFormImgStatus');
+        if (spinner) {
+          spinner.classList.remove('hidden');
+          spinner.classList.add('flex');
+        }
+        if (statusEl) {
+          statusEl.textContent = 'Subiendo fotografía...';
+          statusEl.className = 'text-[10px] font-bold text-terracota animate-pulse';
+        }
+
+        // Preview inmediato
         const reader = new FileReader();
         reader.onload = (e) => {
           document.getElementById('prodFormImgPreview').src = e.target.result;
         };
         reader.readAsDataURL(file);
 
-        // Subir al backend
-        const res = await ApiService.uploadProductImage(file);
-        if (res.success && res.url) {
-          document.getElementById('prodFormImgUrl').value = res.url;
+        try {
+          const res = await ApiService.uploadProductImage(file);
+          if (res && res.success && res.url) {
+            document.getElementById('prodFormImgUrl').value = res.url;
+            if (statusEl) {
+              statusEl.textContent = '✓ Fotografía lista';
+              statusEl.className = 'text-[10px] font-bold text-emerald-700';
+            }
+            Toast.success('Fotografía cargada correctamente.');
+          } else {
+            Toast.error(res?.error || 'No se pudo guardar la fotografía.');
+            if (statusEl) {
+              statusEl.textContent = 'Error al subir';
+              statusEl.className = 'text-[10px] font-bold text-rose-600';
+            }
+          }
+        } catch (e) {
+          console.error('Error subiendo imagen:', e);
+          Toast.error('Ocurrió un inconveniente al procesar la imagen.');
+        } finally {
+          if (spinner) {
+            spinner.classList.add('hidden');
+            spinner.classList.remove('flex');
+          }
         }
       },
 
