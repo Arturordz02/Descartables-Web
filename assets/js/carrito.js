@@ -386,19 +386,19 @@ const Carrito = {
     }
 
     const shouldRedirect = (typeof COMPANY_CONTACT !== 'undefined' && COMPANY_CONTACT.ENABLE_REDIRECTS);
-    if (shouldRedirect) {
-      const message = this.buildWhatsAppText(quoteCode);
-      const encoded = encodeURIComponent(message);
-      const waNumber = (typeof COMPANY_CONTACT !== 'undefined' && COMPANY_CONTACT.whatsapp && COMPANY_CONTACT.whatsapp.principal_raw) || this.whatsappNumber;
-      const waUrl = `https://wa.me/${waNumber}?text=${encoded}`;
+    const message = this.buildWhatsAppText(quoteCode);
+    const encoded = encodeURIComponent(message);
+    const waNumber = (typeof COMPANY_CONTACT !== 'undefined' && COMPANY_CONTACT.whatsapp && COMPANY_CONTACT.whatsapp.principal_raw) || this.whatsappNumber;
+    const waUrl = `https://wa.me/${waNumber}?text=${encoded}`;
 
+    if (shouldRedirect) {
       if (window.Toast) {
         Toast.success(quoteCode ? `Cotización ${quoteCode} registrada con éxito. Redirigiendo a WhatsApp...` : 'Redirigiendo a WhatsApp...');
       }
       window.open(waUrl, '_blank');
     } else {
       if (window.Toast) {
-        Toast.success(`¡Cotización ${quoteCode} registrada exitosamente! (Redirección a WhatsApp pausada).`);
+        Toast.success(`¡Cotización ${quoteCode || ''} registrada exitosamente! (Redirección a WhatsApp pausada).`);
       }
       this.closeDrawer();
       this.openFormalQuoteModal();

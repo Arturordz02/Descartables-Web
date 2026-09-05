@@ -616,10 +616,13 @@ const ApiService = {
   // Crear producto
   async createProduct(productData) {
     const slugMap = { 1: 'pamolsa', 2: 'proplas-barrera', 3: 'cubiertos', 4: 'servilletas', 5: 'limpieza', 6: 'novedades' };
+    const catName = productData.categoria_nombre || productData.categoria_nueva || this.getCatalogCategoryName(productData.categoria_id);
+    const catSlug = productData.categoria_slug || slugMap[productData.categoria_id] || (catName ? catName.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'general');
+
     const enhancedData = {
       ...productData,
-      categoria_slug: slugMap[productData.categoria_id] || 'pamolsa',
-      categoria_nombre: this.getCatalogCategoryName(productData.categoria_id)
+      categoria_slug: catSlug,
+      categoria_nombre: catName
     };
 
     // Guardar copia local siempre para modo offline/local
@@ -641,6 +644,9 @@ const ApiService = {
         const json = await res.json();
         if (json.success && json.data) {
           newLocalProd.id = json.data.id;
+          newLocalProd.categoria_id = json.data.categoria_id || newLocalProd.categoria_id;
+          newLocalProd.categoria_nombre = json.data.categoria_nombre || newLocalProd.categoria_nombre;
+          newLocalProd.categoria_slug = json.data.categoria_slug || newLocalProd.categoria_slug;
           localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
           returnData = json;
         } else {
@@ -658,11 +664,14 @@ const ApiService = {
   // Editar producto
   async updateProduct(id, productData) {
     const slugMap = { 1: 'pamolsa', 2: 'proplas-barrera', 3: 'cubiertos', 4: 'servilletas', 5: 'limpieza', 6: 'novedades' };
+    const catName = productData.categoria_nombre || productData.categoria_nueva || this.getCatalogCategoryName(productData.categoria_id);
+    const catSlug = productData.categoria_slug || slugMap[productData.categoria_id] || (catName ? catName.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'general');
+
     const enhancedData = {
       id,
       ...productData,
-      categoria_slug: slugMap[productData.categoria_id] || 'pamolsa',
-      categoria_nombre: this.getCatalogCategoryName(productData.categoria_id)
+      categoria_slug: catSlug,
+      categoria_nombre: catName
     };
 
     // Guardar en copia local
@@ -832,7 +841,12 @@ const ApiService = {
     return { success: true, message: 'Usuario eliminado localmente.' };
   },
 
-  getCatalogCategoryName(catId) {
+  getCatalogCategoryName(catId, defaultName = null) {
+    if (defaultName) return defaultName;
+    if (typeof CATEGORIAS !== 'undefined' && Array.isArray(CATEGORIAS)) {
+      const found = CATEGORIAS.find(c => String(c.id) === String(catId) || c.slug === catId || c.nombre === catId);
+      if (found) return found.nombre;
+    }
     const map = {
       1: 'Contenedores Térmicos Pamolsa',
       2: 'Vasos y Tapas Proplas',
@@ -841,7 +855,7 @@ const ApiService = {
       5: 'Limpieza y Desinfección',
       6: 'Línea Eco-Biodegradable'
     };
-    return map[catId] || 'General';
+    return map[catId] || (typeof catId === 'string' && isNaN(catId) && catId !== '__nueva__' && catId !== '__otra__' ? catId : 'General');
   },
 
   // ====================================================================

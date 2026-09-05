@@ -51,3 +51,4 @@ const COMPANY_CONTACT = {
 if (typeof window !== 'undefined') {
   window.COMPANY_CONTACT = COMPANY_CONTACT;
 }
+

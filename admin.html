@@ -188,6 +188,7 @@
             </thead>
             <tbody id="adminProductsTableBody" class="divide-y divide-warm-border/60">
               <tr>
+                <td colspan="7" class="py-12 text-center text-stone-400">
                 <td colspan="8" class="py-12 text-center text-stone-400">
                   <div class="inline-block w-6 h-6 border-2 border-terracota border-t-transparent rounded-full animate-spin mb-2"></div>
                   <p>Cargando catálogo de productos...</p>
@@ -613,14 +614,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-xs font-bold text-espresso mb-1">Categoría / Línea *</label>
-            <select id="prodFormCategoria" required class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-2.5 text-xs text-espresso font-semibold focus:outline-none focus:border-terracota">
-              <option value="1">1. Contenedores Térmicos Pamolsa</option>
-              <option value="2">2. Vasos y Tapas Proplas</option>
-              <option value="3">3. Cubiertos y Vajilla</option>
-              <option value="4">4. Servilletas y Papelería</option>
-              <option value="5">5. Limpieza y Desinfección</option>
-              <option value="6">6. Línea Eco-Biodegradable</option>
+            <select id="prodFormCategoria" required onchange="Admin.handleCategoryChange(this)" class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-2.5 text-xs text-espresso font-semibold focus:outline-none focus:border-terracota">
+              <!-- Opciones dinámicas de categorías cargadas desde la BD/Catálogo -->
             </select>
+            
+            <!-- Campo adicional visible únicamente cuando se selecciona 'Otros' -->
+            <div id="prodFormNuevaCategoriaContainer" class="hidden mt-2 p-2.5 bg-warm-sand rounded-xl border border-terracota/30 space-y-1">
+              <label class="block text-[11px] font-bold text-terracota">Nombre de la nueva categoría *</label>
+              <input type="text" id="prodFormNuevaCategoria" placeholder="Ej: Bolsas Kraft y Papel" class="w-full bg-white border border-warm-border rounded-lg px-3 py-1.5 text-xs text-espresso font-semibold focus:outline-none focus:border-terracota">
+            </div>
           </div>
           <div>
             <label class="block text-xs font-bold text-espresso mb-1">Presentación / Empaque *</label>
@@ -641,7 +643,7 @@
           
           <div id="prodImageDropzone" class="flex flex-col sm:flex-row items-center gap-4 p-3.5 bg-white rounded-2xl border-2 border-dashed border-warm-border hover:border-terracota transition-all">
             <div class="relative w-24 h-24 rounded-2xl bg-warm-sand border border-warm-border flex items-center justify-center overflow-hidden flex-shrink-0 shadow-inner group">
-              <img id="prodFormImgPreview" src="assets/images/productos/default.png" alt="Vista Previa" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=400&q=80'">
+              <img id="prodFormImgPreview" src="assets/images/productos/default.png" alt="Vista Previa" class="w-full h-full object-cover" onerror="this.src='assets/images/productos/default.png'">
               <div id="prodFormImgSpinner" class="absolute inset-0 bg-black/50 hidden items-center justify-center text-white">
                 <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               </div>
@@ -923,12 +925,15 @@
       currentReclamacion: null,
       currentTab: 'productos',
 
+      categories: [],
+
       async init() {
         // Protección de ruta (solo usuarios admin)
         const isAuthorized = Auth.initAdminPage();
         if (!isAuthorized) return;
 
         await this.loadProducts();
+        await this.loadCategories();
         await this.loadCotizaciones();
         await this.loadUsers();
         await this.loadReclamaciones();
@@ -953,6 +958,103 @@
         const btnNuevo = document.getElementById('btnNuevoProductoContainer');
         if (btnNuevo) {
           btnNuevo.style.display = (tabName === 'productos') ? 'block' : 'none';
+        }
+      },
+
+      // ================= CATEGORÍAS =================
+      async loadCategories() {
+        try {
+          let cats = await ApiService.getCategories();
+          if (!Array.isArray(cats) || cats.length === 0) {
+            cats = typeof CATEGORIAS !== 'undefined' ? CATEGORIAS : [];
+          }
+
+          const catMap = new Map();
+          cats.forEach(c => {
+            if (c && c.nombre) {
+              catMap.set(String(c.id || c.nombre), {
+                id: c.id || c.nombre,
+                nombre: c.nombre,
+                slug: c.slug || 'cat-' + (c.id || 'x')
+              });
+            }
+          });
+
+          // Agregar cualquier categoría presente en los productos ya cargados
+          if (Array.isArray(this.products)) {
+            this.products.forEach(p => {
+              if (p.categoria_id && !catMap.has(String(p.categoria_id))) {
+                const nombreCat = p.categoria_nombre || ApiService.getCatalogCategoryName(p.categoria_id);
+                catMap.set(String(p.categoria_id), {
+                  id: p.categoria_id,
+                  nombre: nombreCat,
+                  slug: p.categoria_slug || 'cat-' + p.categoria_id
+                });
+              }
+            });
+          }
+
+          this.categories = Array.from(catMap.values());
+          this.populateFilterCategories();
+        } catch (e) {
+          console.warn('Error cargando categorías en Admin:', e);
+        }
+      },
+
+      populateFilterCategories() {
+        const filterSelect = document.getElementById('adminProdCatFilter');
+        if (!filterSelect) return;
+        const currentVal = filterSelect.value || 'all';
+
+        filterSelect.innerHTML = `
+          <option value="all">Todas las Categorías</option>
+          ${this.categories.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('')}
+        `;
+        filterSelect.value = currentVal;
+      },
+
+      async populateCategorySelect(selectedId = null) {
+        await this.loadCategories();
+        const select = document.getElementById('prodFormCategoria');
+        const containerNueva = document.getElementById('prodFormNuevaCategoriaContainer');
+        const inputNueva = document.getElementById('prodFormNuevaCategoria');
+        if (!select) return;
+
+        select.innerHTML = `
+          <option value="" disabled ${!selectedId ? 'selected' : ''}>-- Selecciona una categoría existente --</option>
+          ${this.categories.map(c => `
+            <option value="${c.id}" ${String(c.id) === String(selectedId) ? 'selected' : ''}>${c.nombre}</option>
+          `).join('')}
+          <option value="__otra__">➕ Otros (Escribir nueva categoría)...</option>
+        `;
+
+        if (selectedId && !this.categories.some(c => String(c.id) === String(selectedId))) {
+          select.value = '__otra__';
+          if (containerNueva) containerNueva.classList.remove('hidden');
+          if (inputNueva) inputNueva.value = selectedId;
+        } else if (selectedId) {
+          select.value = selectedId;
+          if (containerNueva) containerNueva.classList.add('hidden');
+          if (inputNueva) inputNueva.value = '';
+        } else {
+          if (containerNueva) containerNueva.classList.add('hidden');
+          if (inputNueva) inputNueva.value = '';
+        }
+      },
+
+      handleCategoryChange(selectEl) {
+        const container = document.getElementById('prodFormNuevaCategoriaContainer');
+        const input = document.getElementById('prodFormNuevaCategoria');
+        if (!container || !input) return;
+
+        if (selectEl.value === '__otra__') {
+          container.classList.remove('hidden');
+          input.required = true;
+          input.focus();
+        } else {
+          container.classList.add('hidden');
+          input.required = false;
+          input.value = '';
         }
       },
 
@@ -1034,20 +1136,21 @@
             p.nombre.toLowerCase().includes(query) || 
             p.sku.toLowerCase().includes(query) || 
             p.material.toLowerCase().includes(query);
-          const matchCat = (cat === 'all') || (p.categoria_id == cat);
+          const matchCat = (cat === 'all') || (String(p.categoria_id) === String(cat));
           return matchQuery && matchCat;
         });
 
         this.renderProducts(filtered);
       },
 
-      openProductModal() {
+      async openProductModal() {
         document.getElementById('modalProductTitle').textContent = 'Agregar Nuevo Producto';
         document.getElementById('formProducto').reset();
         document.getElementById('prodFormId').value = '';
         document.getElementById('prodFormPrecio').value = '';
         document.getElementById('prodFormImgUrl').value = '';
         this.clearProductImage();
+        await this.populateCategorySelect();
         const modal = document.getElementById('modalProducto');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -1072,7 +1175,7 @@
         }
       },
 
-      editProduct(id) {
+      async editProduct(id) {
         const prod = this.products.find(p => p.id === id);
         if (!prod) return;
 
@@ -1080,7 +1183,6 @@
         document.getElementById('prodFormId').value = prod.id;
         document.getElementById('prodFormNombre').value = prod.nombre;
         document.getElementById('prodFormSku').value = prod.sku;
-        document.getElementById('prodFormCategoria').value = prod.categoria_id;
         document.getElementById('prodFormPrecio').value = (prod.precio !== null && prod.precio !== undefined) ? prod.precio : '';
         document.getElementById('prodFormPresentacion').value = prod.presentacion;
         document.getElementById('prodFormMaterial').value = prod.material;
@@ -1088,6 +1190,8 @@
         document.getElementById('prodFormImgUrl').value = prod.imagen_url || '';
         document.getElementById('prodFormBiodegradable').checked = Boolean(prod.biodegradable);
         document.getElementById('prodFormDestacado').checked = Boolean(prod.destacado);
+
+        await this.populateCategorySelect(prod.categoria_id);
 
         const fileInput = document.getElementById('prodFormFileInput');
         if (fileInput) fileInput.value = '';
@@ -1174,11 +1278,26 @@
         const id = document.getElementById('prodFormId').value;
         const btn = document.getElementById('btnGuardarProducto');
         const precioVal = document.getElementById('prodFormPrecio').value.trim();
+        const catSelect = document.getElementById('prodFormCategoria');
+        const isOtraCat = catSelect.value === '__otra__';
+        const nuevaCatInput = document.getElementById('prodFormNuevaCategoria');
+        const nuevaCatVal = nuevaCatInput ? nuevaCatInput.value.trim() : '';
+
+        if (isOtraCat && !nuevaCatVal) {
+          Toast.error('Por favor escribe el nombre de la nueva categoría.');
+          if (nuevaCatInput) nuevaCatInput.focus();
+          return;
+        }
+
+        const catId = isOtraCat ? '__nueva__' : (parseInt(catSelect.value) || catSelect.value);
+        const catNombre = isOtraCat ? nuevaCatVal : (catSelect.options[catSelect.selectedIndex]?.text || '');
 
         const payload = {
           nombre: document.getElementById('prodFormNombre').value.trim(),
           sku: document.getElementById('prodFormSku').value.trim().toUpperCase(),
-          categoria_id: parseInt(document.getElementById('prodFormCategoria').value),
+          categoria_id: catId,
+          categoria_nueva: isOtraCat ? nuevaCatVal : '',
+          categoria_nombre: catNombre,
           precio: precioVal !== '' ? parseFloat(precioVal) : null,
           presentacion: document.getElementById('prodFormPresentacion').value.trim(),
           material: document.getElementById('prodFormMaterial').value.trim(),
@@ -1205,6 +1324,7 @@
           Toast.success(id ? '¡Producto actualizado correctamente!' : '¡Producto agregado al catálogo con éxito!');
           this.closeProductModal();
           await this.loadProducts();
+          await this.loadCategories();
           this.updateStats();
         } else {
           Toast.error(res.error || 'Ocurrió un error al guardar el producto.');
@@ -1217,6 +1337,7 @@
           if (res.success) {
             Toast.success('Producto eliminado correctamente.');
             await this.loadProducts();
+            await this.loadCategories();
             this.updateStats();
           } else {
             Toast.error(res.error || 'No se pudo eliminar el producto.');

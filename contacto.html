@@ -71,6 +71,10 @@
         <span class="hidden md:inline text-stone-500">|</span>
         <span class="hidden md:inline text-stone-300">Central: (01) 564-1450</span>
       </div>
+      <div>
+        <a href="https://wa.me/51994195430" target="_blank" class="hover:text-emerald-400 font-semibold transition-colors text-[10px] sm:text-[11px]">
+          WhatsApp: +51 994 195 430
+        </a>
       <div class="text-[10px] sm:text-[11px] text-stone-300 font-semibold">
         <span>WhatsApp: +51 994 195 430</span>
       </div>
@@ -215,6 +219,7 @@
           <h2 class="font-heading font-bold text-lg text-espresso">Envíenos un Mensaje</h2>
           <p class="text-xs text-espresso-muted">Responderemos a la brevedad con información comercial y fichas técnicas.</p>
 
+          <form id="contactForm" onsubmit="event.preventDefault(); const msg=document.getElementById('contactoMsg').value; const nom=document.getElementById('contactoNom').value; window.open('https://wa.me/51994195430?text='+encodeURIComponent('Hola Descartables Peruanos, mi nombre es '+nom+'. '+msg), '_blank');" class="space-y-4">
           <form id="contactForm" onsubmit="event.preventDefault(); if(window.COMPANY_CONTACT && window.COMPANY_CONTACT.ENABLE_REDIRECTS){ const msg=document.getElementById('contactoMsg').value; const nom=document.getElementById('contactoNom').value; window.open(window.COMPANY_CONTACT.whatsapp.url_principal + '?text='+encodeURIComponent('Hola Descartables Peruanos, mi nombre es '+nom+'. '+msg), '_blank'); } else { document.getElementById('contactoFeedback').classList.remove('hidden'); document.getElementById('contactForm').reset(); }" class="space-y-4">
             <div id="contactoFeedback" class="hidden p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs animate-fade-in">
               <div class="flex items-center gap-2 font-bold mb-1">
@@ -245,8 +250,10 @@
               <textarea id="contactoMsg" rows="3" required placeholder="Indique qué productos o medidas necesita cotizar..." class="w-full bg-warm-cream border border-warm-border rounded-xl p-4 text-xs text-espresso focus:outline-none focus:border-terracota"></textarea>
             </div>
 
+            <button type="submit" class="w-full py-3.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-lg shadow-terracota/20 transition-all flex items-center justify-center gap-2">
             <button type="submit" class="w-full py-3.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-lg shadow-terracota/20 transition-all flex items-center justify-center gap-2 cursor-pointer tap-target">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              <span>Enviar Consulta vía WhatsApp</span>
               <span>Enviar Mensaje de Consulta</span>
             </button>
           </form>

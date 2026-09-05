@@ -93,13 +93,116 @@ if ($method === 'GET') {
 
 $pdo = getDbConnection();
 
-// Auto-migración de columna precio si no existe
-try {
-    $colCheck = $pdo->query("SHOW COLUMNS FROM productos LIKE 'precio'");
-    if (!$colCheck->fetch()) {
-        $pdo->exec("ALTER TABLE productos ADD COLUMN precio DECIMAL(10,2) NULL DEFAULT NULL AFTER material");
+// Función para garantizar esquema e integridad en MySQL
+function ensureDatabaseSchema($pdo) {
+    static $checked = false;
+    if ($checked) return;
+
+    try {
+        // 1. Tabla categorias
+        $pdo->exec("CREATE TABLE IF NOT EXISTS categorias (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nombre VARCHAR(150) NOT NULL,
+            slug VARCHAR(150) NOT NULL UNIQUE,
+            descripcion TEXT NULL,
+            icono VARCHAR(50) DEFAULT 'box',
+            color VARCHAR(100) DEFAULT 'from-amber-600/20 to-orange-600/20',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        // Seed inicial de categorias si está vacía
+        $countCat = $pdo->query("SELECT COUNT(*) as c FROM categorias")->fetch();
+        if ((int)($countCat['c'] ?? 0) === 0) {
+            $baseCategories = [
+                [1, 'Productos Pamolsa', 'pamolsa', 'Envases térmicos, bisagras, domos y vasos para gastronomía.', 'coffee', 'from-amber-600/20 to-orange-600/20'],
+                [2, 'Línea Proplas / Barrera', 'proplas-barrera', 'Bolsas al vacío, bilaminadas, films y empaques industriales.', 'shield-check', 'from-blue-600/20 to-cyan-600/20'],
+                [3, 'Cubiertos Descartables', 'cubiertos', 'Cucharas, tenedores y cuchillos reforzados y biodegradables.', 'utensils', 'from-stone-600/20 to-zinc-600/20'],
+                [4, 'Servilletas y Papeles', 'servilletas', 'Servilletas cocktail, interfoliadas, bobinas y papel institucional.', 'file-text', 'from-emerald-600/20 to-teal-600/20'],
+                [5, 'Productos de Limpieza e Higiene', 'limpieza', 'Bolsas de basura industriales, guantes de nitrilo y desinfectantes.', 'sparkles', 'from-purple-600/20 to-indigo-600/20'],
+                [6, 'Novedades y Biodegradables', 'novedades', 'Línea eco-amigable de bagazo de caña de azúcar y bowls kraft.', 'leaf', 'from-lime-600/20 to-green-600/20']
+            ];
+            $stmt = $pdo->prepare("INSERT INTO categorias (id, nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, ?, ?, ?)");
+            foreach ($baseCategories as $bc) {
+                $stmt->execute($bc);
+            }
+        }
+
+        // 2. Tabla productos
+        $pdo->exec("CREATE TABLE IF NOT EXISTS productos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            categoria_id INT NOT NULL,
+            sku VARCHAR(50) NOT NULL UNIQUE,
+            nombre VARCHAR(255) NOT NULL,
+            descripcion TEXT NULL,
+            presentacion VARCHAR(150) DEFAULT 'Unidad',
+            material VARCHAR(150) DEFAULT 'Polipropileno',
+            precio DECIMAL(10,2) NULL DEFAULT NULL,
+            biodegradable TINYINT(1) DEFAULT 0,
+            imagen_url VARCHAR(500) DEFAULT 'assets/images/productos/default.png',
+            destacado TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_cat (categoria_id),
+            INDEX idx_sku (sku)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        // 3. Auto-migración columna precio si falta
+        $colCheck = $pdo->query("SHOW COLUMNS FROM productos LIKE 'precio'");
+        if (!$colCheck->fetch()) {
+            $pdo->exec("ALTER TABLE productos ADD COLUMN precio DECIMAL(10,2) NULL DEFAULT NULL AFTER material");
+        }
+    } catch (Exception $e) {}
+    $checked = true;
+}
+
+ensureDatabaseSchema($pdo);
+
+// Resuelve la categoría (existente o nueva)
+function resolveCategoryId($pdo, &$data) {
+    $categoria_id = $data['categoria_id'] ?? null;
+    $categoria_nueva = trim($data['categoria_nueva'] ?? '');
+
+    // Si se especificó una categoría nueva o "Otros"
+    if ($categoria_id === '__otra__' || $categoria_id === '__nueva__' || !empty($categoria_nueva) || (!is_numeric($categoria_id) && !empty($categoria_id))) {
+        $catName = !empty($categoria_nueva) ? $categoria_nueva : trim((string)$categoria_id);
+        if (empty($catName) || $catName === '__otra__' || $catName === '__nueva__') {
+            $catName = trim($data['categoria_nombre'] ?? 'Otros');
+        }
+
+        if (!empty($catName)) {
+            // Verificar si ya existe en la BD por nombre
+            $checkCat = $pdo->prepare("SELECT id FROM categorias WHERE LOWER(nombre) = LOWER(?) LIMIT 1");
+            $checkCat->execute([$catName]);
+            $found = $checkCat->fetch();
+            if ($found) {
+                return (int)$found['id'];
+            }
+
+            // Crear slug seguro
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $catName), '-'));
+            if (empty($slug)) {
+                $slug = 'cat-' . time();
+            }
+
+            // Verificar si slug ya existe
+            $checkSlug = $pdo->prepare("SELECT id FROM categorias WHERE slug = ? LIMIT 1");
+            $checkSlug->execute([$slug]);
+            if ($checkSlug->fetch()) {
+                $slug .= '-' . rand(10, 99);
+            }
+
+            $insertCat = $pdo->prepare("INSERT INTO categorias (nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, 'box', 'from-amber-600/20 to-orange-600/20')");
+            $insertCat->execute([
+                $catName,
+                $slug,
+                "Línea especializada: {$catName}"
+            ]);
+            return (int)$pdo->lastInsertId();
+        }
     }
-} catch (Exception $e) {}
+
+    $id = (int)$categoria_id;
+    return $id > 0 ? $id : 1;
+}
 
 $rawInput = file_get_contents('php://input');
 $data = json_decode($rawInput, true);
@@ -111,7 +214,7 @@ if (!$data || !is_array($data)) {
 if ($method === 'POST') {
     $nombre = trim($data['nombre'] ?? '');
     $sku = trim($data['sku'] ?? '');
-    $categoria_id = (int)($data['categoria_id'] ?? 1);
+    $categoria_id = resolveCategoryId($pdo, $data);
     $descripcion = trim($data['descripcion'] ?? '');
     $presentacion = trim($data['presentacion'] ?? 'Unidad');
     $material = trim($data['material'] ?? 'Polipropileno');
@@ -180,7 +283,7 @@ if ($method === 'PUT') {
 
     $nombre = trim($data['nombre'] ?? '');
     $sku = trim($data['sku'] ?? '');
-    $categoria_id = (int)($data['categoria_id'] ?? 1);
+    $categoria_id = resolveCategoryId($pdo, $data);
     $descripcion = trim($data['descripcion'] ?? '');
     $presentacion = trim($data['presentacion'] ?? 'Unidad');
     $material = trim($data['material'] ?? 'Polipropileno');
