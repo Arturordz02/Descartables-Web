@@ -881,6 +881,83 @@ const ApiService = {
     const filtered = quotes.filter(q => q.id != id);
     localStorage.setItem('dp_cotizaciones_recibidas', JSON.stringify(filtered));
     return { success: true, message: 'Cotización eliminada localmente.' };
+  },
+
+  // ================= GESTIÓN DE USUARIOS =================
+  async getUsers(filters = {}) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const params = new URLSearchParams();
+        if (filters.q) params.append('q', filters.q);
+        if (filters.rol && filters.rol !== 'all') params.append('rol', filters.rol);
+
+        const url = `${this.baseUrl}/usuarios.php${params.toString() ? '?' + params.toString() : ''}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json && json.success) {
+          return json;
+        }
+      } catch (e) {
+        console.warn('Fallo al obtener usuarios de MySQL:', e);
+      }
+    }
+
+    // Fallback local
+    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
+    return {
+      success: true,
+      count: users.length,
+      data: users
+    };
+  },
+
+  async updateUserRole(id, rol) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/usuarios.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update_role', id, rol })
+        });
+        const json = await res.json();
+        if (json.success) return json;
+      } catch (e) {
+        console.warn('Fallo al actualizar rol en MySQL:', e);
+      }
+    }
+
+    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
+    const target = users.find(u => u.id == id);
+    if (target) {
+      target.rol = rol;
+      localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
+      return { success: true, message: 'Rol actualizado localmente.' };
+    }
+    return { success: false, error: 'Usuario no encontrado.' };
+  },
+
+  async deleteUser(id) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/usuarios.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', id })
+        });
+        const json = await res.json();
+        if (json.success) return json;
+      } catch (e) {
+        console.warn('Fallo al eliminar usuario en MySQL:', e);
+      }
+    }
+
+    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
+    const filtered = users.filter(u => u.id != id);
+    localStorage.setItem('dp_usuarios_registrados', JSON.stringify(filtered));
+    return { success: true, message: 'Usuario eliminado localmente.' };
   }
 };
 

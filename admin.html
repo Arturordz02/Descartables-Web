@@ -897,8 +897,8 @@
   </div>
 
   <!-- SCRIPTS -->
-  <script src="assets/js/api.js?v=20260905_1"></script>
-  <script src="assets/js/auth.js?v=20260905_1"></script>
+  <script src="assets/js/api.js?v=20260905_2"></script>
+  <script src="assets/js/auth.js?v=20260905_2"></script>
   <script>
     // MÓDULO ADMINISTRATIVO INTERACTIVO
     const Admin = {
@@ -1294,6 +1294,16 @@
 
         const badge = document.getElementById('adminReclamosCountBadge');
         if (badge) badge.textContent = `${this.reclamaciones.length} hojas`;
+
+        const tabBadge = document.getElementById('badgeReclamosPendientes');
+        if (tabBadge) {
+          if (pendientes > 0) {
+            tabBadge.textContent = pendientes;
+            tabBadge.classList.remove('hidden');
+          } else {
+            tabBadge.classList.add('hidden');
+          }
+        }
       },
 
       renderReclamaciones(list) {
@@ -1611,15 +1621,13 @@
               Documento emitido en cumplimiento de la Ley N° 29571 (Código de Protección y Defensa del Consumidor) y Ley N° 31435.<br>
               INDECOPI supervisa el estricto cumplimiento de la atención a los reclamos y quejas virtuales.
             </div>
-
-            <script>
-              window.onload = function() {
-                window.print();
-              };
-            <\/script>
           </body>
           </html>
         `);
+        printWindow.document.close();
+        setTimeout(() => { printWindow.print(); }, 250);
+      },
+
       // ================= COTIZACIONES B2B =================
       async loadCotizaciones() {
         try {
@@ -1660,7 +1668,7 @@
         const badge = document.getElementById('adminCotizCountBadge');
         if (badge) badge.textContent = `${this.cotizaciones.length} cotizaciones`;
 
-        const tabBadge = document.getElementById('badgeCotizacionesPendientes');
+        const tabBadge = document.getElementById('badgeCotizPendientes');
         if (tabBadge) {
           if (pendientes > 0) {
             tabBadge.textContent = pendientes;
@@ -2014,14 +2022,11 @@
               Precios válidos por 7 días hábiles. Sujeto a disponibilidad de stock al momento de confirmación de compra.<br>
               Descartables Peruanos S.A.C. - Distribución directa a restaurantes y cadenas a nivel nacional.
             </div>
-
-            <script>
-              window.onload = function() { window.print(); };
-            <\/script>
           </body>
           </html>
         `);
         printWindow.document.close();
+        setTimeout(() => { printWindow.print(); }, 250);
       },
 
       cleanText(str) {

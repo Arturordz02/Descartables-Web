@@ -64,6 +64,14 @@ if (!$data || !is_array($data)) {
     $data = $_POST;
 }
 
+if ($method === 'POST' && isset($data['action'])) {
+    if ($data['action'] === 'delete') {
+        $method = 'DELETE';
+    } else if ($data['action'] === 'update_role' || $data['action'] === 'update') {
+        $method = 'PUT';
+    }
+}
+
 // 2. ACTUALIZAR ROL O DATOS DE USUARIO (PUT)
 if ($method === 'PUT') {
     $id = (int)($data['id'] ?? ($_GET['id'] ?? 0));
