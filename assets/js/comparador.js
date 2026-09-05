@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Módulo de Comparador de Productos Técnico (Side-by-Side)
  * Permite seleccionar hasta 3 productos y comparar especificaciones técnicas,
  * resistencia térmica, microondas, sellado y atributos ambientales.
@@ -31,9 +31,21 @@ const Comparador = {
     } catch (e) {}
   },
 
+  notify(msg, type = 'info') {
+    if (window.Toast && typeof window.Toast[type] === 'function') {
+      window.Toast[type](msg);
+    } else if (typeof window.showToast === 'function') {
+      window.showToast(msg, type);
+    }
+  },
+
   getProduct(sku) {
     if (window.Catalogo && Array.isArray(window.Catalogo.products)) {
       const found = window.Catalogo.products.find(p => p.sku === sku);
+      if (found) return found;
+    }
+    if (window.IndexFeatured && Array.isArray(window.IndexFeatured.products)) {
+      const found = window.IndexFeatured.products.find(p => p.sku === sku);
       if (found) return found;
     }
     if (typeof PRODUCTOS !== 'undefined' && Array.isArray(PRODUCTOS)) {
@@ -47,14 +59,14 @@ const Comparador = {
     const idx = this.items.indexOf(sku);
     if (idx !== -1) {
       this.items.splice(idx, 1);
-      if (window.Toast) Toast.info(`Producto ${sku} retirado del comparador.`);
+      this.notify(`Producto ${sku} retirado del comparador.`, 'info');
     } else {
       if (this.items.length >= 3) {
-        if (window.Toast) Toast.warning('Solo puedes comparar hasta 3 productos a la vez. Quita uno para agregar este.');
+        this.notify('Solo puedes comparar hasta 3 productos a la vez. Quita uno para agregar este.', 'warning');
         return;
       }
       this.items.push(sku);
-      if (window.Toast) Toast.success(`Producto ${sku} añadido al comparador.`);
+      this.notify(`Producto ${sku} añadido al comparador.`, 'success');
     }
 
     this.saveToStorage();
@@ -85,7 +97,7 @@ const Comparador = {
     this.renderBar();
     this.syncCardButtons();
     this.closeModal();
-    if (window.Toast) Toast.info('Comparador restablecido.');
+    this.notify('Comparador restablecido.', 'info');
   },
 
   syncCardButtons() {
@@ -114,9 +126,9 @@ const Comparador = {
   injectBarAndModal() {
     if (document.getElementById('barComparador')) return;
 
-    // 1. Barra Flotante Inferior
+    // 1. Barra Flotante Inferior (Elevada sobre la barra movil z-50)
     const barHtml = `
-      <div id="barComparador" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 hidden transition-all duration-300 w-[95%] max-w-2xl">
+      <div id="barComparador" class="fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300 w-[95%] max-w-2xl">
         <div class="bg-[#1F1815]/95 backdrop-blur-md text-white p-3 sm:p-4 rounded-2xl shadow-2xl border border-stone-700 flex items-center justify-between gap-3">
           
           <div class="flex items-center gap-3">
@@ -227,7 +239,7 @@ const Comparador = {
 
   openModal() {
     if (this.items.length === 0) {
-      if (window.Toast) Toast.warning('Selecciona al menos 1 producto para comparar.');
+      this.notify('Selecciona al menos 1 producto para comparar.', 'warning');
       return;
     }
     const modal = document.getElementById('modalComparador');

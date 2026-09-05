@@ -668,7 +668,9 @@ const Carrito = {
           if (qtyInput) qty = parseInt(qtyInput.value, 10) || 1;
         }
 
-        const product = PRODUCTOS.find(p => p.sku === sku || p.id === id);
+        const product = (window.Catalogo && window.Catalogo.products && window.Catalogo.products.find(p => (sku && p.sku === sku) || (id && p.id === id))) ||
+                        (window.IndexFeatured && window.IndexFeatured.products && window.IndexFeatured.products.find(p => (sku && p.sku === sku) || (id && p.id === id))) ||
+                        (typeof PRODUCTOS !== 'undefined' ? PRODUCTOS.find(p => (sku && p.sku === sku) || (id && p.id === id)) : null);
         if (product) {
           this.addItem(product, qty);
         }

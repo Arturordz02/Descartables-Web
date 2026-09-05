@@ -313,7 +313,8 @@ const Catalogo = {
   },
 
   openQuickView(sku) {
-    const prod = PRODUCTOS.find(p => p.sku === sku);
+    const prod = (this.products && this.products.find(p => p.sku === sku)) || 
+                 (typeof PRODUCTOS !== 'undefined' ? PRODUCTOS.find(p => p.sku === sku) : null);
     if (!prod) return;
 
     const modal = document.getElementById('modalQuickView');

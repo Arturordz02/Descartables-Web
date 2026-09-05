@@ -79,16 +79,18 @@ const ApiService = {
         const queryParams = new URLSearchParams();
         if (filters.categoria && filters.categoria !== 'todos') queryParams.append('categoria', filters.categoria);
         if (filters.material && filters.material !== 'todos') queryParams.append('material', filters.material);
-        if (filters.biodegradable !== undefined && filters.biodegradable !== '') {
-          queryParams.append('biodegradable', filters.biodegradable ? '1' : '0');
+        if (filters.biodegradable === true || filters.biodegradable === 1 || filters.biodegradable === '1') {
+          queryParams.append('biodegradable', '1');
         }
         if (filters.destacado) queryParams.append('destacado', '1');
         if (filters.q) queryParams.append('q', filters.q);
+        queryParams.append('_t', Date.now().toString());
 
         const res = await fetch(`${this.baseUrl}/productos.php?${queryParams.toString()}`);
         const json = await res.json();
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        if (json.success && Array.isArray(json.data)) {
           results = json.data;
+          return results;
         }
       } catch (e) {
         console.warn('Fallo al obtener productos de MySQL, usando datos locales.');

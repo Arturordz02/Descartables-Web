@@ -25,7 +25,7 @@ if ($method === 'GET') {
     $categoria_id = isset($_GET['categoria_id']) ? (int)$_GET['categoria_id'] : null;
     $slug = isset($_GET['categoria']) ? trim($_GET['categoria']) : null;
     $material = isset($_GET['material']) ? trim($_GET['material']) : null;
-    $biodegradable = isset($_GET['biodegradable']) ? (int)$_GET['biodegradable'] : null;
+    $biodegradable = (isset($_GET['biodegradable']) && $_GET['biodegradable'] !== '') ? (int)$_GET['biodegradable'] : null;
     $destacado = isset($_GET['destacado']) ? (int)$_GET['destacado'] : null;
     $search = isset($_GET['q']) ? trim($_GET['q']) : null;
 
