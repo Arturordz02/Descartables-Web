@@ -110,6 +110,12 @@
           <span>Directorio de Usuarios</span>
         </button>
 
+        <button id="tabBtnCotizaciones" onclick="Admin.switchTab('cotizaciones')" class="tab-btn px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-warm-sand text-espresso-muted hover:bg-stone-200">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Cotizaciones B2B</span>
+          <span id="badgeCotizPendientes" class="hidden px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black">0</span>
+        </button>
+
         <button id="tabBtnReclamaciones" onclick="Admin.switchTab('reclamaciones')" class="tab-btn px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all tap-target bg-warm-sand text-espresso-muted hover:bg-stone-200">
           <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           <span>Libro Reclamaciones</span>
@@ -241,6 +247,123 @@
                 <td colspan="7" class="py-12 text-center text-stone-400">
                   <div class="inline-block w-6 h-6 border-2 border-terracota border-t-transparent rounded-full animate-spin mb-2"></div>
                   <p>Consultando base de datos MySQL...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 2.5: GESTIÓN DE COTIZACIONES B2B ==================== -->
+    <section id="tabCotizaciones" class="space-y-6 hidden">
+      
+      <!-- Bento Cards Resumen Cotizaciones -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-terracota">
+            <span class="text-xs font-bold uppercase tracking-wider">Total Cotizaciones</span>
+            <div class="w-8 h-8 rounded-xl bg-terracota-light flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+          </div>
+          <p id="metricTotalCotiz" class="font-heading font-black text-3xl text-espresso">0</p>
+          <p class="text-[11px] text-espresso-muted">Generadas en la plataforma</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-amber-600">
+            <span class="text-xs font-bold uppercase tracking-wider">Pendientes de Atención</span>
+            <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+          </div>
+          <p id="metricPendientesCotiz" class="font-heading font-black text-3xl text-amber-600">0</p>
+          <p class="text-[11px] text-espresso-muted">Requieren contacto comercial</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-emerald-600">
+            <span class="text-xs font-bold uppercase tracking-wider">Atendidas / Despachadas</span>
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+          </div>
+          <p id="metricAtendidasCotiz" class="font-heading font-black text-3xl text-emerald-700">0</p>
+          <p class="text-[11px] text-espresso-muted">Proformas procesadas con éxito</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-warm-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between text-blue-600">
+            <span class="text-xs font-bold uppercase tracking-wider">Facturas vs Boletas</span>
+            <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </div>
+          </div>
+          <p id="metricFacturasVsBoletas" class="font-heading font-black text-2xl text-espresso pt-1">0 / 0</p>
+          <p class="text-[11px] text-espresso-muted">Razón B2B Empresas vs Personas</p>
+        </div>
+
+      </div>
+
+      <!-- Barra de Filtros y Búsqueda -->
+      <div class="bg-white p-4 rounded-3xl border border-warm-border shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="relative w-full md:w-80">
+          <input type="text" id="adminCotizSearch" oninput="Admin.filterCotizaciones()" placeholder="Buscar por código, cliente, RUC/DNI..." class="w-full bg-warm-cream border border-warm-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-espresso focus:outline-none focus:border-terracota">
+          <svg class="w-4 h-4 text-stone-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+
+        <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto touch-scroll">
+          <select id="adminCotizEstadoFilter" onchange="Admin.filterCotizaciones()" class="bg-warm-cream border border-warm-border rounded-xl px-3 py-2 text-xs text-espresso font-semibold focus:outline-none focus:border-terracota">
+            <option value="all">Todos los Estados</option>
+            <option value="Pendiente">Pendientes</option>
+            <option value="En Contacto">En Contacto</option>
+            <option value="Cotizado">Cotizados</option>
+            <option value="Atendido">Atendidos</option>
+            <option value="Despachado">Despachados</option>
+            <option value="Cancelado">Cancelados</option>
+          </select>
+
+          <select id="adminCotizCompFilter" onchange="Admin.filterCotizaciones()" class="bg-warm-cream border border-warm-border rounded-xl px-3 py-2 text-xs text-espresso font-semibold focus:outline-none focus:border-terracota">
+            <option value="all">Todos los Comprobantes</option>
+            <option value="Factura">Solo Factura (RUC)</option>
+            <option value="Boleta">Solo Boleta (DNI)</option>
+          </select>
+
+          <button type="button" onclick="Admin.exportCotizacionesExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap tap-target cursor-pointer" title="Descargar reporte de cotizaciones en Excel">
+            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Exportar Excel</span>
+          </button>
+
+          <button type="button" onclick="Admin.loadCotizaciones()" class="p-2 rounded-xl border border-warm-border hover:bg-warm-sand text-espresso transition-colors tap-target cursor-pointer" title="Actualizar lista">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla de Cotizaciones -->
+      <div class="bg-white rounded-3xl border border-warm-border shadow-xs overflow-hidden">
+        <div class="overflow-x-auto touch-scroll">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-warm-sand/80 text-espresso font-bold border-b border-warm-border uppercase text-[10px] tracking-wider">
+                <th class="py-3.5 px-4">Código</th>
+                <th class="py-3.5 px-4">Cliente / Razón Social</th>
+                <th class="py-3.5 px-3">RUC / DNI</th>
+                <th class="py-3.5 px-3">Tipo / Destino</th>
+                <th class="py-3.5 px-3 text-center">Ítems</th>
+                <th class="py-3.5 px-3 text-center">Estado</th>
+                <th class="py-3.5 px-3">Fecha</th>
+                <th class="py-3.5 px-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="adminCotizacionesTableBody" class="divide-y divide-warm-border/60">
+              <tr>
+                <td colspan="8" class="py-12 text-center text-stone-400">
+                  <div class="inline-block w-6 h-6 border-2 border-terracota border-t-transparent rounded-full animate-spin mb-2"></div>
+                  <p>Consultando cotizaciones en MySQL...</p>
                 </td>
               </tr>
             </tbody>
@@ -660,6 +783,119 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL DETALLE DE COTIZACIÓN ==================== -->
+  <div id="modalCotizacionDetalle" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto">
+    <div class="bg-white w-full max-w-4xl rounded-3xl border border-warm-border shadow-2xl p-5 sm:p-8 space-y-5 my-8 max-h-[92vh] overflow-y-auto touch-scroll">
+      
+      <!-- Encabezado Modal -->
+      <div class="flex items-center justify-between border-b border-warm-border pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold shadow-xs">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="modalCotizCodigo" class="font-heading font-extrabold text-lg sm:text-xl text-espresso">COT-2026-00000</h2>
+              <span id="modalCotizEstadoBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Pendiente</span>
+            </div>
+            <p class="text-xs text-espresso-muted">Detalle de proforma corporativa B2B</p>
+          </div>
+        </div>
+        <button onclick="Admin.closeCotizacionModal()" class="p-2 rounded-xl text-stone-400 hover:text-espresso hover:bg-stone-100 transition-colors tap-target cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Datos del Cliente y Logística -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-warm-sand/50 p-4 rounded-2xl border border-warm-border text-xs">
+        <div>
+          <span class="text-espresso-muted text-[10px] uppercase font-bold block">Cliente / Razón Social:</span>
+          <p id="modalCotizCliente" class="font-bold text-espresso text-sm mt-0.5 truncate">—</p>
+        </div>
+        <div>
+          <span class="text-espresso-muted text-[10px] uppercase font-bold block">RUC / DNI:</span>
+          <p id="modalCotizDoc" class="font-mono font-bold text-terracota text-sm mt-0.5">—</p>
+        </div>
+        <div>
+          <span class="text-espresso-muted text-[10px] uppercase font-bold block">Teléfono / WhatsApp:</span>
+          <div class="flex items-center gap-1 mt-0.5">
+            <span id="modalCotizTelefono" class="font-bold text-espresso">—</span>
+            <a id="modalCotizWaLink" href="#" target="_blank" class="p-1 text-emerald-600 hover:text-emerald-700" title="Contactar por WhatsApp">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            </a>
+          </div>
+        </div>
+        <div>
+          <span class="text-espresso-muted text-[10px] uppercase font-bold block">Comprobante & Destino:</span>
+          <p id="modalCotizCompDestino" class="font-medium text-espresso mt-0.5">—</p>
+        </div>
+      </div>
+
+      <!-- Tabla de Ítems Cotizados -->
+      <div class="space-y-2">
+        <h4 class="font-bold text-xs uppercase tracking-wider text-espresso">Ítems Solicitados</h4>
+        <div class="overflow-x-auto border border-warm-border rounded-2xl">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-warm-sand/80 text-espresso font-bold border-b border-warm-border uppercase text-[10px] tracking-wider">
+                <th class="py-2.5 px-3 text-center w-10">#</th>
+                <th class="py-2.5 px-3">SKU</th>
+                <th class="py-2.5 px-4">Producto</th>
+                <th class="py-2.5 px-3">Presentación</th>
+                <th class="py-2.5 px-3 text-center">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody id="modalCotizItemsBody" class="divide-y divide-warm-border/60">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Actualización de Estado y Notas Internas -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-warm-border">
+        <div>
+          <label class="block text-xs font-bold text-espresso mb-1">Estado de la Cotización:</label>
+          <select id="modalCotizEstadoSelect" class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-2 text-xs font-bold text-espresso focus:outline-none focus:border-terracota">
+            <option value="Pendiente">Pendiente</option>
+            <option value="En Contacto">En Contacto</option>
+            <option value="Cotizado">Cotizado</option>
+            <option value="Atendido">Atendido</option>
+            <option value="Despachado">Despachado</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-espresso mb-1">Notas Internas de Seguimiento:</label>
+          <div class="flex gap-2">
+            <input type="text" id="modalCotizNotasInput" placeholder="Ej: Se ofreció 5% de descuento por 10 cajas..." class="flex-1 bg-warm-cream border border-warm-border rounded-xl px-3 py-2 text-xs text-espresso focus:outline-none focus:border-terracota">
+            <button type="button" onclick="Admin.saveCurrentCotizacionChanges()" class="px-4 py-2 bg-salvia hover:bg-[#3d4d40] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer tap-target">
+              Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-warm-border">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <button type="button" onclick="Admin.printCurrentCotizacion()" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-warm-sand hover:bg-stone-200 text-espresso text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer tap-target">
+            <svg class="w-4 h-4 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>Imprimir Proforma Oficial</span>
+          </button>
+          <button type="button" id="btnModalCotizWhatsApp" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all cursor-pointer tap-target">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            <span>Escribir por WhatsApp</span>
+          </button>
+        </div>
+        <button type="button" onclick="Admin.closeCotizacionModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-warm-border text-xs font-bold text-espresso hover:bg-warm-sand transition-colors tap-target cursor-pointer">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- SCRIPTS -->
   <script src="assets/js/api.js?v=20260905_1"></script>
   <script src="assets/js/auth.js?v=20260905_1"></script>
@@ -667,6 +903,8 @@
     // MÓDULO ADMINISTRATIVO INTERACTIVO
     const Admin = {
       products: [],
+      cotizaciones: [],
+      currentCotizacion: null,
       users: [],
       reclamaciones: [],
       currentReclamacion: null,
@@ -678,6 +916,7 @@
         if (!isAuthorized) return;
 
         await this.loadProducts();
+        await this.loadCotizaciones();
         await this.loadUsers();
         await this.loadReclamaciones();
         this.updateStats();
@@ -685,7 +924,7 @@
 
       switchTab(tabName) {
         this.currentTab = tabName;
-        ['productos', 'usuarios', 'reclamaciones', 'metricas'].forEach(tab => {
+        ['productos', 'cotizaciones', 'usuarios', 'reclamaciones', 'metricas'].forEach(tab => {
           const el = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
           const btn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
           if (!el || !btn) return;
@@ -1381,6 +1620,407 @@
           </body>
           </html>
         `);
+      // ================= COTIZACIONES B2B =================
+      async loadCotizaciones() {
+        try {
+          const res = await ApiService.getCotizaciones();
+          if (res && res.success) {
+            this.cotizaciones = res.data || [];
+            this.updateCotizacionesStats(res.stats);
+            this.renderCotizaciones(this.cotizaciones);
+          } else {
+            this.cotizaciones = [];
+            this.renderCotizaciones([]);
+          }
+        } catch (e) {
+          console.error('Error cargando cotizaciones:', e);
+          this.cotizaciones = [];
+          this.renderCotizaciones([]);
+        }
+      },
+
+      updateCotizacionesStats(stats) {
+        const total = stats ? stats.total : this.cotizaciones.length;
+        const pendientes = stats ? stats.pendientes : this.cotizaciones.filter(c => (c.estado || 'Pendiente') === 'Pendiente').length;
+        const cotizados = stats ? stats.cotizados : this.cotizaciones.filter(c => ['En Contacto', 'Cotizado'].includes(c.estado)).length;
+        const atendidos = stats ? stats.atendidos : this.cotizaciones.filter(c => ['Atendido', 'Despachado'].includes(c.estado)).length;
+
+        const elTotal = document.getElementById('metricTotalCotiz');
+        if (elTotal) elTotal.textContent = total;
+
+        const elPendientes = document.getElementById('metricPendientesCotiz');
+        if (elPendientes) elPendientes.textContent = pendientes;
+
+        const elCotizados = document.getElementById('metricEnProcesoCotiz');
+        if (elCotizados) elCotizados.textContent = cotizados;
+
+        const elAtendidos = document.getElementById('metricAtendidasCotiz');
+        if (elAtendidos) elAtendidos.textContent = atendidos;
+
+        const badge = document.getElementById('adminCotizCountBadge');
+        if (badge) badge.textContent = `${this.cotizaciones.length} cotizaciones`;
+
+        const tabBadge = document.getElementById('badgeCotizacionesPendientes');
+        if (tabBadge) {
+          if (pendientes > 0) {
+            tabBadge.textContent = pendientes;
+            tabBadge.classList.remove('hidden');
+          } else {
+            tabBadge.classList.add('hidden');
+          }
+        }
+      },
+
+      renderCotizaciones(list) {
+        const tbody = document.getElementById('adminCotizacionesTableBody');
+        const badge = document.getElementById('adminCotizCountBadge');
+        if (badge) badge.textContent = `${list.length} cotizaciones`;
+
+        if (!tbody) return;
+
+        if (list.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="py-12 text-center text-stone-400">
+                <p class="font-medium text-xs">No se encontraron cotizaciones registradas.</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = list.map(c => {
+          const code = c.codigo || ('COT-' + c.id);
+          const cliente = c.cliente_nombre || 'Cliente General';
+          const doc = c.cliente_doc || '—';
+          const tel = c.cliente_telefono || '';
+          const cleanPhone = tel.replace(/[^0-9]/g, '');
+          const destino = (c.departamento || c.ciudad || 'Lima');
+          const comprobante = c.tipo_comprobante || 'Factura';
+          
+          let itemsCount = 0;
+          let itemsList = [];
+          try {
+            itemsList = typeof c.items === 'string' ? JSON.parse(c.items) : (c.items || []);
+            itemsCount = itemsList.reduce((acc, it) => acc + (parseInt(it.cantidad) || 1), 0);
+          } catch (e) {
+            itemsCount = 0;
+          }
+
+          const estado = c.estado || 'Pendiente';
+          let estadoColor = 'bg-amber-100 text-amber-800 border-amber-300';
+          if (estado === 'En Contacto') estadoColor = 'bg-blue-100 text-blue-800 border-blue-300';
+          else if (estado === 'Cotizado') estadoColor = 'bg-purple-100 text-purple-800 border-purple-300';
+          else if (estado === 'Atendido' || estado === 'Despachado') estadoColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+          else if (estado === 'Cancelado') estadoColor = 'bg-rose-100 text-rose-800 border-rose-300';
+
+          const fechaStr = (c.creado_en || '').slice(0, 10);
+          const safeId = c.id;
+
+          return `
+            <tr class="hover:bg-warm-sand/40 transition-colors">
+              <td class="py-3.5 px-4 font-mono font-bold text-terracota text-xs">
+                ${code}
+              </td>
+              <td class="py-3.5 px-4">
+                <div>
+                  <p class="font-bold text-espresso text-xs leading-tight">${cliente}</p>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="text-[10px] text-espresso-muted">${tel || 'Sin teléfono'}</span>
+                    ${cleanPhone.length >= 9 ? `
+                      <a href="https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + cliente + ', respecto a su cotización ' + code + ' en Descartables Peruanos:')}" target="_blank" class="text-emerald-600 hover:text-emerald-700 p-0.5" title="WhatsApp">
+                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                      </a>
+                    ` : ''}
+                  </div>
+                </div>
+              </td>
+              <td class="py-3.5 px-3 font-mono text-[11px] font-bold text-espresso">
+                ${doc}
+              </td>
+              <td class="py-3.5 px-3">
+                <span class="px-2 py-0.5 rounded-md bg-warm-sand text-[10px] font-bold text-espresso">
+                  ${comprobante}
+                </span>
+                <p class="text-[10px] text-espresso-muted mt-0.5">${destino}</p>
+              </td>
+              <td class="py-3.5 px-3 text-center">
+                <span class="px-2 py-0.5 rounded-full bg-stone-100 font-bold text-espresso text-[11px]">
+                  ${itemsCount} und/cja
+                </span>
+              </td>
+              <td class="py-3.5 px-3 text-center">
+                <select onchange="Admin.changeCotizacionStatus(${safeId}, this.value)" class="px-2 py-1 rounded-xl text-[10px] font-bold border ${estadoColor} focus:outline-none cursor-pointer">
+                  <option value="Pendiente" ${estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                  <option value="En Contacto" ${estado === 'En Contacto' ? 'selected' : ''}>En Contacto</option>
+                  <option value="Cotizado" ${estado === 'Cotizado' ? 'selected' : ''}>Cotizado</option>
+                  <option value="Atendido" ${estado === 'Atendido' ? 'selected' : ''}>Atendido</option>
+                  <option value="Despachado" ${estado === 'Despachado' ? 'selected' : ''}>Despachado</option>
+                  <option value="Cancelado" ${estado === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                </select>
+              </td>
+              <td class="py-3.5 px-3 text-espresso-muted text-[11px] whitespace-nowrap">
+                ${fechaStr}
+              </td>
+              <td class="py-3.5 px-4 text-right">
+                <div class="flex items-center justify-end gap-1.5">
+                  <button onclick="Admin.viewCotizacionDetail(${safeId})" class="p-1.5 rounded-xl bg-warm-sand hover:bg-stone-200 text-espresso transition-colors tap-target cursor-pointer" title="Ver Detalle de Cotización">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                  <button onclick="Admin.confirmDeleteCotizacion(${safeId}, '${code}')" class="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors tap-target cursor-pointer" title="Eliminar Cotización">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      },
+
+      filterCotizaciones() {
+        const query = (document.getElementById('searchCotizacionesInput')?.value || '').toLowerCase().trim();
+        const estado = document.getElementById('filterCotizacionEstado')?.value || 'todos';
+
+        const filtered = this.cotizaciones.filter(c => {
+          const code = (c.codigo || `COT-${c.id}`).toLowerCase();
+          const name = (c.cliente_nombre || '').toLowerCase();
+          const doc = (c.cliente_doc || '').toLowerCase();
+          const tel = (c.cliente_telefono || '').toLowerCase();
+          const dest = (c.departamento || c.ciudad || '').toLowerCase();
+
+          const matchQuery = !query || code.includes(query) || name.includes(query) || doc.includes(query) || tel.includes(query) || dest.includes(query);
+          const matchEstado = (estado === 'todos') || (c.estado === estado);
+
+          return matchQuery && matchEstado;
+        });
+
+        this.renderCotizaciones(filtered);
+      },
+
+      async changeCotizacionStatus(id, newStatus) {
+        const c = this.cotizaciones.find(item => item.id == id);
+        const res = await ApiService.updateCotizacionStatus(id, newStatus, c ? c.notas : '');
+        if (res.success) {
+          Toast.success(`Cotización actualizada a: ${newStatus}`);
+          await this.loadCotizaciones();
+        } else {
+          Toast.error(res.error || 'No se pudo actualizar el estado.');
+        }
+      },
+
+      viewCotizacionDetail(id) {
+        const c = this.cotizaciones.find(item => item.id == id);
+        if (!c) return;
+
+        this.currentCotizacion = c;
+        const code = c.codigo || ('COT-' + c.id);
+
+        document.getElementById('modalCotizCodigo').textContent = code;
+        
+        const badge = document.getElementById('modalCotizEstadoBadge');
+        badge.textContent = c.estado || 'Pendiente';
+
+        document.getElementById('modalCotizCliente').textContent = c.cliente_nombre || 'Cliente General';
+        document.getElementById('modalCotizDoc').textContent = c.cliente_doc || '—';
+        document.getElementById('modalCotizTelefono').textContent = c.cliente_telefono || '—';
+        document.getElementById('modalCotizCompDestino').textContent = `${c.tipo_comprobante || 'Factura'} • ${c.departamento || c.ciudad || 'Lima'}`;
+
+        const cleanPhone = (c.cliente_telefono || '').replace(/[^0-9]/g, '');
+        const waLink = document.getElementById('modalCotizWaLink');
+        const btnWa = document.getElementById('btnModalCotizWhatsApp');
+
+        const waUrl = cleanPhone.length >= 9
+          ? `https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + (c.cliente_nombre || '') + ', le saludamos de Descartables Peruanos respecto a su cotización ' + code + '.')}`
+          : '#';
+
+        if (waLink) waLink.href = waUrl;
+        if (btnWa) {
+          btnWa.onclick = () => {
+            if (cleanPhone.length >= 9) window.open(waUrl, '_blank');
+            else Toast.warning('El cliente no registró un número de teléfono válido.');
+          };
+        }
+
+        // Renderizar items
+        let items = [];
+        try {
+          items = typeof c.items === 'string' ? JSON.parse(c.items) : (c.items || []);
+        } catch (e) {
+          items = [];
+        }
+
+        const tbody = document.getElementById('modalCotizItemsBody');
+        if (tbody) {
+          if (items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-stone-400">Sin ítems detallados</td></tr>`;
+          } else {
+            tbody.innerHTML = items.map((it, idx) => `
+              <tr class="hover:bg-warm-sand/30 transition-colors">
+                <td class="py-2.5 px-3 text-center font-bold text-espresso-muted">${idx + 1}</td>
+                <td class="py-2.5 px-3 font-mono font-bold text-terracota text-[11px]">${it.sku || '—'}</td>
+                <td class="py-2.5 px-4 font-bold text-espresso">${it.nombre || 'Producto'}</td>
+                <td class="py-2.5 px-3 text-espresso-muted">${it.presentacion || '—'}</td>
+                <td class="py-2.5 px-3 text-center font-bold text-espresso bg-warm-sand/30 rounded-lg">${it.cantidad || 1}</td>
+              </tr>
+            `).join('');
+          }
+        }
+
+        document.getElementById('modalCotizEstadoSelect').value = c.estado || 'Pendiente';
+        document.getElementById('modalCotizNotasInput').value = c.notas || '';
+
+        const modal = document.getElementById('modalCotizacionDetalle');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      },
+
+      closeCotizacionModal() {
+        const modal = document.getElementById('modalCotizacionDetalle');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      },
+
+      async saveCurrentCotizacionChanges() {
+        if (!this.currentCotizacion) return;
+        const id = this.currentCotizacion.id;
+        const estado = document.getElementById('modalCotizEstadoSelect').value;
+        const notas = document.getElementById('modalCotizNotasInput').value.trim();
+
+        const res = await ApiService.updateCotizacionStatus(id, estado, notas);
+        if (res.success) {
+          Toast.success('Cambios guardados correctamente.');
+          this.currentCotizacion.estado = estado;
+          this.currentCotizacion.notas = notas;
+          document.getElementById('modalCotizEstadoBadge').textContent = estado;
+          await this.loadCotizaciones();
+        } else {
+          Toast.error(res.error || 'No se pudo guardar los cambios.');
+        }
+      },
+
+      async confirmDeleteCotizacion(id, codigo) {
+        if (confirm(`¿Estás seguro de eliminar la cotización ${codigo}? Esta acción no se puede deshacer.`)) {
+          const res = await ApiService.deleteCotizacion(id);
+          if (res.success) {
+            Toast.success('Cotización eliminada correctamente.');
+            await this.loadCotizaciones();
+          } else {
+            Toast.error(res.error || 'No se pudo eliminar la cotización.');
+          }
+        }
+      },
+
+      printCurrentCotizacion() {
+        if (!this.currentCotizacion) return;
+        const c = this.currentCotizacion;
+        const printWindow = window.open('', '_blank', 'width=850,height=950');
+        if (!printWindow) {
+          Toast.info('Por favor habilite las ventanas emergentes en su navegador para imprimir.');
+          return;
+        }
+
+        const code = c.codigo || ('COT-' + c.id);
+        let items = [];
+        try {
+          items = typeof c.items === 'string' ? JSON.parse(c.items) : (c.items || []);
+        } catch (e) {
+          items = [];
+        }
+
+        const itemsHtml = items.map((it, idx) => `
+          <tr>
+            <td style="text-align:center; padding: 8px; border: 1px solid #e5e5e5;">${idx + 1}</td>
+            <td style="font-family:monospace; font-weight:bold; color:#C85A32; padding: 8px; border: 1px solid #e5e5e5;">${it.sku || '—'}</td>
+            <td style="padding: 8px; border: 1px solid #e5e5e5; font-weight:600;">${it.nombre || 'Producto'}</td>
+            <td style="padding: 8px; border: 1px solid #e5e5e5; color:#666;">${it.presentacion || '—'}</td>
+            <td style="text-align:center; font-weight:bold; padding: 8px; border: 1px solid #e5e5e5;">${it.cantidad || 1}</td>
+          </tr>
+        `).join('');
+
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <title>Proforma Oficial B2B - ${code}</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 35px; color: #2D2522; font-size: 12px; }
+              .header { display: flex; justify-content: space-between; border-bottom: 2px solid #C85A32; padding-bottom: 12px; margin-bottom: 15px; }
+              .company { font-size: 16px; font-weight: 800; }
+              .ruc { font-size: 11px; color: #666; margin-top: 2px; }
+              .title-box { text-align: right; }
+              .title-box h1 { margin: 0; font-size: 16px; color: #C85A32; }
+              .code { font-family: monospace; font-size: 14px; font-weight: bold; margin-top: 3px; }
+              .box { border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+              .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+              th { background-color: #f7f4ee; padding: 8px; border: 1px solid #e5e5e5; text-align: left; font-size: 11px; text-transform: uppercase; }
+              .footer { margin-top: 30px; font-size: 10px; color: #888; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }
+              @media print { body { margin: 15mm; } }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div>
+                <div class="company">DESCARTABLES PERUANOS S.A.C.</div>
+                <div class="ruc">RUC: 20601234567 | Av. Alejandro Bertello 732-C, Cercado de Lima</div>
+                <div class="ruc">WhatsApp: +51 994 195 430 | Email: ventas@descartablesperu.com</div>
+              </div>
+              <div class="title-box">
+                <h1>COTIZACIÓN CORPORATIVA</h1>
+                <div class="code">${code}</div>
+                <div style="font-size:11px; color:#666; margin-top:3px;">Fecha: ${(c.creado_en || '').slice(0, 10)}</div>
+                <div style="font-size:11px; font-weight:bold; color:#166534; margin-top:2px;">Estado: ${c.estado || 'Pendiente'}</div>
+              </div>
+            </div>
+
+            <div class="box">
+              <div style="font-size:11px; font-weight:bold; text-transform:uppercase; color:#786F6A; margin-bottom:6px; border-bottom:1px solid #f0f0f0; padding-bottom:4px;">Datos del Cliente</div>
+              <div class="grid">
+                <div><strong>Razón Social / Cliente:</strong> ${c.cliente_nombre || 'Cliente General'}</div>
+                <div><strong>RUC / DNI:</strong> ${c.cliente_doc || '—'}</div>
+                <div><strong>Teléfono / WhatsApp:</strong> ${c.cliente_telefono || '—'}</div>
+                <div><strong>Tipo Comprobante:</strong> ${c.tipo_comprobante || 'Factura'}</div>
+                <div><strong>Destino de Despacho:</strong> ${c.departamento || c.ciudad || 'Lima'}</div>
+              </div>
+            </div>
+
+            <div class="box">
+              <div style="font-size:11px; font-weight:bold; text-transform:uppercase; color:#786F6A; margin-bottom:6px; border-bottom:1px solid #f0f0f0; padding-bottom:4px;">Detalle de Productos Solicitados</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:40px; text-align:center;">#</th>
+                    <th>SKU</th>
+                    <th>Producto</th>
+                    <th>Presentación</th>
+                    <th style="width:80px; text-align:center;">Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHtml}
+                </tbody>
+              </table>
+            </div>
+
+            ${c.notas ? `
+              <div class="box" style="background:#faf8f5;">
+                <strong>Notas / Condiciones comerciales:</strong><br>
+                <p style="margin:4px 0 0 0; color:#555;">${c.notas}</p>
+              </div>
+            ` : ''}
+
+            <div class="footer">
+              Precios válidos por 7 días hábiles. Sujeto a disponibilidad de stock al momento de confirmación de compra.<br>
+              Descartables Peruanos S.A.C. - Distribución directa a restaurantes y cadenas a nivel nacional.
+            </div>
+
+            <script>
+              window.onload = function() { window.print(); };
+            <\/script>
+          </body>
+          </html>
+        `);
         printWindow.document.close();
       },
 
@@ -1546,6 +2186,42 @@
         this.downloadCSV(`libro_reclamaciones_indecopi_${dateStr}.xls`, headers, rows, 'Reclamaciones INDECOPI');
       },
 
+      exportCotizacionesExcel() {
+        if (!this.cotizaciones || this.cotizaciones.length === 0) {
+          Toast.warning('No hay cotizaciones para exportar.');
+          return;
+        }
+
+        const headers = ['Código', 'Fecha', 'Cliente / Razón Social', 'RUC / DNI', 'Teléfono', 'Tipo Comprobante', 'Destino', 'Total Ítems', 'Estado', 'Detalle de Productos', 'Notas Internas'];
+        const rows = this.cotizaciones.map(c => {
+          let items = [];
+          try {
+            items = typeof c.items === 'string' ? JSON.parse(c.items) : (c.items || []);
+          } catch (e) {
+            items = [];
+          }
+          const totalQty = items.reduce((acc, it) => acc + (parseInt(it.cantidad) || 1), 0);
+          const itemsDesc = items.map(it => `${it.nombre || 'Item'} (${it.cantidad || 1} cja/pq)`).join('; ');
+
+          return [
+            c.codigo || ('COT-' + c.id),
+            (c.creado_en || '').slice(0, 10),
+            c.cliente_nombre || '',
+            c.cliente_doc || '',
+            c.cliente_telefono || '',
+            c.tipo_comprobante || 'Factura',
+            c.departamento || c.ciudad || 'Lima',
+            totalQty,
+            c.estado || 'Pendiente',
+            itemsDesc,
+            c.notas || ''
+          ];
+        });
+
+        const dateStr = new Date().toISOString().slice(0, 10);
+        this.downloadCSV(`cotizaciones_b2b_${dateStr}.xls`, headers, rows, 'Cotizaciones B2B');
+      },
+
       updateStats() {
         const metricProd = document.getElementById('metricTotalProd');
         if (metricProd) metricProd.textContent = this.products.length;
@@ -1559,6 +2235,7 @@
         }
 
         this.updateReclamacionesStats();
+        this.updateCotizacionesStats();
       }
     };
 

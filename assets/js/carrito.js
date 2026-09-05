@@ -313,7 +313,7 @@ const Carrito = {
     document.body.style.overflow = '';
   },
 
-  buildWhatsAppText() {
+  buildWhatsAppText(quoteCode = '') {
     if (this.items.length === 0) return '';
 
     const tipoComp = document.getElementById('cotizacionTipoComp')?.value || 'Factura';
@@ -321,41 +321,57 @@ const Carrito = {
     const nombre = document.getElementById('cotizacionNombre')?.value.trim() || 'Cliente Web';
     const destino = document.getElementById('cotizacionDestino')?.value || 'Lima Metropolitana';
 
-    let text = `Hola Descartables Peruanos, deseo cotizar el siguiente pedido:\n\n`;
+    let header = quoteCode ? `*COTIZACIÓN OFICIAL [${quoteCode}]*\n*DESCARTABLES PERUANOS S.A.C.*\n\n` : `*SOLICITUD DE COTIZACIÓN - DESCARTABLES PERUANOS*\n\n`;
+    let text = `${header}Hola, deseo solicitar cotización por los siguientes ítems:\n\n`;
     this.items.forEach(item => {
-      text += `- ${item.cantidad} x ${item.nombre} (${item.presentacion}) (SKU: ${item.sku})\n`;
+      text += `📦 *${item.cantidad}* x ${item.nombre} [${item.presentacion}] (SKU: ${item.sku})\n`;
     });
 
-    text += `\nCliente: ${nombre} | RUC/DNI: ${doc}\n`;
-    text += `Comprobante: ${tipoComp} | Destino: ${destino}\n`;
-    text += `\nSolicito disponibilidad y precio por mayor/menor. ¡Muchas gracias!`;
+    text += `\n👤 *Cliente / Razón Social:* ${nombre}`;
+    text += `\n📄 *RUC / DNI:* ${doc}`;
+    text += `\n🧾 *Comprobante:* ${tipoComp} Electrónica`;
+    text += `\n📍 *Destino / Agencia:* ${destino}\n`;
+    text += `\nSolicito confirmación de stock y precios por volumen. ¡Muchas gracias!`;
 
     return text;
   },
 
-  sendToWhatsApp() {
+  async sendToWhatsApp() {
     if (this.items.length === 0) {
-      Toast.warning('Tu carrito de cotización está vacío. Agrega productos para cotizar.');
+      if (window.Toast) Toast.warning('Tu carrito de cotización está vacío. Agrega productos para cotizar.');
       return;
     }
 
-    const message = this.buildWhatsAppText();
+    const tipoComp = document.getElementById('cotizacionTipoComp')?.value || 'Factura';
+    const doc = document.getElementById('cotizacionDoc')?.value.trim() || 'No especificado';
+    const nombre = document.getElementById('cotizacionNombre')?.value.trim() || 'Cliente Web';
+    const destino = document.getElementById('cotizacionDestino')?.value || 'Lima Metropolitana';
+
+    let quoteCode = '';
+    if (window.ApiService && typeof ApiService.saveCotizacion === 'function') {
+      try {
+        const res = await ApiService.saveCotizacion({
+          documento: doc,
+          nombre_cliente: nombre,
+          tipo_comprobante: tipoComp,
+          destino: destino,
+          items: this.items
+        });
+        if (res && res.codigo_cotizacion) {
+          quoteCode = res.codigo_cotizacion;
+        }
+      } catch (e) {
+        console.warn('No se pudo registrar la cotización en backend:', e);
+      }
+    }
+
+    const message = this.buildWhatsAppText(quoteCode);
     const encoded = encodeURIComponent(message);
     const waUrl = `https://wa.me/${this.whatsappNumber}?text=${encoded}`;
 
-    // Guardar registro de la cotización en historial local
-    try {
-      const history = JSON.parse(localStorage.getItem('dp_historial_cotizaciones') || '[]');
-      history.unshift({
-        fecha: new Date().toLocaleString('es-PE'),
-        items: [...this.items],
-        comprobante: document.getElementById('cotizacionTipoComp')?.value || 'Factura',
-        documento: document.getElementById('cotizacionDoc')?.value || '',
-        nombre: document.getElementById('cotizacionNombre')?.value || 'Cliente Web',
-        destino: document.getElementById('cotizacionDestino')?.value || 'Lima'
-      });
-      localStorage.setItem('dp_historial_cotizaciones', JSON.stringify(history.slice(0, 20)));
-    } catch (e) {}
+    if (window.Toast) {
+      Toast.success(quoteCode ? `Cotización ${quoteCode} registrada con éxito. Redirigiendo a WhatsApp...` : 'Redirigiendo a WhatsApp...');
+    }
 
     window.open(waUrl, '_blank');
   },
@@ -383,7 +399,7 @@ const Carrito = {
 
   async openFormalQuoteModal() {
     if (this.items.length === 0) {
-      Toast.warning('Tu carrito de cotización está vacío. Agrega productos para generar la proforma.');
+      if (window.Toast) Toast.warning('Tu carrito de cotización está vacío. Agrega productos para generar la proforma.');
       return;
     }
 
@@ -392,14 +408,14 @@ const Carrito = {
     const nombre = document.getElementById('cotizacionNombre')?.value.trim() || 'Cliente Corporativo';
     const destino = document.getElementById('cotizacionDestino')?.value || 'Lima Metropolitana';
 
-    // Registrar cotización en API o local
+    // Registrar cotización en MySQL o LocalStorage
     let quoteCode = 'COT-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
     let fechaHoy = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
     let fechaVence = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
 
-    if (window.ApiService && typeof ApiService.registerQuote === 'function') {
+    if (window.ApiService && typeof ApiService.saveCotizacion === 'function') {
       try {
-        const res = await ApiService.registerQuote({
+        const res = await ApiService.saveCotizacion({
           documento: doc,
           nombre_cliente: nombre,
           tipo_comprobante: tipoComp,
@@ -410,7 +426,7 @@ const Carrito = {
           quoteCode = res.codigo_cotizacion;
         }
       } catch (e) {
-        console.warn('Error registrando cotización, usando correlativo local.');
+        console.warn('Error registrando cotización formal en backend:', e);
       }
     }
 

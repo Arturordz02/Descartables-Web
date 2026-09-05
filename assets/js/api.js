@@ -725,6 +725,162 @@ const ApiService = {
       6: 'Línea Eco-Biodegradable'
     };
     return map[catId] || 'General';
+  },
+
+  // ====================================================================
+  // MÓDULO DE COTIZACIONES B2B
+  // ====================================================================
+  async saveCotizacion(quoteData) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/cotizaciones.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(quoteData)
+        });
+        const json = await res.json();
+        if (json.success) {
+          this.saveLocalCotizacionBackup({ ...quoteData, codigo_cotizacion: json.codigo_cotizacion, id: json.id, creado_en: json.fecha });
+          return json;
+        }
+      } catch (e) {
+        console.warn('Fallo al guardar cotización en backend, usando modo local:', e);
+      }
+    }
+
+    // Modo local / Fallback
+    const localQuotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
+    const anio = new Date().getFullYear();
+    const nextNum = localQuotes.length + 1;
+    const codigo = `COT-${anio}-${String(nextNum).padStart(5, '0')}`;
+    const newQuote = {
+      id: Date.now(),
+      codigo_cotizacion: codigo,
+      usuario_id: quoteData.usuario_id || null,
+      tipo_comprobante: quoteData.tipo_comprobante || 'Factura',
+      documento: quoteData.documento || '',
+      nombre_cliente: quoteData.nombre_cliente || '',
+      telefono: quoteData.telefono || '',
+      destino: quoteData.destino || 'Lima Metropolitana',
+      detalle_items: quoteData.items || [],
+      total_items: (quoteData.items || []).reduce((acc, it) => acc + (parseInt(it.cantidad, 10) || 1), 0),
+      estado: 'Pendiente',
+      notas: quoteData.notas || '',
+      creado_en: new Date().toISOString()
+    };
+    localQuotes.unshift(newQuote);
+    localStorage.setItem('dp_cotizaciones_recibidas', JSON.stringify(localQuotes));
+    this.saveLocalCotizacionBackup(newQuote);
+
+    return {
+      success: true,
+      message: 'Cotización registrada formalmente.',
+      codigo_cotizacion: codigo,
+      id: newQuote.id,
+      estado: 'Pendiente',
+      fecha: new Date().toLocaleDateString('es-PE')
+    };
+  },
+
+  saveLocalCotizacionBackup(quote) {
+    try {
+      const myQuotes = JSON.parse(localStorage.getItem('dp_mis_cotizaciones') || '[]');
+      myQuotes.unshift(quote);
+      localStorage.setItem('dp_mis_cotizaciones', JSON.stringify(myQuotes.slice(0, 50)));
+    } catch (e) {}
+  },
+
+  async getCotizaciones(filters = {}) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const queryParams = new URLSearchParams();
+        if (filters.estado && filters.estado !== 'all' && filters.estado !== 'todos') {
+          queryParams.append('estado', filters.estado);
+        }
+        if (filters.q) queryParams.append('q', filters.q);
+        if (filters.documento) queryParams.append('documento', filters.documento);
+        queryParams.append('_t', Date.now().toString());
+
+        const res = await fetch(`${this.baseUrl}/cotizaciones.php?${queryParams.toString()}`);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          return json.data;
+        }
+      } catch (e) {
+        console.warn('Fallo al obtener cotizaciones de MySQL, usando locales:', e);
+      }
+    }
+
+    // Fallback local
+    let quotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
+    if (filters.estado && filters.estado !== 'all' && filters.estado !== 'todos') {
+      quotes = quotes.filter(q => q.estado === filters.estado);
+    }
+    if (filters.documento) {
+      quotes = quotes.filter(q => q.documento === filters.documento);
+    }
+    if (filters.q) {
+      const q = filters.q.toLowerCase();
+      quotes = quotes.filter(item => 
+        (item.codigo_cotizacion && item.codigo_cotizacion.toLowerCase().includes(q)) ||
+        (item.nombre_cliente && item.nombre_cliente.toLowerCase().includes(q)) ||
+        (item.documento && item.documento.toLowerCase().includes(q)) ||
+        (item.telefono && item.telefono.toLowerCase().includes(q))
+      );
+    }
+    return quotes;
+  },
+
+  async updateCotizacionStatus(id, estado, notas = '') {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/cotizaciones.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update_status', id, estado, notas })
+        });
+        const json = await res.json();
+        if (json.success) return json;
+      } catch (e) {
+        console.warn('Fallo al actualizar cotización en MySQL:', e);
+      }
+    }
+
+    // Fallback local
+    const quotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
+    const target = quotes.find(q => q.id == id);
+    if (target) {
+      target.estado = estado;
+      if (notas !== undefined) target.notas = notas;
+      localStorage.setItem('dp_cotizaciones_recibidas', JSON.stringify(quotes));
+      return { success: true, message: 'Estado actualizado localmente.', estado, notas };
+    }
+    return { success: false, error: 'No se encontró la cotización.' };
+  },
+
+  async deleteCotizacion(id) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/cotizaciones.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', id })
+        });
+        const json = await res.json();
+        if (json.success) return json;
+      } catch (e) {
+        console.warn('Fallo al eliminar cotización en MySQL:', e);
+      }
+    }
+
+    const quotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
+    const filtered = quotes.filter(q => q.id != id);
+    localStorage.setItem('dp_cotizaciones_recibidas', JSON.stringify(filtered));
+    return { success: true, message: 'Cotización eliminada localmente.' };
   }
 };
 
