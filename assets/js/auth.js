@@ -99,20 +99,37 @@ const Auth = {
 
     mobileUserContainers.forEach(container => {
       if (user) {
+        const isAdmin = user.rol === 'admin';
         container.innerHTML = `
-          <div class="p-3 bg-white rounded-2xl border border-[#EAE3DA] flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2.5">
-              <span class="w-8 h-8 rounded-full bg-[#C85A32] text-white flex items-center justify-center font-bold text-xs">
-                ${(user.nombre_razon_social || 'C').charAt(0).toUpperCase()}
-              </span>
-              <div class="min-w-0">
-                <p class="text-xs font-bold text-[#1F1815] truncate max-w-[160px]">${user.nombre_razon_social}</p>
-                <p class="text-[10px] text-[#574B46]">${user.tipo_documento}: ${user.numero_documento}</p>
+          <div class="p-3 bg-white rounded-2xl border border-[#EAE3DA] mb-2 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-8 h-8 rounded-full bg-[#C85A32] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  ${(user.nombre_razon_social || 'C').charAt(0).toUpperCase()}
+                </span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <p class="text-xs font-bold text-[#1F1815] truncate max-w-[140px]">${user.nombre_razon_social}</p>
+                    ${isAdmin ? '<span class="text-[9px] px-1.5 py-0.2 rounded-full bg-[#C85A32] text-white font-extrabold uppercase">ADMIN</span>' : ''}
+                  </div>
+                  <p class="text-[10px] text-[#574B46]">${user.tipo_documento}: ${user.numero_documento}</p>
+                </div>
               </div>
+              <button type="button" onclick="Auth.logout()" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg text-xs font-bold transition-colors" title="Cerrar sesión">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              </button>
             </div>
-            <a href="perfil.html" class="px-3 py-1.5 bg-[#F4EFEA] text-[#C85A32] rounded-xl text-xs font-bold hover:bg-[#EAE3DA]">
-              Mi Cuenta
-            </a>
+            <div class="grid ${isAdmin ? 'grid-cols-2' : 'grid-cols-1'} gap-2 pt-1 border-t border-stone-100">
+              ${isAdmin ? `
+                <a href="admin.html" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all text-center">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  <span>Panel Admin</span>
+                </a>
+              ` : ''}
+              <a href="perfil.html" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-[#F4EFEA] hover:bg-[#EAE3DA] text-[#C85A32] rounded-xl text-xs font-bold transition-all text-center">
+                <span>Mi Cuenta</span>
+              </a>
+            </div>
           </div>
         `;
       } else {
