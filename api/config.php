@@ -18,14 +18,20 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS
     exit();
 }
 
-// Parámetros de Conexión a MySQL con detección automática de entorno
-$is_remote = (isset($_SERVER['HTTP_HOST']) && (
-    strpos($_SERVER['HTTP_HOST'], 'free.nf') !== false || 
-    strpos($_SERVER['HTTP_HOST'], 'infinityfree') !== false ||
-    strpos($_SERVER['HTTP_HOST'], 'epizy') !== false
-));
+// Detección robusta de entorno: Local (XAMPP/localhost) vs Servidor Remoto (InfinityFree)
+$http_host = isset($_SERVER['HTTP_HOST']) ? strtolower($_SERVER['HTTP_HOST']) : '';
+$server_addr = isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '';
 
-if ($is_remote) {
+$is_local = (
+    empty($http_host) ||
+    strpos($http_host, 'localhost') !== false ||
+    strpos($http_host, '127.0.0.1') !== false ||
+    strpos($http_host, '::1') !== false ||
+    $server_addr === '127.0.0.1' ||
+    $server_addr === '::1'
+);
+
+if (!$is_local) {
     // Entorno Nube: InfinityFree
     define('DB_HOST', 'sql201.infinityfree.com');
     define('DB_PORT', '3306');
@@ -49,4 +55,3 @@ define('EMPRESA_TELEFONO', '(01) 564-1450');
 define('EMPRESA_WHATSAPP_1', '+51 994 195 430');
 define('EMPRESA_WHATSAPP_2', '+51 994 009 692');
 define('EMPRESA_EMAIL', 'ventas@descartablesperuanos.pe');
-
