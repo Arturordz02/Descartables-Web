@@ -22,6 +22,21 @@ function ensureDatabaseInitialized($pdo) {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+        // Auto-migraciones para tabla categorias si ya existía sin columnas icono/color
+        try {
+            $colIcono = $pdo->query("SHOW COLUMNS FROM categorias LIKE 'icono'")->fetch();
+            if (!$colIcono) {
+                $pdo->exec("ALTER TABLE categorias ADD COLUMN icono VARCHAR(50) DEFAULT 'box'");
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $colColor = $pdo->query("SHOW COLUMNS FROM categorias LIKE 'color'")->fetch();
+            if (!$colColor) {
+                $pdo->exec("ALTER TABLE categorias ADD COLUMN color VARCHAR(100) DEFAULT 'from-amber-600/20 to-orange-600/20'");
+            }
+        } catch (Exception $e) {}
+
         // Seed inicial de categorias si está vacía
         $countCat = $pdo->query("SELECT COUNT(*) as c FROM categorias")->fetch();
         if ((int)($countCat['c'] ?? 0) === 0) {
@@ -33,9 +48,18 @@ function ensureDatabaseInitialized($pdo) {
                 [5, 'Productos de Limpieza e Higiene', 'limpieza', 'Bolsas de basura industriales, guantes de nitrilo y desinfectantes.', 'sparkles', 'from-purple-600/20 to-indigo-600/20'],
                 [6, 'Novedades y Biodegradables', 'novedades', 'Línea eco-amigable de bagazo de caña de azúcar y bowls kraft.', 'leaf', 'from-lime-600/20 to-green-600/20']
             ];
-            $stmt = $pdo->prepare("INSERT INTO categorias (id, nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, ?, ?, ?)");
-            foreach ($baseCategories as $bc) {
-                $stmt->execute($bc);
+            try {
+                $stmt = $pdo->prepare("INSERT INTO categorias (id, nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, ?, ?, ?)");
+                foreach ($baseCategories as $bc) {
+                    $stmt->execute($bc);
+                }
+            } catch (Exception $e) {
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO categorias (id, nombre, slug, descripcion) VALUES (?, ?, ?, ?)");
+                    foreach ($baseCategories as $bc) {
+                        $stmt->execute([$bc[0], $bc[1], $bc[2], $bc[3]]);
+                    }
+                } catch (Exception $e2) {}
             }
         }
 
@@ -57,11 +81,34 @@ function ensureDatabaseInitialized($pdo) {
             INDEX idx_sku (sku)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
-        // Migración columna precio si no existía previamente
-        $colCheck = $pdo->query("SHOW COLUMNS FROM productos LIKE 'precio'");
-        if (!$colCheck->fetch()) {
-            $pdo->exec("ALTER TABLE productos ADD COLUMN precio DECIMAL(10,2) NULL DEFAULT NULL AFTER material");
-        }
+        // Auto-migraciones para tabla productos
+        try {
+            $colPrecio = $pdo->query("SHOW COLUMNS FROM productos LIKE 'precio'")->fetch();
+            if (!$colPrecio) {
+                $pdo->exec("ALTER TABLE productos ADD COLUMN precio DECIMAL(10,2) NULL DEFAULT NULL AFTER material");
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $colBio = $pdo->query("SHOW COLUMNS FROM productos LIKE 'biodegradable'")->fetch();
+            if (!$colBio) {
+                $pdo->exec("ALTER TABLE productos ADD COLUMN biodegradable TINYINT(1) DEFAULT 0");
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $colDest = $pdo->query("SHOW COLUMNS FROM productos LIKE 'destacado'")->fetch();
+            if (!$colDest) {
+                $pdo->exec("ALTER TABLE productos ADD COLUMN destacado TINYINT(1) DEFAULT 0");
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $colImg = $pdo->query("SHOW COLUMNS FROM productos LIKE 'imagen_url'")->fetch();
+            if (!$colImg) {
+                $pdo->exec("ALTER TABLE productos ADD COLUMN imagen_url VARCHAR(500) DEFAULT 'assets/images/productos/default.png'");
+            }
+        } catch (Exception $e) {}
 
         // Seed inicial de productos si está vacía
         $countProd = $pdo->query("SELECT COUNT(*) as c FROM productos")->fetch();
@@ -178,7 +225,7 @@ function ensureDatabaseInitialized($pdo) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     } catch (Exception $e) {
-        // En caso de fallo en auto-migración, continuar silenciosamente
+        // Continuar silenciosamente
     }
     $initialized = true;
 }

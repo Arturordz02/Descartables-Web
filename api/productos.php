@@ -43,12 +43,30 @@ function resolveCategoryId($pdo, &$data) {
                 $slug .= '-' . rand(10, 99);
             }
 
-            $insertCat = $pdo->prepare("INSERT INTO categorias (nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, 'box', 'from-amber-600/20 to-orange-600/20')");
-            $insertCat->execute([
-                $catName,
-                $slug,
-                "Línea especializada: {$catName}"
-            ]);
+            // Asegurar que las columnas icono y color existan si la tabla es antigua
+            try {
+                $colCheck = $pdo->query("SHOW COLUMNS FROM categorias LIKE 'color'")->fetch();
+                if (!$colCheck) {
+                    $pdo->exec("ALTER TABLE categorias ADD COLUMN icono VARCHAR(50) DEFAULT 'box'");
+                    $pdo->exec("ALTER TABLE categorias ADD COLUMN color VARCHAR(100) DEFAULT 'from-amber-600/20 to-orange-600/20'");
+                }
+            } catch (Exception $ignored) {}
+
+            try {
+                $insertCat = $pdo->prepare("INSERT INTO categorias (nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, 'box', 'from-amber-600/20 to-orange-600/20')");
+                $insertCat->execute([
+                    $catName,
+                    $slug,
+                    "Línea especializada: {$catName}"
+                ]);
+            } catch (Exception $e) {
+                $insertCat = $pdo->prepare("INSERT INTO categorias (nombre, slug, descripcion) VALUES (?, ?, ?)");
+                $insertCat->execute([
+                    $catName,
+                    $slug,
+                    "Línea especializada: {$catName}"
+                ]);
+            }
             return (int)$pdo->lastInsertId();
         }
     }
