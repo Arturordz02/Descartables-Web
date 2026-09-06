@@ -1,160 +1,13 @@
 <?php
 /**
  * API REST: Productos y Categorías
+ * Plataforma Descartables Peruanos
  */
 
 require_once __DIR__ . '/db.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
-
-if ($method === 'GET') {
-    $pdo = getDbConnection();
-    
-    // Obtener categorías si se solicita específicamente
-    if (isset($_GET['tipo']) && $_GET['tipo'] === 'categorias') {
-        $stmt = $pdo->query("SELECT * FROM categorias ORDER BY id ASC");
-        $categorias = $stmt->fetchAll();
-        echo json_encode([
-            'success' => true,
-            'data'    => $categorias
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    }
-
-    // Filtros de productos
-    $categoria_id = isset($_GET['categoria_id']) ? (int)$_GET['categoria_id'] : null;
-    $slug = isset($_GET['categoria']) ? trim($_GET['categoria']) : null;
-    $material = isset($_GET['material']) ? trim($_GET['material']) : null;
-    $biodegradable = (isset($_GET['biodegradable']) && $_GET['biodegradable'] !== '') ? (int)$_GET['biodegradable'] : null;
-    $destacado = isset($_GET['destacado']) ? (int)$_GET['destacado'] : null;
-    $search = isset($_GET['q']) ? trim($_GET['q']) : null;
-
-    $sql = "SELECT p.*, c.nombre as categoria_nombre, c.slug as categoria_slug 
-            FROM productos p 
-            LEFT JOIN categorias c ON p.categoria_id = c.id 
-            WHERE 1=1";
-    $params = [];
-
-    if ($categoria_id) {
-        $sql .= " AND p.categoria_id = ?";
-        $params[] = $categoria_id;
-    }
-
-    if ($slug) {
-        $sql .= " AND c.slug = ?";
-        $params[] = $slug;
-    }
-
-    if ($material) {
-        $sql .= " AND p.material LIKE ?";
-        $params[] = "%$material%";
-    }
-
-    if ($biodegradable !== null) {
-        $sql .= " AND p.biodegradable = ?";
-        $params[] = $biodegradable;
-    }
-
-    if ($destacado !== null) {
-        $sql .= " AND p.destacado = ?";
-        $params[] = $destacado;
-    }
-
-    if ($search) {
-        $sql .= " AND (p.nombre LIKE ? OR p.sku LIKE ? OR p.descripcion LIKE ? OR p.material LIKE ? OR p.presentacion LIKE ? OR c.nombre LIKE ?)";
-        $searchWildcard = "%$search%";
-        $params[] = $searchWildcard;
-        $params[] = $searchWildcard;
-        $params[] = $searchWildcard;
-        $params[] = $searchWildcard;
-        $params[] = $searchWildcard;
-        $params[] = $searchWildcard;
-    }
-
-    $sql .= " ORDER BY p.destacado DESC, p.id ASC";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $productos = $stmt->fetchAll();
-
-    // Mapear booleanos adecuadamente
-    foreach ($productos as &$prod) {
-        $prod['biodegradable'] = (bool)$prod['biodegradable'];
-        $prod['destacado'] = (bool)$prod['destacado'];
-    }
-
-    echo json_encode([
-        'success' => true,
-        'count'   => count($productos),
-        'data'    => $productos
-    ], JSON_UNESCAPED_UNICODE);
-    exit();
-}
-
 $pdo = getDbConnection();
-
-// Función para garantizar esquema e integridad en MySQL
-function ensureDatabaseSchema($pdo) {
-    static $checked = false;
-    if ($checked) return;
-
-    try {
-        // 1. Tabla categorias
-        $pdo->exec("CREATE TABLE IF NOT EXISTS categorias (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            nombre VARCHAR(150) NOT NULL,
-            slug VARCHAR(150) NOT NULL UNIQUE,
-            descripcion TEXT NULL,
-            icono VARCHAR(50) DEFAULT 'box',
-            color VARCHAR(100) DEFAULT 'from-amber-600/20 to-orange-600/20',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
-        // Seed inicial de categorias si está vacía
-        $countCat = $pdo->query("SELECT COUNT(*) as c FROM categorias")->fetch();
-        if ((int)($countCat['c'] ?? 0) === 0) {
-            $baseCategories = [
-                [1, 'Productos Pamolsa', 'pamolsa', 'Envases térmicos, bisagras, domos y vasos para gastronomía.', 'coffee', 'from-amber-600/20 to-orange-600/20'],
-                [2, 'Línea Proplas / Barrera', 'proplas-barrera', 'Bolsas al vacío, bilaminadas, films y empaques industriales.', 'shield-check', 'from-blue-600/20 to-cyan-600/20'],
-                [3, 'Cubiertos Descartables', 'cubiertos', 'Cucharas, tenedores y cuchillos reforzados y biodegradables.', 'utensils', 'from-stone-600/20 to-zinc-600/20'],
-                [4, 'Servilletas y Papeles', 'servilletas', 'Servilletas cocktail, interfoliadas, bobinas y papel institucional.', 'file-text', 'from-emerald-600/20 to-teal-600/20'],
-                [5, 'Productos de Limpieza e Higiene', 'limpieza', 'Bolsas de basura industriales, guantes de nitrilo y desinfectantes.', 'sparkles', 'from-purple-600/20 to-indigo-600/20'],
-                [6, 'Novedades y Biodegradables', 'novedades', 'Línea eco-amigable de bagazo de caña de azúcar y bowls kraft.', 'leaf', 'from-lime-600/20 to-green-600/20']
-            ];
-            $stmt = $pdo->prepare("INSERT INTO categorias (id, nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, ?, ?, ?)");
-            foreach ($baseCategories as $bc) {
-                $stmt->execute($bc);
-            }
-        }
-
-        // 2. Tabla productos
-        $pdo->exec("CREATE TABLE IF NOT EXISTS productos (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            categoria_id INT NOT NULL,
-            sku VARCHAR(50) NOT NULL UNIQUE,
-            nombre VARCHAR(255) NOT NULL,
-            descripcion TEXT NULL,
-            presentacion VARCHAR(150) DEFAULT 'Unidad',
-            material VARCHAR(150) DEFAULT 'Polipropileno',
-            precio DECIMAL(10,2) NULL DEFAULT NULL,
-            biodegradable TINYINT(1) DEFAULT 0,
-            imagen_url VARCHAR(500) DEFAULT 'assets/images/productos/default.png',
-            destacado TINYINT(1) DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_cat (categoria_id),
-            INDEX idx_sku (sku)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
-        // 3. Auto-migración columna precio si falta
-        $colCheck = $pdo->query("SHOW COLUMNS FROM productos LIKE 'precio'");
-        if (!$colCheck->fetch()) {
-            $pdo->exec("ALTER TABLE productos ADD COLUMN precio DECIMAL(10,2) NULL DEFAULT NULL AFTER material");
-        }
-    } catch (Exception $e) {}
-    $checked = true;
-}
-
-ensureDatabaseSchema($pdo);
 
 // Resuelve la categoría (existente o nueva)
 function resolveCategoryId($pdo, &$data) {
@@ -204,6 +57,96 @@ function resolveCategoryId($pdo, &$data) {
     return $id > 0 ? $id : 1;
 }
 
+// 1. LISTAR PRODUCTOS O CATEGORÍAS (GET)
+if ($method === 'GET') {
+    // Obtener categorías si se solicita específicamente
+    if (isset($_GET['tipo']) && $_GET['tipo'] === 'categorias') {
+        $stmt = $pdo->query("SELECT c.*, COUNT(p.id) as total_productos 
+                             FROM categorias c 
+                             LEFT JOIN productos p ON c.id = p.categoria_id 
+                             GROUP BY c.id 
+                             ORDER BY c.id ASC");
+        $categorias = $stmt->fetchAll();
+        echo json_encode([
+            'success' => true,
+            'data'    => $categorias
+        ], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    // Filtros de productos
+    $categoria_id = isset($_GET['categoria_id']) ? (int)$_GET['categoria_id'] : null;
+    $slug = isset($_GET['categoria']) ? trim($_GET['categoria']) : null;
+    $material = isset($_GET['material']) ? trim($_GET['material']) : null;
+    $biodegradable = (isset($_GET['biodegradable']) && $_GET['biodegradable'] !== '') ? (int)$_GET['biodegradable'] : null;
+    $destacado = isset($_GET['destacado']) ? (int)$_GET['destacado'] : null;
+    $search = isset($_GET['q']) ? trim($_GET['q']) : null;
+
+    $sql = "SELECT p.*, c.nombre as categoria_nombre, c.slug as categoria_slug 
+            FROM productos p 
+            LEFT JOIN categorias c ON p.categoria_id = c.id 
+            WHERE 1=1";
+    $params = [];
+
+    if ($categoria_id) {
+        $sql .= " AND p.categoria_id = ?";
+        $params[] = $categoria_id;
+    }
+
+    if ($slug && $slug !== 'todos') {
+        $sql .= " AND c.slug = ?";
+        $params[] = $slug;
+    }
+
+    if ($material && $material !== 'todos') {
+        $sql .= " AND p.material LIKE ?";
+        $params[] = "%$material%";
+    }
+
+    if ($biodegradable !== null) {
+        $sql .= " AND p.biodegradable = ?";
+        $params[] = $biodegradable;
+    }
+
+    if ($destacado !== null) {
+        $sql .= " AND p.destacado = ?";
+        $params[] = $destacado;
+    }
+
+    if ($search) {
+        $sql .= " AND (p.nombre LIKE ? OR p.sku LIKE ? OR p.descripcion LIKE ? OR p.material LIKE ? OR p.presentacion LIKE ? OR c.nombre LIKE ?)";
+        $searchWildcard = "%$search%";
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+        $params[] = $searchWildcard;
+    }
+
+    $sql .= " ORDER BY p.destacado DESC, p.id ASC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $productos = $stmt->fetchAll();
+
+    // Mapear booleanos y tipos numéricos adecuadamente
+    foreach ($productos as &$prod) {
+        $prod['id'] = (int)$prod['id'];
+        $prod['categoria_id'] = (int)$prod['categoria_id'];
+        $prod['precio'] = ($prod['precio'] !== null && $prod['precio'] !== '') ? (float)$prod['precio'] : null;
+        $prod['biodegradable'] = (bool)$prod['biodegradable'];
+        $prod['destacado'] = (bool)$prod['destacado'];
+    }
+
+    echo json_encode([
+        'success' => true,
+        'count'   => count($productos),
+        'data'    => $productos
+    ], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
 $rawInput = file_get_contents('php://input');
 $data = json_decode($rawInput, true);
 if (!$data || !is_array($data)) {
@@ -213,7 +156,7 @@ if (!$data || !is_array($data)) {
 // 2. CREAR PRODUCTO (POST)
 if ($method === 'POST') {
     $nombre = trim($data['nombre'] ?? '');
-    $sku = trim($data['sku'] ?? '');
+    $sku = strtoupper(trim($data['sku'] ?? ''));
     $categoria_id = resolveCategoryId($pdo, $data);
     $descripcion = trim($data['descripcion'] ?? '');
     $presentacion = trim($data['presentacion'] ?? 'Unidad');
@@ -230,11 +173,11 @@ if ($method === 'POST') {
     }
 
     // Verificar si el SKU ya existe
-    $check = $pdo->prepare("SELECT id FROM productos WHERE sku = ? LIMIT 1");
+    $check = $pdo->prepare("SELECT id FROM productos WHERE UPPER(sku) = UPPER(?) LIMIT 1");
     $check->execute([$sku]);
     if ($check->fetch()) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'El código SKU ya existe en el catálogo.'], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['success' => false, 'error' => "El código SKU '$sku' ya existe en el catálogo."], JSON_UNESCAPED_UNICODE);
         exit();
     }
 
@@ -261,6 +204,9 @@ if ($method === 'POST') {
                                 WHERE p.id = ?");
     $fetchStmt->execute([$newId]);
     $created = $fetchStmt->fetch();
+    $created['id'] = (int)$created['id'];
+    $created['categoria_id'] = (int)$created['categoria_id'];
+    $created['precio'] = ($created['precio'] !== null && $created['precio'] !== '') ? (float)$created['precio'] : null;
     $created['biodegradable'] = (bool)$created['biodegradable'];
     $created['destacado'] = (bool)$created['destacado'];
 
@@ -282,7 +228,7 @@ if ($method === 'PUT') {
     }
 
     $nombre = trim($data['nombre'] ?? '');
-    $sku = trim($data['sku'] ?? '');
+    $sku = strtoupper(trim($data['sku'] ?? ''));
     $categoria_id = resolveCategoryId($pdo, $data);
     $descripcion = trim($data['descripcion'] ?? '');
     $presentacion = trim($data['presentacion'] ?? 'Unidad');
@@ -299,11 +245,11 @@ if ($method === 'PUT') {
     }
 
     // Verificar SKU repetido en otro producto
-    $check = $pdo->prepare("SELECT id FROM productos WHERE sku = ? AND id != ? LIMIT 1");
+    $check = $pdo->prepare("SELECT id FROM productos WHERE UPPER(sku) = UPPER(?) AND id != ? LIMIT 1");
     $check->execute([$sku, $id]);
     if ($check->fetch()) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'El código SKU ya pertenece a otro producto.'], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['success' => false, 'error' => "El código SKU '$sku' ya pertenece a otro producto."], JSON_UNESCAPED_UNICODE);
         exit();
     }
 
@@ -344,6 +290,9 @@ if ($method === 'PUT') {
                                 WHERE p.id = ?");
     $fetchStmt->execute([$id]);
     $updated = $fetchStmt->fetch();
+    $updated['id'] = (int)$updated['id'];
+    $updated['categoria_id'] = (int)$updated['categoria_id'];
+    $updated['precio'] = ($updated['precio'] !== null && $updated['precio'] !== '') ? (float)$updated['precio'] : null;
     $updated['biodegradable'] = (bool)$updated['biodegradable'];
     $updated['destacado'] = (bool)$updated['destacado'];
 
@@ -375,5 +324,4 @@ if ($method === 'DELETE') {
 }
 
 http_response_code(405);
-echo json_encode(['success' => false, 'error' => 'Método no permitido']);
-
+echo json_encode(['success' => false, 'error' => 'Método no permitido'], JSON_UNESCAPED_UNICODE);

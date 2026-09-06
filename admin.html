@@ -1712,7 +1712,7 @@
           if (res && res.success && res.url) {
             document.getElementById('prodFormImgUrl').value = res.url;
             if (statusEl) {
-              statusEl.textContent = `✓ Guardada en: ${res.url}`;
+              statusEl.textContent = `✓ Imagen guardada correctamente: ${res.url}`;
               statusEl.className = 'text-[10px] font-bold text-emerald-400';
             }
             Toast.success('Imagen subida y vinculada al producto correctamente.');

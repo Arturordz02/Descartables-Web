@@ -627,14 +627,6 @@ const ApiService = {
       categoria_nombre: catName
     };
 
-    // Guardar copia local siempre para modo offline/local
-    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
-    const newLocalProd = { id: Date.now(), ...enhancedData };
-    localProds.unshift(newLocalProd);
-    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
-
-    let returnData = { success: true, message: 'Producto guardado exitosamente.', data: newLocalProd };
-
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
@@ -645,22 +637,45 @@ const ApiService = {
         });
         const json = await res.json();
         if (json.success && json.data) {
-          newLocalProd.id = json.data.id;
-          newLocalProd.categoria_id = json.data.categoria_id || newLocalProd.categoria_id;
-          newLocalProd.categoria_nombre = json.data.categoria_nombre || newLocalProd.categoria_nombre;
-          newLocalProd.categoria_slug = json.data.categoria_slug || newLocalProd.categoria_slug;
+          // Guardar copia local de respaldo
+          const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+          const newProd = this.cleanProduct(json.data);
+          const existingIdx = localProds.findIndex(p => p.id === newProd.id || (newProd.sku && p.sku === newProd.sku));
+          if (existingIdx !== -1) {
+            localProds[existingIdx] = newProd;
+          } else {
+            localProds.unshift(newProd);
+          }
           localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
-          returnData = json;
+          this.invalidateProductsCache();
+          return json;
         } else {
-          returnData = json;
+          return {
+            success: false,
+            error: json.error || 'Error al guardar el producto en la base de datos.'
+          };
         }
       } catch (e) {
         console.error('Error al crear producto en MySQL:', e);
+        return {
+          success: false,
+          error: 'Error de comunicación con el servidor MySQL: ' + e.message
+        };
       }
     }
 
+    // Modo Local Offline (si no hay backend disponible)
+    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const newLocalProd = { id: Date.now(), ...enhancedData };
+    localProds.unshift(newLocalProd);
+    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
     this.invalidateProductsCache();
-    return returnData;
+
+    return { 
+      success: true, 
+      message: 'Producto guardado en almacenamiento local (Modo sin conexión).', 
+      data: newLocalProd 
+    };
   },
 
   // Editar producto
@@ -676,18 +691,6 @@ const ApiService = {
       categoria_nombre: catName
     };
 
-    // Guardar en copia local
-    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
-    const idx = localProds.findIndex(p => p.id === id);
-    if (idx !== -1) {
-      localProds[idx] = { ...localProds[idx], ...enhancedData };
-    } else {
-      localProds.push(enhancedData);
-    }
-    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
-
-    let returnData = { success: true, message: 'Producto actualizado exitosamente.', data: enhancedData };
-
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
@@ -696,19 +699,92 @@ const ApiService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, ...productData })
         });
-        returnData = await res.json();
+        const json = await res.json();
+        if (json.success && json.data) {
+          const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+          const updatedProd = this.cleanProduct(json.data);
+          const idx = localProds.findIndex(p => p.id === id || (updatedProd.sku && p.sku === updatedProd.sku));
+          if (idx !== -1) {
+            localProds[idx] = updatedProd;
+          } else {
+            localProds.unshift(updatedProd);
+          }
+          localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+          this.invalidateProductsCache();
+          return json;
+        } else {
+          return {
+            success: false,
+            error: json.error || 'Error al actualizar el producto en la base de datos.'
+          };
+        }
       } catch (e) {
         console.error('Error al actualizar producto en MySQL:', e);
+        return {
+          success: false,
+          error: 'Error de comunicación con el servidor MySQL: ' + e.message
+        };
       }
     }
 
+    // Modo Local Offline
+    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const idx = localProds.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      localProds[idx] = { ...localProds[idx], ...enhancedData };
+    } else {
+      localProds.push(enhancedData);
+    }
+    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
     this.invalidateProductsCache();
-    return returnData;
+
+    return { 
+      success: true, 
+      message: 'Producto actualizado en almacenamiento local.', 
+      data: enhancedData 
+    };
   },
 
   // Eliminar producto
   async deleteProduct(id) {
-    // Registrar ID eliminado para modo local
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/productos.php`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const json = await res.json();
+        if (json.success) {
+          const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+          const filtered = localProds.filter(p => p.id !== id);
+          localStorage.setItem('dp_productos_custom', JSON.stringify(filtered));
+
+          const deletedIds = JSON.parse(localStorage.getItem('dp_productos_deleted') || '[]');
+          if (!deletedIds.includes(id)) {
+            deletedIds.push(id);
+            localStorage.setItem('dp_productos_deleted', JSON.stringify(deletedIds));
+          }
+
+          this.invalidateProductsCache();
+          return json;
+        } else {
+          return {
+            success: false,
+            error: json.error || 'No se pudo eliminar el producto de la base de datos.'
+          };
+        }
+      } catch (e) {
+        console.error('Error al eliminar producto en MySQL:', e);
+        return {
+          success: false,
+          error: 'Error de comunicación con el servidor: ' + e.message
+        };
+      }
+    }
+
+    // Modo Local Offline
     const deletedIds = JSON.parse(localStorage.getItem('dp_productos_deleted') || '[]');
     if (!deletedIds.includes(id)) {
       deletedIds.push(id);
@@ -719,24 +795,8 @@ const ApiService = {
     const filtered = localProds.filter(p => p.id !== id);
     localStorage.setItem('dp_productos_custom', JSON.stringify(filtered));
 
-    let returnData = { success: true, message: 'Producto eliminado correctamente.' };
-
-    const isAvailable = await this.checkBackendAvailability();
-    if (isAvailable) {
-      try {
-        const res = await fetch(`${this.baseUrl}/productos.php`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id })
-        });
-        returnData = await res.json();
-      } catch (e) {
-        console.error('Error al eliminar producto en MySQL:', e);
-      }
-    }
-
     this.invalidateProductsCache();
-    return returnData;
+    return { success: true, message: 'Producto eliminado del almacenamiento local.' };
   },
 
   // Subir imagen de producto
