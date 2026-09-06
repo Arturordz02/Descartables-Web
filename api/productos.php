@@ -219,8 +219,8 @@ if ($method === 'POST') {
     $presentacion = trim($data['presentacion'] ?? 'Unidad');
     $material = trim($data['material'] ?? 'Polipropileno');
     $precio = (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
-    $biodegradable = !empty($data['biodegradable']) ? 1 : 0;
-    $destacado = !empty($data['destacado']) ? 1 : 0;
+    $biodegradable = (isset($data['biodegradable']) && ($data['biodegradable'] === true || $data['biodegradable'] === 1 || $data['biodegradable'] === '1' || $data['biodegradable'] === 'true')) ? 1 : 0;
+    $destacado = (isset($data['destacado']) && ($data['destacado'] === true || $data['destacado'] === 1 || $data['destacado'] === '1' || $data['destacado'] === 'true')) ? 1 : 0;
     $imagen_url = trim($data['imagen_url'] ?? 'assets/images/productos/default.png');
 
     if (empty($nombre) || empty($sku)) {
@@ -288,8 +288,8 @@ if ($method === 'PUT') {
     $presentacion = trim($data['presentacion'] ?? 'Unidad');
     $material = trim($data['material'] ?? 'Polipropileno');
     $precio = (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
-    $biodegradable = !empty($data['biodegradable']) ? 1 : 0;
-    $destacado = !empty($data['destacado']) ? 1 : 0;
+    $biodegradable = (isset($data['biodegradable']) && ($data['biodegradable'] === true || $data['biodegradable'] === 1 || $data['biodegradable'] === '1' || $data['biodegradable'] === 'true')) ? 1 : 0;
+    $destacado = (isset($data['destacado']) && ($data['destacado'] === true || $data['destacado'] === 1 || $data['destacado'] === '1' || $data['destacado'] === 'true')) ? 1 : 0;
     $imagen_url = trim($data['imagen_url'] ?? '');
 
     if (empty($nombre) || empty($sku)) {

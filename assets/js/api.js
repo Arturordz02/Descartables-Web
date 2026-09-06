@@ -291,6 +291,8 @@ const ApiService = {
     return {
       ...p,
       precio: p.precio !== undefined && p.precio !== null && p.precio !== '' ? parseFloat(p.precio) : null,
+      biodegradable: Boolean(p.biodegradable == 1 || p.biodegradable === true || p.biodegradable === '1' || p.biodegradable === 'true'),
+      destacado: Boolean(p.destacado == 1 || p.destacado === true || p.destacado === '1' || p.destacado === 'true'),
       nombre: this.cleanString(p.nombre),
       descripcion: this.cleanString(p.descripcion),
       presentacion: this.cleanString(p.presentacion),

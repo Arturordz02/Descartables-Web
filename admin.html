@@ -183,13 +183,13 @@
                 <th class="py-3.5 px-3">Presentación</th>
                 <th class="py-3.5 px-3">Material</th>
                 <th class="py-3.5 px-3 text-center">Eco-Bio</th>
+                <th class="py-3.5 px-3 text-center">Destacado</th>
                 <th class="py-3.5 px-4 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody id="adminProductsTableBody" class="divide-y divide-warm-border/60">
               <tr>
-                <td colspan="7" class="py-12 text-center text-stone-400">
-                <td colspan="8" class="py-12 text-center text-stone-400">
+                <td colspan="9" class="py-12 text-center text-stone-400">
                   <div class="inline-block w-6 h-6 border-2 border-terracota border-t-transparent rounded-full animate-spin mb-2"></div>
                   <p>Cargando catálogo de productos...</p>
                 </td>
@@ -603,7 +603,15 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-espresso mb-1">Código SKU *</label>
-            <input type="text" id="prodFormSku" required placeholder="Ej: PAM-CT4-BLA" class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-espresso focus:outline-none focus:border-terracota uppercase">
+            <select id="prodFormSkuSelect" required onchange="Admin.handleSkuChange(this)" class="w-full bg-warm-cream border border-warm-border rounded-xl px-3 py-2.5 text-xs font-mono font-bold text-espresso focus:outline-none focus:border-terracota uppercase">
+              <!-- Opciones dinámicas de SKUs existentes cargados desde el Catálogo/BD -->
+            </select>
+            
+            <!-- Campo adicional visible únicamente cuando se selecciona 'Otros' -->
+            <div id="prodFormNuevoSkuContainer" class="hidden mt-2 p-2.5 bg-warm-sand rounded-xl border border-terracota/30 space-y-1">
+              <label class="block text-[11px] font-bold text-terracota">Nuevo Código SKU *</label>
+              <input type="text" id="prodFormSku" placeholder="Ej: PAM-CT4-BLA" class="w-full bg-white border border-warm-border rounded-lg px-3 py-1.5 text-xs font-mono font-bold text-espresso uppercase focus:outline-none focus:border-terracota">
+            </div>
           </div>
           <div>
             <label class="block text-xs font-bold text-espresso mb-1">Precio Referencial (S/)</label>
@@ -1058,6 +1066,75 @@
         }
       },
 
+      // ================= SKU SELECTOR DINÁMICO =================
+      populateSkuSelect(selectedSku = null) {
+        const select = document.getElementById('prodFormSkuSelect');
+        const containerNuevo = document.getElementById('prodFormNuevoSkuContainer');
+        const inputNuevo = document.getElementById('prodFormSku');
+        if (!select) return;
+
+        // Extraer SKUs únicos de los productos cargados
+        const skuMap = new Map();
+        if (Array.isArray(this.products)) {
+          this.products.forEach(p => {
+            if (p.sku) {
+              skuMap.set(p.sku.toUpperCase(), { sku: p.sku.toUpperCase(), nombre: p.nombre });
+            }
+          });
+        }
+        if (typeof PRODUCTOS !== 'undefined' && Array.isArray(PRODUCTOS)) {
+          PRODUCTOS.forEach(p => {
+            if (p.sku && !skuMap.has(p.sku.toUpperCase())) {
+              skuMap.set(p.sku.toUpperCase(), { sku: p.sku.toUpperCase(), nombre: p.nombre });
+            }
+          });
+        }
+
+        const skuList = Array.from(skuMap.values()).sort((a, b) => a.sku.localeCompare(b.sku));
+        const cleanSelectedSku = selectedSku ? selectedSku.trim().toUpperCase() : '';
+        const existsInList = cleanSelectedSku && skuMap.has(cleanSelectedSku);
+
+        select.innerHTML = `
+          <option value="" disabled ${!selectedSku ? 'selected' : ''}>-- Selecciona un SKU existente --</option>
+          ${skuList.map(item => `
+            <option value="${item.sku}" ${item.sku === cleanSelectedSku ? 'selected' : ''}>${item.sku} — ${item.nombre}</option>
+          `).join('')}
+          <option value="__otro__" ${(!existsInList && selectedSku) || !selectedSku ? 'selected' : ''}>➕ Otros (Escribir nuevo código SKU)...</option>
+        `;
+
+        if (!selectedSku || !existsInList) {
+          select.value = '__otro__';
+          if (containerNuevo) containerNuevo.classList.remove('hidden');
+          if (inputNuevo) {
+            inputNuevo.value = cleanSelectedSku;
+            inputNuevo.required = true;
+          }
+        } else {
+          select.value = cleanSelectedSku;
+          if (containerNuevo) containerNuevo.classList.add('hidden');
+          if (inputNuevo) {
+            inputNuevo.value = '';
+            inputNuevo.required = false;
+          }
+        }
+      },
+
+      handleSkuChange(selectEl) {
+        const container = document.getElementById('prodFormNuevoSkuContainer');
+        const input = document.getElementById('prodFormSku');
+        if (!container || !input) return;
+
+        if (selectEl.value === '__otro__') {
+          container.classList.remove('hidden');
+          input.required = true;
+          input.focus();
+        } else {
+          container.classList.add('hidden');
+          input.required = false;
+          input.value = '';
+        }
+      },
+
       // ================= PRODUCTOS =================
       async loadProducts() {
         try {
@@ -1076,7 +1153,7 @@
         if (list.length === 0) {
           tbody.innerHTML = `
             <tr>
-              <td colspan="7" class="py-10 text-center text-stone-400">
+              <td colspan="9" class="py-10 text-center text-stone-400">
                 No se encontraron productos coincidentes.
               </td>
             </tr>
@@ -1109,8 +1186,13 @@
             <td class="py-3 px-3 text-espresso-muted">${prod.presentacion}</td>
             <td class="py-3 px-3 text-espresso">${prod.material}</td>
             <td class="py-3 px-3 text-center">
-              ${prod.biodegradable 
-                ? '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">🌿 Bio</span>' 
+              ${(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true') 
+                ? '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold" title="Producto Biodegradable">🌿 Bio</span>' 
+                : '<span class="text-stone-300 text-xs">—</span>'}
+            </td>
+            <td class="py-3 px-3 text-center">
+              ${(prod.destacado == 1 || prod.destacado === true || prod.destacado === '1' || prod.destacado === 'true') 
+                ? '<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold" title="Destacado en Portada">⭐ Sí</span>' 
                 : '<span class="text-stone-300 text-xs">—</span>'}
             </td>
             <td class="py-3 px-4 text-right">
@@ -1149,7 +1231,10 @@
         document.getElementById('prodFormId').value = '';
         document.getElementById('prodFormPrecio').value = '';
         document.getElementById('prodFormImgUrl').value = '';
+        document.getElementById('prodFormBiodegradable').checked = false;
+        document.getElementById('prodFormDestacado').checked = false;
         this.clearProductImage();
+        this.populateSkuSelect();
         await this.populateCategorySelect();
         const modal = document.getElementById('modalProducto');
         modal.classList.remove('hidden');
@@ -1182,15 +1267,15 @@
         document.getElementById('modalProductTitle').textContent = 'Editar Producto';
         document.getElementById('prodFormId').value = prod.id;
         document.getElementById('prodFormNombre').value = prod.nombre;
-        document.getElementById('prodFormSku').value = prod.sku;
         document.getElementById('prodFormPrecio').value = (prod.precio !== null && prod.precio !== undefined) ? prod.precio : '';
         document.getElementById('prodFormPresentacion').value = prod.presentacion;
         document.getElementById('prodFormMaterial').value = prod.material;
         document.getElementById('prodFormDescripcion').value = prod.descripcion || '';
         document.getElementById('prodFormImgUrl').value = prod.imagen_url || '';
-        document.getElementById('prodFormBiodegradable').checked = Boolean(prod.biodegradable);
-        document.getElementById('prodFormDestacado').checked = Boolean(prod.destacado);
+        document.getElementById('prodFormBiodegradable').checked = Boolean(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true');
+        document.getElementById('prodFormDestacado').checked = Boolean(prod.destacado == 1 || prod.destacado === true || prod.destacado === '1' || prod.destacado === 'true');
 
+        this.populateSkuSelect(prod.sku);
         await this.populateCategorySelect(prod.categoria_id);
 
         const fileInput = document.getElementById('prodFormFileInput');
@@ -1278,6 +1363,20 @@
         const id = document.getElementById('prodFormId').value;
         const btn = document.getElementById('btnGuardarProducto');
         const precioVal = document.getElementById('prodFormPrecio').value.trim();
+
+        // 1. Resolver SKU (existente o nuevo)
+        const skuSelect = document.getElementById('prodFormSkuSelect');
+        const isOtroSku = !skuSelect || skuSelect.value === '__otro__';
+        const skuInput = document.getElementById('prodFormSku');
+        const skuVal = isOtroSku ? (skuInput ? skuInput.value.trim().toUpperCase() : '') : (skuSelect.value.trim().toUpperCase());
+
+        if (!skuVal) {
+          Toast.error('Por favor escribe o selecciona un Código SKU.');
+          if (skuInput && isOtroSku) skuInput.focus();
+          return;
+        }
+
+        // 2. Resolver Categoría (existente o nueva)
         const catSelect = document.getElementById('prodFormCategoria');
         const isOtraCat = catSelect.value === '__otra__';
         const nuevaCatInput = document.getElementById('prodFormNuevaCategoria');
@@ -1294,7 +1393,7 @@
 
         const payload = {
           nombre: document.getElementById('prodFormNombre').value.trim(),
-          sku: document.getElementById('prodFormSku').value.trim().toUpperCase(),
+          sku: skuVal,
           categoria_id: catId,
           categoria_nueva: isOtraCat ? nuevaCatVal : '',
           categoria_nombre: catNombre,
