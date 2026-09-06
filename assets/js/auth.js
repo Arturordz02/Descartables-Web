@@ -180,6 +180,17 @@ const Auth = {
       });
     }
 
+    // Mostrar mensaje de redirección previa (ej: intento de ingresar a admin sin sesión)
+    const authMsg = sessionStorage.getItem('dp_auth_message');
+    if (authMsg) {
+      const errorBox = document.getElementById('loginErrorBox');
+      if (errorBox) {
+        errorBox.textContent = authMsg;
+        errorBox.classList.remove('hidden');
+      }
+      sessionStorage.removeItem('dp_auth_message');
+    }
+
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const identificador = document.getElementById('loginIdentificador').value.trim();
@@ -338,6 +349,12 @@ const Auth = {
     if (!user) {
       window.location.href = 'login.html';
       return;
+    }
+
+    // Mostrar banner de acceso a Admin si el usuario tiene rol admin
+    if (user.rol === 'admin') {
+      const adminBanner = document.getElementById('perfilAdminBanner');
+      if (adminBanner) adminBanner.classList.remove('hidden');
     }
 
     // Llenar campos de perfil
