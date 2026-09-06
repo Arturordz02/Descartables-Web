@@ -1230,7 +1230,7 @@ const ApiService = {
 };
 
 // ====================================================================
-// SISTEMA GLOBAL DE NOTIFICACIONES TOAST (Warm Editorial)
+// SISTEMA GLOBAL DE NOTIFICACIONES TOAST (Tema Dinámico Azul Oscuro / Claro)
 // ====================================================================
 const Toast = {
   container: null,
@@ -1247,55 +1247,62 @@ const Toast = {
     }
   },
 
-  show(message, type = 'info', duration = 3500) {
+  show(message, type = 'info', duration = 4000) {
     this.init();
     if (!this.container) return;
 
+    const isDark = document.documentElement.classList.contains('dark');
     const toast = document.createElement('div');
-    toast.className = 'pointer-events-auto transform transition-all duration-300 ease-out translate-y-3 opacity-0 rounded-2xl p-3.5 shadow-xl border flex items-start gap-3 backdrop-blur-md text-xs font-medium';
+    
+    // Contenedor principal con el color azul oscuro característico del panel (#182035) o blanco en modo claro
+    const baseClasses = isDark 
+      ? 'bg-[#182035]/95 text-slate-100 border-[#263352] shadow-2xl shadow-black/50' 
+      : 'bg-white/95 text-slate-900 border-slate-200 shadow-xl shadow-slate-900/10';
+
+    toast.className = `pointer-events-auto transform transition-all duration-300 ease-out translate-y-3 opacity-0 rounded-2xl p-4 border flex items-start gap-3 backdrop-blur-md text-xs font-medium ${baseClasses}`;
 
     let iconSvg = '';
-    let typeStyles = '';
+    let borderAccent = '';
 
     if (type === 'success') {
-      typeStyles = 'bg-white/95 text-espresso border-emerald-500/30 shadow-emerald-950/10';
+      borderAccent = isDark ? 'border-emerald-500/50' : 'border-emerald-500/40';
       iconSvg = `
-        <div class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl ${isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center flex-shrink-0 shadow-xs">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
         </div>
       `;
     } else if (type === 'error') {
-      typeStyles = 'bg-white/95 text-espresso border-rose-500/30 shadow-rose-950/10';
+      borderAccent = isDark ? 'border-rose-500/50' : 'border-rose-500/40';
       iconSvg = `
-        <div class="w-7 h-7 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl ${isDark ? 'bg-rose-500/20 text-rose-400' : 'bg-rose-100 text-rose-700'} flex items-center justify-center flex-shrink-0 shadow-xs">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
         </div>
       `;
     } else if (type === 'warning') {
-      typeStyles = 'bg-white/95 text-espresso border-amber-500/30 shadow-amber-950/10';
+      borderAccent = isDark ? 'border-amber-500/50' : 'border-amber-500/40';
       iconSvg = `
-        <div class="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl ${isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-800'} flex items-center justify-center flex-shrink-0 shadow-xs">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
         </div>
       `;
     } else {
-      typeStyles = 'bg-white/95 text-espresso border-warm-border shadow-espresso/10';
+      borderAccent = isDark ? 'border-brand-orange/50' : 'border-brand-orange/40';
       iconSvg = `
-        <div class="w-7 h-7 rounded-xl bg-terracota/10 text-terracota flex items-center justify-center flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl ${isDark ? 'bg-brand-orange/20 text-brand-orange' : 'bg-brand-orange/10 text-brand-orange'} flex items-center justify-center flex-shrink-0 shadow-xs">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
       `;
     }
 
-    toast.className += ` ${typeStyles}`;
+    toast.className += ` ${borderAccent}`;
     toast.innerHTML = `
       ${iconSvg}
       <div class="flex-1 pt-0.5 leading-snug">
-        <p class="font-bold text-espresso">${type === 'success' ? 'Éxito' : type === 'error' ? 'Atención' : type === 'warning' ? 'Aviso' : 'Información'}</p>
-        <p class="text-espresso-muted text-[11px] mt-0.5">${message}</p>
+        <p class="font-heading font-bold text-xs ${isDark ? 'text-white' : 'text-slate-900'}">${type === 'success' ? 'Éxito' : type === 'error' ? 'Atención / Error' : type === 'warning' ? 'Aviso' : 'Información'}</p>
+        <p class="${isDark ? 'text-slate-300' : 'text-slate-600'} text-[11px] mt-0.5 leading-relaxed">${message}</p>
       </div>
-      <button type="button" onclick="this.parentElement.remove()" class="text-stone-400 hover:text-espresso p-1 rounded-lg transition-colors flex-shrink-0 cursor-pointer">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      <button type="button" onclick="this.parentElement.remove()" class="${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'} p-1 rounded-lg transition-colors flex-shrink-0 cursor-pointer" title="Cerrar">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     `;
 

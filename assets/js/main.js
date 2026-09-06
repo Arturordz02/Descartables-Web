@@ -4,7 +4,7 @@
  * Optimizado para 100% Responsividad en Móviles, Tablets y Escritorios
  */
 
-// Sistema de Notificaciones Toast
+// Sistema de Notificaciones Toast Dinámico (Modo Oscuro Azul / Modo Claro)
 window.showToast = function(message, type = 'info') {
   let container = document.getElementById('toastContainer');
   if (!container) {
@@ -14,15 +14,17 @@ window.showToast = function(message, type = 'info') {
     document.body.appendChild(container);
   }
 
+  const isDark = document.documentElement.classList.contains('dark');
   const toast = document.createElement('div');
-  const bgColors = {
-    success: 'bg-emerald-800 text-white border-emerald-600',
-    info: 'bg-[#1F1815] text-white border-stone-700',
-    warning: 'bg-amber-800 text-white border-amber-600',
-    error: 'bg-rose-800 text-white border-rose-600'
+  
+  const bgStyles = {
+    success: isDark ? 'bg-[#182035]/95 text-white border-emerald-500/50 shadow-black/50' : 'bg-white/95 text-slate-900 border-emerald-600 shadow-slate-900/10',
+    info: isDark ? 'bg-[#182035]/95 text-white border-blue-500/50 shadow-black/50' : 'bg-white/95 text-slate-900 border-stone-400 shadow-slate-900/10',
+    warning: isDark ? 'bg-[#182035]/95 text-white border-amber-500/50 shadow-black/50' : 'bg-white/95 text-slate-900 border-amber-600 shadow-slate-900/10',
+    error: isDark ? 'bg-[#182035]/95 text-white border-rose-500/50 shadow-black/50' : 'bg-white/95 text-slate-900 border-rose-600 shadow-slate-900/10'
   };
 
-  toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-2.5 border backdrop-blur-md transition-all duration-300 transform translate-y-4 opacity-0 ${bgColors[type] || bgColors.info}`;
+  toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-2xl text-xs font-semibold flex items-center gap-2.5 border backdrop-blur-md transition-all duration-300 transform translate-y-4 opacity-0 ${bgStyles[type] || bgStyles.info}`;
   toast.innerHTML = `<span>${message}</span>`;
 
   container.appendChild(toast);
