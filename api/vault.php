@@ -36,69 +36,40 @@ class Vault {
         if ($cached !== null) return $cached;
 
         $defaults = [
-            // 1. Configuración de Base de Datos MySQL (Valores por defecto / Variables de entorno)
+            // 1. Configuración de Base de Datos MySQL (Placeholders genéricos)
             'db' => [
-                'host' => getenv('DB_HOST') ?: 'sql201.infinityfree.com',
+                'host' => getenv('DB_HOST') ?: 'localhost',
                 'port' => getenv('DB_PORT') ?: '3306',
-                'name' => getenv('DB_NAME') ?: 'if0_42834426_descartables',
-                'user' => getenv('DB_USER') ?: 'if0_42834426',
+                'name' => getenv('DB_NAME') ?: 'descartables_db',
+                'user' => getenv('DB_USER') ?: 'db_user',
                 'pass' => getenv('DB_PASS') ?: ''
             ],
 
-            // 2. Configuración del Despliegue FTP (Hosting)
+            // 2. Configuración del Despliegue FTP
             'ftp' => [
-                'host' => getenv('FTP_HOST') ?: 'ftpupload.net',
-                'user' => getenv('FTP_USER') ?: 'if0_42834426',
+                'host' => getenv('FTP_HOST') ?: 'ftp.ejemplo.com',
+                'user' => getenv('FTP_USER') ?: 'ftp_user',
                 'pass' => getenv('FTP_PASS') ?: '',
                 'root' => '/htdocs'
             ],
 
-            // 3. Cuentas Oficiales de Master Admin (Arturo, Britney, Lenin)
-            // Se almacenan hashes seguros BCRYPT, NUNCA contraseñas en texto plano
-            'admins' => [
-                [
-                    'nombre'    => 'Arturo (Master Admin)',
-                    'email'     => 'arturo@admin.ad',
-                    'doc'       => 'ADM-ARTURO',
-                    'tipo_doc'  => 'CE',
-                    'pass_hash' => '$2y$10$0ivWcR2sjvf.EYKTIhKxsOJVkL6.L26QECNMwgqACoGA8unENOij6',
-                    'telefono'  => '994195430',
-                    'direccion' => 'Lima, Perú'
-                ],
-                [
-                    'nombre'    => 'Britney (Master Admin)',
-                    'email'     => 'britney@admin.ad',
-                    'doc'       => 'ADM-BRITNEY',
-                    'tipo_doc'  => 'CE',
-                    'pass_hash' => '$2y$10$gSPwnFMk7MmNvWis0BnoW.PKRSRFlNZ1/tHigulnkLLbAaWbeu9C.',
-                    'telefono'  => '994009692',
-                    'direccion' => 'Lima, Perú'
-                ],
-                [
-                    'nombre'    => 'Lenin (Master Admin)',
-                    'email'     => 'lenin@admin.ad',
-                    'doc'       => 'ADM-LENIN',
-                    'tipo_doc'  => 'CE',
-                    'pass_hash' => '$2y$10$ZqMs8854b3ElfhhKAiuOFOv6.GitpvM1rcocKAOIYKk0W3q71dnCS',
-                    'telefono'  => '994009692',
-                    'direccion' => 'Lima, Perú'
-                ]
-            ],
+            // 3. Cuentas de Administradores (Cargadas dinámicamente desde api/secrets.php)
+            'admins' => [],
 
-            // 4. Datos de Contacto Reales y Oficiales (Custodiados de Forma Segura en el Vault)
+            // 4. Datos de Contacto Oficiales
             'official_contact' => [
-                'whatsapp_principal'  => '+51 994 195 430',
-                'whatsapp_secundario' => '+51 994 009 692',
-                'telefono_central'    => '(01) 564-1450',
+                'whatsapp_principal'  => '+51 900 000 000',
+                'whatsapp_secundario' => '+51 900 000 002',
+                'telefono_central'    => '(01) 000-0000',
                 'email_ventas'        => 'ventas@descartablesperuanos.pe',
                 'email_cotizaciones'  => 'cotizaciones@descartablesperuanos.pe',
-                'direccion'           => 'Av. Alejandro Bertello 732-C, Cercado de Lima, Lima, Perú',
-                'ruc'                 => '20601234567',
+                'direccion'           => 'Lima, Perú',
+                'ruc'                 => '20000000001',
                 'razon_social'        => 'DESCARTABLES PERUANOS S.A.C.',
                 'nombre_comercial'    => 'Descartables Peruanos'
             ],
 
-            // 5. Datos de Contacto Genéricos / Placeholders (Para fase de desarrollo/demo pública)
+            // 5. Datos de Contacto Genéricos
             'placeholder_contact' => [
                 'whatsapp_principal'  => '+51 900 000 000',
                 'whatsapp_secundario' => '+51 900 000 002',
@@ -109,7 +80,7 @@ class Vault {
 
             // 6. Llaves de Seguridad y Tokens
             'security' => [
-                'token_salt'     => getenv('TOKEN_SALT') ?: 'DP_Peru_SecureSalt_2026_x89aF72kL9',
+                'token_salt'     => getenv('TOKEN_SALT') ?: 'CHANGE_ME_SECRET_SALT_2026',
                 'system_version' => '2.5.0-Enterprise',
                 'environment'    => 'production'
             ]
