@@ -205,14 +205,14 @@ function ensureDatabaseInitialized($pdo) {
             usuario_id INT NULL,
             cliente_nombre VARCHAR(255) NOT NULL,
             cliente_doc VARCHAR(20) NOT NULL,
-            cliente_email VARCHAR(150) NOT NULL,
+            cliente_email VARCHAR(150) NULL DEFAULT '',
             cliente_telefono VARCHAR(30) NULL,
             departamento VARCHAR(100) DEFAULT 'Lima',
             provincia VARCHAR(100) DEFAULT 'Lima',
             distrito VARCHAR(100) NULL,
             direccion TEXT NULL,
             tipo_comprobante VARCHAR(20) DEFAULT 'Factura',
-            items JSON NOT NULL,
+            items LONGTEXT NOT NULL,
             notas TEXT NULL,
             estado VARCHAR(30) DEFAULT 'Pendiente',
             creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -225,6 +225,10 @@ function ensureDatabaseInitialized($pdo) {
             if (!in_array('estado', $colsCotiz)) $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN estado VARCHAR(30) DEFAULT 'Pendiente'");
             if (!in_array('notas', $colsCotiz)) $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN notas TEXT NULL");
             if (!in_array('total_items', $colsCotiz)) $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN total_items INT NOT NULL DEFAULT 0");
+            if (!in_array('usuario_id', $colsCotiz)) $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN usuario_id INT NULL");
+            if (!in_array('tipo_comprobante', $colsCotiz)) $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN tipo_comprobante VARCHAR(20) DEFAULT 'Factura'");
+            try { $pdo->exec("ALTER TABLE cotizaciones MODIFY COLUMN cliente_email VARCHAR(150) NULL DEFAULT ''"); } catch(Exception $e){}
+            try { $pdo->exec("ALTER TABLE cotizaciones MODIFY COLUMN items LONGTEXT NULL"); } catch(Exception $e){}
         } catch (Exception $e) {}
 
         // 5. Tabla reclamaciones (Libro de Reclamaciones INDECOPI)

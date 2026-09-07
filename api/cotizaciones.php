@@ -148,6 +148,9 @@ if ($method === 'POST') {
         $tipo_comprobante = in_array($data['tipo_comprobante'] ?? '', ['Boleta', 'Factura']) ? $data['tipo_comprobante'] : 'Factura';
         $telefono = trim($data['telefono'] ?? $data['cliente_telefono'] ?? '');
         $email = trim($data['email'] ?? $data['cliente_email'] ?? '');
+        if (empty($email)) {
+            $email = 'ventas@descartablesperuanos.pe';
+        }
         $destino = trim($data['destino'] ?? $data['departamento'] ?? 'Lima Metropolitana');
         $total_items = is_array($items) ? array_reduce($items, fn($carry, $i) => $carry + (int)($i['cantidad'] ?? 1), 0) : 0;
         $estado = 'Pendiente';
@@ -204,7 +207,7 @@ if ($method === 'POST') {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($insertVals);
 
-        $newId = $pdo->lastInsertId();
+        $newId = (int)$pdo->lastInsertId();
 
         echo json_encode([
             'success'            => true,
@@ -217,13 +220,10 @@ if ($method === 'POST') {
         exit();
 
     } catch (PDOException $e) {
-        $codigoFallback = 'COT-' . date('Y') . '-' . str_pad(rand(1, 9999), 5, '0', STR_PAD_LEFT);
+        http_response_code(500);
         echo json_encode([
-            'success'            => true,
-            'message'            => 'Cotización formal generada.',
-            'codigo_cotizacion'  => $codigoFallback,
-            'fecha'              => date('d/m/Y H:i:s'),
-            'debug_error'        => $e->getMessage()
+            'success'            => false,
+            'error'              => 'Error al registrar cotización en base de datos: ' . $e->getMessage()
         ], JSON_UNESCAPED_UNICODE);
         exit();
     }

@@ -14,9 +14,27 @@ const Carrito = {
     this.attachEvents();
   },
 
+  getStorageKey() {
+    try {
+      const activeUser = typeof Auth !== 'undefined' && Auth.getCurrentUser ? Auth.getCurrentUser() : JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null');
+      if (activeUser && (activeUser.id || activeUser.numero_documento)) {
+        return 'dp_carrito_cotizacion_' + (activeUser.id || activeUser.numero_documento);
+      }
+    } catch (e) {}
+    return 'dp_carrito_cotizacion_guest';
+  },
+
+  reloadUserCart() {
+    this.loadFromStorage();
+    this.renderCartItems();
+    this.updateBadges();
+    this.prefillCustomerData();
+  },
+
   loadFromStorage() {
     try {
-      const stored = localStorage.getItem('dp_carrito_cotizacion');
+      const key = this.getStorageKey();
+      const stored = localStorage.getItem(key);
       this.items = stored ? JSON.parse(stored) : [];
     } catch (e) {
       this.items = [];
@@ -24,7 +42,8 @@ const Carrito = {
   },
 
   saveToStorage() {
-    localStorage.setItem('dp_carrito_cotizacion', JSON.stringify(this.items));
+    const key = this.getStorageKey();
+    localStorage.setItem(key, JSON.stringify(this.items));
     this.updateBadges();
   },
 

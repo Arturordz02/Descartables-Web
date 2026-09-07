@@ -22,6 +22,9 @@ const Auth = {
       AdminNotifications.stop();
     }
     localStorage.removeItem('dp_usuario_activo');
+    if (typeof Carrito !== 'undefined' && typeof Carrito.reloadUserCart === 'function') {
+      Carrito.reloadUserCart();
+    }
     if (window.showToast) {
       window.showToast('Sesión cerrada correctamente', 'info');
     }
