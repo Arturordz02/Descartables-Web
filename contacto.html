@@ -172,7 +172,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
             <h3 class="font-heading font-bold text-sm text-espresso">Sede Central y Almacén</h3>
-            <p class="text-xs text-espresso-muted leading-relaxed">
+            <p id="contactoCardDireccion" class="text-xs text-espresso-muted leading-relaxed">
               Av. Alejandro Bertello 732-C<br>
               Cercado de Lima, Lima, Perú
             </p>
@@ -183,7 +183,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
             </div>
             <h3 class="font-heading font-bold text-sm text-espresso">Teléfonos y Ventas</h3>
-            <p class="text-xs text-espresso-muted leading-relaxed">
+            <p id="contactoCardTelefonos" class="text-xs text-espresso-muted leading-relaxed">
               Central: (01) 564-1450<br>
               WhatsApp: +51 994 195 430<br>
               WhatsApp: +51 994 009 692
@@ -195,7 +195,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <h3 class="font-heading font-bold text-sm text-espresso">Horario de Atención</h3>
-            <p class="text-xs text-espresso-muted leading-relaxed">
+            <p id="contactoCardHorario" class="text-xs text-espresso-muted leading-relaxed">
               Lunes a Viernes: 8:00 AM - 6:00 PM<br>
               Sábados: 8:30 AM - 1:00 PM
             </p>
@@ -206,7 +206,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
             </div>
             <h3 class="font-heading font-bold text-sm text-espresso">Correos Corporativos</h3>
-            <p class="text-xs text-espresso-muted leading-relaxed">
+            <p id="contactoCardEmails" class="text-xs text-espresso-muted leading-relaxed">
               ventas@descartablesperuanos.pe<br>
               cotizaciones@descartablesperuanos.pe
             </p>
@@ -219,7 +219,6 @@
           <h2 class="font-heading font-bold text-lg text-espresso">Envíenos un Mensaje</h2>
           <p class="text-xs text-espresso-muted">Responderemos a la brevedad con información comercial y fichas técnicas.</p>
 
-          <form id="contactForm" onsubmit="event.preventDefault(); const msg=document.getElementById('contactoMsg').value; const nom=document.getElementById('contactoNom').value; window.open('https://wa.me/51994195430?text='+encodeURIComponent('Hola Descartables Peruanos, mi nombre es '+nom+'. '+msg), '_blank');" class="space-y-4">
           <form id="contactForm" onsubmit="event.preventDefault(); if(window.COMPANY_CONTACT && window.COMPANY_CONTACT.ENABLE_REDIRECTS){ const msg=document.getElementById('contactoMsg').value; const nom=document.getElementById('contactoNom').value; window.open(window.COMPANY_CONTACT.whatsapp.url_principal + '?text='+encodeURIComponent('Hola Descartables Peruanos, mi nombre es '+nom+'. '+msg), '_blank'); } else { document.getElementById('contactoFeedback').classList.remove('hidden'); document.getElementById('contactForm').reset(); }" class="space-y-4">
             <div id="contactoFeedback" class="hidden p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs animate-fade-in">
               <div class="flex items-center gap-2 font-bold mb-1">
@@ -250,14 +249,13 @@
               <textarea id="contactoMsg" rows="3" required placeholder="Indique qué productos o medidas necesita cotizar..." class="w-full bg-warm-cream border border-warm-border rounded-xl p-4 text-xs text-espresso focus:outline-none focus:border-terracota"></textarea>
             </div>
 
-            <button type="submit" class="w-full py-3.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-lg shadow-terracota/20 transition-all flex items-center justify-center gap-2">
             <button type="submit" class="w-full py-3.5 bg-terracota hover:bg-terracota-hover text-white rounded-xl text-xs font-bold shadow-lg shadow-terracota/20 transition-all flex items-center justify-center gap-2 cursor-pointer tap-target">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-              <span>Enviar Consulta vía WhatsApp</span>
               <span>Enviar Mensaje de Consulta</span>
             </button>
           </form>
         </div>
+
 
       </div>
 

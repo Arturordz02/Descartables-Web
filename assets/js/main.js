@@ -609,5 +609,46 @@ document.addEventListener('DOMContentLoaded', () => {
       link.classList.add('text-[#C85A32]', 'font-bold');
     }
   });
+
+  // 8. Hidratación Dinámica de Datos de Contacto de la Empresa
+  hydrateFrontendCompanyContact();
+  if (window.ApiService && typeof ApiService.getCompanyConfig === 'function') {
+    ApiService.getCompanyConfig().then(() => {
+      hydrateFrontendCompanyContact();
+    }).catch(() => {});
+  }
 });
+
+function hydrateFrontendCompanyContact() {
+  const conf = window.COMPANY_CONTACT;
+  if (!conf) return;
+
+  const cardDir = document.getElementById('contactoCardDireccion');
+  if (cardDir && conf.empresa?.direccion) {
+    cardDir.innerHTML = conf.empresa.direccion.replace(/, /g, '<br>');
+  }
+
+  const cardTel = document.getElementById('contactoCardTelefonos');
+  if (cardTel) {
+    cardTel.innerHTML = `
+      Central: ${conf.telefonos?.central || '(01) 564-1450'}<br>
+      WhatsApp: ${conf.whatsapp?.principal || '+51 994 195 430'}<br>
+      WhatsApp: ${conf.whatsapp?.secundario || '+51 994 009 692'}
+    `.trim();
+  }
+
+  const cardHorario = document.getElementById('contactoCardHorario');
+  if (cardHorario && conf.empresa?.horario) {
+    cardHorario.innerHTML = conf.empresa.horario.replace(/ \| /g, '<br>');
+  }
+
+  const cardEmails = document.getElementById('contactoCardEmails');
+  if (cardEmails && conf.emails) {
+    cardEmails.innerHTML = `
+      ${conf.emails.ventas || 'ventas@descartablesperuanos.pe'}<br>
+      ${conf.emails.cotizaciones || 'cotizaciones@descartablesperuanos.pe'}
+    `.trim();
+  }
+}
+
 
