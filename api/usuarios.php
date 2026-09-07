@@ -9,6 +9,11 @@ require_once __DIR__ . '/db.php';
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = getDbConnection();
 
+// Protección estricta: Solo administradores autorizados pueden acceder o modificar el directorio de usuarios
+if (class_exists('Vault')) {
+    Vault::requireAdmin();
+}
+
 // 1. LISTAR USUARIOS (GET)
 if ($method === 'GET') {
     $search = isset($_GET['q']) ? trim($_GET['q']) : null;

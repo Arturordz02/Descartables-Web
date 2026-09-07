@@ -391,56 +391,167 @@ const Auth = {
       });
     }
 
-    // Mostrar historial de cotizaciones recientes
-    this.renderHistorialCotizaciones();
-    this.renderHistorialReclamaciones();
+    // Mostrar historial de cotizaciones y reclamaciones (MySQL + Fallback Local)
+    this.renderHistorialCotizaciones(user);
+    this.renderHistorialReclamaciones(user);
   },
 
-  renderHistorialCotizaciones() {
+  async renderHistorialCotizaciones(user = null) {
     const container = document.getElementById('historialCotizacionesList');
     if (!container) return;
 
-    const history = JSON.parse(localStorage.getItem('dp_historial_cotizaciones') || '[]');
+    const currentUser = user || this.getCurrentUser();
+    container.innerHTML = `
+      <div class="p-6 text-center text-stone-400 bg-[#FDFBF7] rounded-2xl border border-[#EAE3DA]">
+        <div class="inline-block w-5 h-5 border-2 border-[#C85A32] border-t-transparent rounded-full animate-spin mb-2"></div>
+        <p class="text-xs">Consultando cotizaciones...</p>
+      </div>
+    `;
+
+    let history = [];
+    let fetchedFromBackend = false;
+
+    const api = (typeof ApiService !== 'undefined' ? ApiService : window.ApiService) || null;
+    // 1. Intentar obtener cotizaciones desde el backend MySQL
+    if (currentUser && api && typeof api.getCotizaciones === 'function') {
+      try {
+        const userDoc = currentUser.numero_documento || currentUser.documento || '';
+        const res = await api.getCotizaciones({
+          documento: userDoc,
+          usuario_id: currentUser.id || null
+        });
+        if (res && res.success && Array.isArray(res.data)) {
+          history = res.data;
+          fetchedFromBackend = true;
+          // Sincronizar respaldo local para que cotizaciones eliminadas por admin no reaparezcan
+          try {
+            localStorage.setItem('dp_mis_cotizaciones', JSON.stringify(history));
+            localStorage.setItem('dp_historial_cotizaciones', JSON.stringify(history));
+          } catch (e) {}
+        }
+      } catch (e) {
+        console.warn('Fallo al obtener cotizaciones de MySQL, usando respaldo local:', e);
+      }
+    }
+
+    // 2. Fallback LocalStorage solo si NO se pudo contactar al backend
+    if (!fetchedFromBackend && history.length === 0) {
+      const myQuotes = JSON.parse(localStorage.getItem('dp_mis_cotizaciones') || '[]');
+      const legacyQuotes = JSON.parse(localStorage.getItem('dp_historial_cotizaciones') || '[]');
+      const receivedQuotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
+
+      const userDoc = currentUser?.numero_documento;
+      const filteredReceived = userDoc ? receivedQuotes.filter(q => q.documento === userDoc || q.cliente_doc === userDoc) : receivedQuotes;
+
+      const combined = [...myQuotes, ...legacyQuotes, ...filteredReceived];
+      const seen = new Set();
+      history = combined.filter(q => {
+        const key = q.codigo_cotizacion || q.id;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
     if (history.length === 0) {
       container.innerHTML = `
         <div class="p-6 text-center text-stone-400 bg-[#FDFBF7] rounded-2xl border border-[#EAE3DA]">
-          <p class="text-xs">Aún no has generado cotizaciones en esta sesión.</p>
-          <a href="catalogo.html" class="inline-block mt-2 text-xs font-semibold text-[#C85A32] hover:underline">Explorar catálogo</a>
+          <p class="text-xs">Aún no has generado cotizaciones registradas.</p>
+          <a href="catalogo.html" class="inline-block mt-2 text-xs font-semibold text-[#C85A32] hover:underline">Explorar catálogo &rarr;</a>
         </div>
       `;
       return;
     }
 
-    container.innerHTML = history.map((cot, idx) => `
-      <div class="p-4 bg-white rounded-2xl border border-[#EAE3DA] shadow-sm mb-3">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-bold text-[#1F1815]">Cotización #${idx + 1}</span>
-          <span class="text-[11px] text-[#574B46]">${cot.fecha}</span>
-        </div>
-        <p class="text-xs text-[#574B46] mb-2">
-          <strong>Tipo:</strong> ${cot.comprobante} | <strong>Destino:</strong> ${cot.destino}
-        </p>
-        <div class="bg-[#F4EFEA] p-2.5 rounded-xl text-xs space-y-1 mb-2.5">
-          ${cot.items.map(item => `
-            <div class="flex justify-between text-[#1F1815]">
-              <span>${item.cantidad} x ${item.nombre}</span>
-              <span class="text-stone-500 font-mono text-[11px]">${item.sku}</span>
+    container.innerHTML = history.map((cot, idx) => {
+      const codigo = cot.codigo_cotizacion || cot.codigo || `COT-${idx + 1}`;
+      const fecha = (cot.creado_en || cot.fecha || '').slice(0, 16).replace('T', ' ') || 'Reciente';
+      const comprobante = cot.tipo_comprobante || cot.comprobante || 'Factura';
+      const destino = cot.destino || cot.departamento || 'Lima';
+      const estado = cot.estado || 'Pendiente';
+      
+      let itemsList = [];
+      try {
+        if (typeof cot.items === 'string') {
+          itemsList = JSON.parse(cot.items);
+        } else if (Array.isArray(cot.items)) {
+          itemsList = cot.items;
+        } else if (typeof cot.detalle_items === 'string') {
+          itemsList = JSON.parse(cot.detalle_items);
+        } else if (Array.isArray(cot.detalle_items)) {
+          itemsList = cot.detalle_items;
+        }
+      } catch (err) {
+        itemsList = [];
+      }
+
+      let badgeColor = 'bg-amber-100 text-amber-800';
+      if (estado === 'Atendido' || estado === 'Despachado') badgeColor = 'bg-emerald-100 text-emerald-800';
+      else if (estado === 'Cancelado') badgeColor = 'bg-rose-100 text-rose-800';
+      else if (estado === 'En Contacto' || estado === 'Cotizado') badgeColor = 'bg-blue-100 text-blue-800';
+
+      const itemsJsonSafe = encodeURIComponent(JSON.stringify(itemsList));
+
+      return `
+        <div class="p-4 bg-white rounded-2xl border border-[#EAE3DA] shadow-sm mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-mono font-bold text-[#1F1815]">${codigo}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${badgeColor}">${estado}</span>
+              <span class="text-[11px] text-[#574B46]">${fecha}</span>
             </div>
-          `).join('')}
+          </div>
+          <p class="text-xs text-[#574B46] mb-2">
+            <strong>Tipo:</strong> ${comprobante} | <strong>Destino:</strong> ${destino}
+          </p>
+          <div class="bg-[#F4EFEA] p-2.5 rounded-xl text-xs space-y-1 mb-2.5 max-h-36 overflow-y-auto">
+            ${itemsList.map(item => `
+              <div class="flex justify-between text-[#1F1815]">
+                <span>${item.cantidad || 1} x ${item.nombre || 'Producto'}</span>
+                <span class="text-stone-500 font-mono text-[11px]">${item.sku || ''}</span>
+              </div>
+            `).join('')}
+          </div>
+          <button type="button" onclick="if(window.Carrito){ Carrito.items = JSON.parse(decodeURIComponent('${itemsJsonSafe}')); Carrito.openFormalQuoteModal('${codigo}'); }" class="w-full py-2 px-3 rounded-xl bg-[#FDFBF7] hover:bg-[#F4EFEA] text-[#1F1815] text-xs font-bold flex items-center justify-center gap-1.5 border border-[#EAE3DA] transition-colors cursor-pointer tap-target">
+            <svg class="w-3.5 h-3.5 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Descargar Proforma Formal en PDF</span>
+          </button>
         </div>
-        <button type="button" onclick="Carrito.items = JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(cot.items))}')); Carrito.openFormalQuoteModal();" class="w-full py-2 px-3 rounded-xl bg-[#FDFBF7] hover:bg-[#F4EFEA] text-[#1F1815] text-xs font-bold flex items-center justify-center gap-1.5 border border-[#EAE3DA] transition-colors cursor-pointer tap-target">
-          <svg class="w-3.5 h-3.5 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <span>Descargar Proforma Formal en PDF</span>
-        </button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   },
 
-  renderHistorialReclamaciones() {
+  async renderHistorialReclamaciones(user = null) {
     const container = document.getElementById('historialReclamacionesList');
     if (!container) return;
 
-    const claims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
+    const currentUser = user || this.getCurrentUser();
+    let claims = [];
+
+    // 1. Intentar consultar desde el backend MySQL
+    if (currentUser && currentUser.numero_documento && window.ApiService) {
+      try {
+        const isAvailable = await ApiService.checkBackendAvailability();
+        if (isAvailable) {
+          const res = await fetch(`${ApiService.baseUrl}/reclamaciones.php?documento=${encodeURIComponent(currentUser.numero_documento)}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+              claims = json.data;
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 2. Fallback Local
+    if (claims.length === 0) {
+      const localClaims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
+      claims = currentUser?.numero_documento 
+        ? localClaims.filter(c => c.numero_documento === currentUser.numero_documento)
+        : localClaims;
+    }
+
     if (claims.length === 0) {
       container.innerHTML = `
         <div class="p-6 text-center text-stone-400 bg-[#FDFBF7] rounded-2xl border border-[#EAE3DA]">
@@ -456,9 +567,9 @@ const Auth = {
           <span class="text-xs font-bold text-[#C85A32] font-mono">${rec.codigo_hoja}</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">${rec.estado || 'Pendiente'}</span>
         </div>
-        <p class="text-xs text-[#1F1815] font-semibold">${rec.tipo_reclamacion}: ${rec.tipo_bien}</p>
-        <p class="text-xs text-[#574B46] line-clamp-2 my-1">${rec.detalle_reclamacion}</p>
-        <p class="text-[11px] text-stone-400">Fecha: ${rec.fecha || 'Reciente'}</p>
+        <p class="text-xs text-[#1F1815] font-semibold">${rec.tipo_reclamacion || 'Reclamo'}: ${rec.tipo_bien || 'Servicio'}</p>
+        <p class="text-xs text-[#574B46] line-clamp-2 my-1">${rec.detalle_reclamacion || ''}</p>
+        <p class="text-[11px] text-stone-400">Fecha: ${(rec.creado_en || rec.fecha || 'Reciente').slice(0, 10)}</p>
       </div>
     `).join('');
   },

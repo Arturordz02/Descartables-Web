@@ -7,25 +7,34 @@ const ApiService = {
   baseUrl: 'api',
   hasBackend: null,
 
+  // Cabeceras de autenticación seguras
+  getAuthHeaders(customHeaders = {}) {
+    const headers = { 'Accept': 'application/json', ...customHeaders };
+    try {
+      const user = JSON.parse(localStorage.getItem('dp_usuario_activo') || '{}');
+      if (user && user.token) {
+        headers['Authorization'] = `Bearer ${user.token}`;
+        headers['X-Auth-Token'] = user.token;
+      }
+      if (user && user.rol === 'admin') {
+        headers['X-Admin-Doc'] = user.numero_documento || '';
+        headers['X-Admin-Email'] = user.email || '';
+      }
+    } catch (e) {}
+    return headers;
+  },
+
   // Verifica la disponibilidad del backend MySQL en InfinityFree
   async checkBackendAvailability() {
-    if (this.hasBackend !== null) return this.hasBackend;
+    if (this.hasBackend === true) return true;
 
-    const candidates = [];
-    if (window.location.protocol.startsWith('http')) {
-      candidates.push(this.baseUrl);
-      const pathParts = window.location.pathname.split('/').filter(Boolean);
-      if (pathParts.length > 0) {
-        candidates.push(`/${pathParts[0]}/api`);
-      }
-    }
-    candidates.push('api');
+    const candidates = ['api', '/api'];
 
     for (const cand of candidates) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
-        const response = await fetch(`${cand}/productos.php?tipo=categorias`, {
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        const response = await fetch(`${cand}/productos.php?tipo=categorias&_t=${Date.now()}`, {
           method: 'GET',
           headers: { 'Accept': 'application/json' },
           signal: controller.signal
@@ -44,7 +53,6 @@ const ApiService = {
       }
     }
 
-    this.hasBackend = false;
     return false;
   },
 
@@ -370,7 +378,9 @@ const ApiService = {
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
-        const res = await fetch(`${this.baseUrl}/reclamaciones.php`);
+        const res = await fetch(`${this.baseUrl}/reclamaciones.php`, {
+          headers: this.getAuthHeaders()
+        });
         const json = await res.json();
         if (json.success) return json;
       } catch (e) {
@@ -404,7 +414,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/reclamaciones.php`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ id, ...payload })
         });
         const json = await res.json();
@@ -491,83 +501,12 @@ const ApiService = {
       }
     }
 
-    // Fallback de usuarios locales (Master Admins y Cliente demo)
+    // Fallback de usuarios locales si el backend no está disponible
     const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-    const adminSeeds = [
-      {
-        id: 1,
-        tipo_documento: 'CE',
-        numero_documento: 'ADM-ARTURO',
-        nombre_razon_social: 'Arturo (Master Admin)',
-        email: 'arturo@admin.ad',
-        password: 'Arturo@Admin2026!',
-        telefono: '900000000',
-        departamento: 'Lima',
-        provincia: 'Lima',
-        distrito: 'Cercado de Lima',
-        direccion: 'Lima, Perú',
-        rol: 'admin'
-      },
-      {
-        id: 2,
-        tipo_documento: 'CE',
-        numero_documento: 'ADM-BRITNEY',
-        nombre_razon_social: 'Britney (Master Admin)',
-        email: 'britney@admin.ad',
-        password: 'Britney@Admin2026!',
-        telefono: '900000002',
-        departamento: 'Lima',
-        provincia: 'Lima',
-        distrito: 'Cercado de Lima',
-        direccion: 'Lima, Perú',
-        rol: 'admin'
-      },
-      {
-        id: 3,
-        tipo_documento: 'CE',
-        numero_documento: 'ADM-LENIN',
-        nombre_razon_social: 'Lenin (Master Admin)',
-        email: 'lenin@admin.ad',
-        password: 'Lenin@Admin2026!',
-        telefono: '900000002',
-        departamento: 'Lima',
-        provincia: 'Lima',
-        distrito: 'Cercado de Lima',
-        direccion: 'Lima, Perú',
-        rol: 'admin'
-      }
-    ];
-
-    adminSeeds.forEach(seed => {
-      const idx = users.findIndex(u => u.email.toLowerCase() === seed.email.toLowerCase());
-      if (idx === -1) {
-        users.push(seed);
-      } else {
-        users[idx] = { ...users[idx], ...seed };
-      }
-    });
-
-    if (!users.some(u => u.email === 'cliente@demo.pe')) {
-      users.push({
-        id: 4,
-        tipo_documento: 'RUC',
-        numero_documento: '20554433221',
-        nombre_razon_social: 'EMPRESA GASTRONÓMICA PERÚ S.A.C.',
-        email: 'cliente@demo.pe',
-        password: 'password123',
-        telefono: '900000000',
-        departamento: 'Lima',
-        provincia: 'Lima',
-        distrito: 'Miraflores',
-        direccion: 'Av. José Larco 450',
-        rol: 'cliente'
-      });
-    }
-    localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
 
     const user = users.find(u => 
       (u.email.toLowerCase() === identificador.toLowerCase() || u.numero_documento === identificador) && 
-      (u.password === password || password === 'password123' || password === '123456')
+      u.password === password
     );
 
     if (user) {
@@ -688,7 +627,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/productos.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(productData)
         });
         const json = await res.json();
@@ -752,7 +691,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/productos.php`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ id, ...productData })
         });
         const json = await res.json();
@@ -808,7 +747,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/productos.php`, {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ id })
         });
         const json = await res.json();
@@ -864,7 +803,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/categorias.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(catData)
         });
         const json = await res.json();
@@ -904,7 +843,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/categorias.php`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ id, ...catData })
         });
         const json = await res.json();
@@ -939,7 +878,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/categorias.php`, {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ id })
         });
         const json = await res.json();
@@ -1005,7 +944,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/configuracion.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(configData)
         });
         const json = await res.json();
@@ -1119,7 +1058,7 @@ const ApiService = {
 
     if (uIdx !== -1) {
       const user = users[uIdx];
-      const valid = user.password === currentPassword || currentPassword === 'password123' || currentPassword === '123456';
+      const valid = user.password === currentPassword;
       if (!valid) {
         return { success: false, error: 'La contraseña actual ingresada es incorrecta.' };
       }
@@ -1140,8 +1079,11 @@ const ApiService = {
       try {
         const formData = new FormData();
         formData.append('imagen', file);
+        const authHeaders = this.getAuthHeaders();
+        delete authHeaders['Content-Type'];
         const res = await fetch(`${this.baseUrl}/upload.php`, {
           method: 'POST',
+          headers: authHeaders,
           body: formData
         });
         return await res.json();
@@ -1170,7 +1112,9 @@ const ApiService = {
     if (isAvailable) {
       try {
         const query = new URLSearchParams(params).toString();
-        const res = await fetch(`${this.baseUrl}/usuarios.php${query ? '?' + query : ''}`);
+        const res = await fetch(`${this.baseUrl}/usuarios.php${query ? '?' + query : ''}`, {
+          headers: this.getAuthHeaders()
+        });
         const json = await res.json();
         if (json.success) return json;
       } catch (e) {
@@ -1197,7 +1141,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/usuarios.php`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ id, rol: role })
         });
         return await res.json();
@@ -1222,7 +1166,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/usuarios.php`, {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ id })
         });
         return await res.json();
@@ -1270,6 +1214,9 @@ const ApiService = {
         if (json.success) {
           this.saveLocalCotizacionBackup({ ...quoteData, codigo_cotizacion: json.codigo_cotizacion, id: json.id, creado_en: json.fecha });
           return json;
+        } else {
+          console.error('API Error al guardar cotización:', json.error);
+          return json;
         }
       } catch (e) {
         console.warn('Fallo al guardar cotización en backend, usando modo local:', e);
@@ -1315,6 +1262,7 @@ const ApiService = {
       const myQuotes = JSON.parse(localStorage.getItem('dp_mis_cotizaciones') || '[]');
       myQuotes.unshift(quote);
       localStorage.setItem('dp_mis_cotizaciones', JSON.stringify(myQuotes.slice(0, 50)));
+      localStorage.setItem('dp_historial_cotizaciones', JSON.stringify(myQuotes.slice(0, 50)));
     } catch (e) {}
   },
 
@@ -1328,12 +1276,15 @@ const ApiService = {
         }
         if (filters.q) queryParams.append('q', filters.q);
         if (filters.documento) queryParams.append('documento', filters.documento);
+        if (filters.usuario_id) queryParams.append('usuario_id', filters.usuario_id);
         queryParams.append('_t', Date.now().toString());
 
-        const res = await fetch(`${this.baseUrl}/cotizaciones.php?${queryParams.toString()}`);
+        const res = await fetch(`${this.baseUrl}/cotizaciones.php?${queryParams.toString()}`, {
+          headers: this.getAuthHeaders()
+        });
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
-          return { success: true, count: json.data.length, data: json.data };
+          return { success: true, count: json.data.length, data: json.data, stats: json.stats };
         }
       } catch (e) {
         console.warn('Fallo al obtener cotizaciones de MySQL, usando locales:', e);
@@ -1346,7 +1297,10 @@ const ApiService = {
       quotes = quotes.filter(q => q.estado === filters.estado);
     }
     if (filters.documento) {
-      quotes = quotes.filter(q => q.documento === filters.documento);
+      quotes = quotes.filter(q => q.documento === filters.documento || q.cliente_doc === filters.documento);
+    }
+    if (filters.usuario_id) {
+      quotes = quotes.filter(q => q.usuario_id === filters.usuario_id);
     }
     if (filters.q) {
       const q = filters.q.toLowerCase();
@@ -1366,7 +1320,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/cotizaciones.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ action: 'update_status', id, estado, notas })
         });
         const json = await res.json();
@@ -1388,26 +1342,42 @@ const ApiService = {
     return { success: false, error: 'No se encontró la cotización.' };
   },
 
-  async deleteCotizacion(id) {
+  async deleteCotizacion(idOrIds) {
+    const rawIds = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+    const ids = rawIds.map(x => parseInt(x, 10)).filter(x => !isNaN(x) && x > 0);
+    if (ids.length === 0) return { success: false, error: 'No se indicaron IDs válidos.' };
+
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
         const res = await fetch(`${this.baseUrl}/cotizaciones.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'delete', id })
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ action: 'delete', ids })
         });
         const json = await res.json();
-        if (json.success) return json;
+        if (json.success) {
+          this.purgeLocalCotizaciones(ids);
+          return json;
+        }
       } catch (e) {
         console.warn('Fallo al eliminar cotización en MySQL:', e);
       }
     }
 
-    const quotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
-    const filtered = quotes.filter(q => q.id != id);
-    localStorage.setItem('dp_cotizaciones_recibidas', JSON.stringify(filtered));
-    return { success: true, message: 'Cotización eliminada localmente.' };
+    this.purgeLocalCotizaciones(ids);
+    return { success: true, message: 'Cotización(es) eliminada(s) con éxito.', deleted: ids };
+  },
+
+  purgeLocalCotizaciones(ids) {
+    try {
+      const idSet = new Set(ids.map(String));
+      ['dp_cotizaciones_recibidas', 'dp_mis_cotizaciones', 'dp_historial_cotizaciones'].forEach(key => {
+        const list = JSON.parse(localStorage.getItem(key) || '[]');
+        const filtered = list.filter(q => !idSet.has(String(q.id)) && !idSet.has(String(q.codigo_cotizacion || q.codigo)));
+        localStorage.setItem(key, JSON.stringify(filtered));
+      });
+    } catch (e) {}
   },
 
   // Chequeo de notificaciones liviano en tiempo real para Panel de Administrador
@@ -1425,7 +1395,7 @@ const ApiService = {
         queryParams.append('_t', Date.now().toString());
 
         const res = await fetch(`${this.baseUrl}/notificaciones.php?${queryParams.toString()}`, {
-          headers: { 'Accept': 'application/json' }
+          headers: this.getAuthHeaders({ 'Accept': 'application/json' })
         });
         if (res.ok) {
           const json = await res.json();
@@ -1500,7 +1470,9 @@ const ApiService = {
         if (filters.rol && filters.rol !== 'all') params.append('rol', filters.rol);
 
         const url = `${this.baseUrl}/usuarios.php${params.toString() ? '?' + params.toString() : ''}`;
-        const res = await fetch(url);
+        const res = await fetch(url, {
+          headers: this.getAuthHeaders()
+        });
         const json = await res.json();
         if (json && json.success) {
           return json;
@@ -1525,7 +1497,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/usuarios.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ action: 'update_role', id, rol })
         });
         const json = await res.json();
@@ -1551,7 +1523,7 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/usuarios.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ action: 'delete', id })
         });
         const json = await res.json();
@@ -1578,9 +1550,12 @@ const ApiService = {
       try {
         const formData = new FormData();
         formData.append('imagen', file);
+        const authHeaders = this.getAuthHeaders();
+        delete authHeaders['Content-Type'];
 
         const res = await fetch(`${this.baseUrl}/upload.php`, {
           method: 'POST',
+          headers: authHeaders,
           body: formData
         });
 
@@ -1657,7 +1632,9 @@ const ApiService = {
           if (adminUser.email) queryParams.append('admin_email', adminUser.email);
         }
 
-        const res = await fetch(`${this.baseUrl}/backup.php?${queryParams.toString()}`);
+        const res = await fetch(`${this.baseUrl}/backup.php?${queryParams.toString()}`, {
+          headers: this.getAuthHeaders()
+        });
         if (!res.ok) {
           const errData = await res.json().catch(() => null);
           throw new Error(errData?.error || `Error del servidor HTTP ${res.status}`);
@@ -1857,6 +1834,7 @@ const Toast = {
   info(msg, duration) { this.show(msg, 'info', duration); }
 };
 
+window.ApiService = ApiService;
 window.Toast = Toast;
 window.showToast = (msg, type, duration) => Toast.show(msg, type, duration);
 

@@ -44,13 +44,16 @@ if ($method === 'POST') {
         $user = $stmt->fetch();
 
         if ($user) {
-            // Verificar contraseña (soporta hash y demo)
-            $valid = password_verify($password, $user['password']) || $password === 'password123' || $user['password'] === $password;
+            // Verificar contraseña de forma criptográficamente estricta (sin puertas traseras)
+            $valid = password_verify($password, $user['password']);
             if ($valid) {
                 unset($user['password']);
+                $token = class_exists('Vault') ? Vault::generateToken($user) : null;
+                $user['token'] = $token;
                 echo json_encode([
                     'success' => true,
                     'message' => 'Inicio de sesión exitoso.',
+                    'token'   => $token,
                     'user'    => $user
                 ], JSON_UNESCAPED_UNICODE);
                 exit();
@@ -75,12 +78,12 @@ if ($method === 'POST') {
         $provincia = trim($data['provincia'] ?? 'Lima');
         $distrito = trim($data['distrito'] ?? '');
         $direccion = trim($data['direccion'] ?? '');
-        $password = trim($data['password'] ?? 'password123');
+        $password = trim($data['password'] ?? '');
 
-        if (empty($numero_documento) || empty($nombre_razon_social) || empty($email)) {
+        if (empty($numero_documento) || empty($nombre_razon_social) || empty($email) || empty($password)) {
             echo json_encode([
                 'success' => false,
-                'error'   => 'Los campos Documento, Nombre/Razón Social y Correo son obligatorios.'
+                'error'   => 'Los campos Documento, Nombre/Razón Social, Correo y Contraseña son obligatorios.'
             ], JSON_UNESCAPED_UNICODE);
             exit();
         }
@@ -119,9 +122,13 @@ if ($method === 'POST') {
         $userStmt->execute([$newId]);
         $createdUser = $userStmt->fetch();
 
+        $token = class_exists('Vault') ? Vault::generateToken($createdUser) : null;
+        $createdUser['token'] = $token;
+
         echo json_encode([
             'success' => true,
             'message' => 'Usuario registrado exitosamente.',
+            'token'   => $token,
             'user'    => $createdUser
         ], JSON_UNESCAPED_UNICODE);
         exit();
@@ -194,8 +201,8 @@ if ($method === 'POST') {
             exit();
         }
 
-        // Verificar contraseña actual
-        $valid = password_verify($currentPassword, $user['password']) || $currentPassword === 'password123' || $currentPassword === '123456' || $user['password'] === $currentPassword;
+        // Verificar contraseña actual estrictamente
+        $valid = password_verify($currentPassword, $user['password']);
         if (!$valid) {
             echo json_encode([
                 'success' => false,
@@ -213,6 +220,26 @@ if ($method === 'POST') {
             'message' => 'Contraseña actualizada correctamente.'
         ], JSON_UNESCAPED_UNICODE);
         exit();
+    }
+
+    // 5. RENOVAR TOKEN DE SESIÓN (REFRESH_TOKEN)
+    if ($action === 'refresh_token') {
+        $userPayload = class_exists('Vault') ? Vault::requireAdmin() : null;
+        if ($userPayload) {
+            $stmt = $pdo->prepare("SELECT id, tipo_documento, numero_documento, nombre_razon_social, email, rol FROM usuarios WHERE id = ? LIMIT 1");
+            $stmt->execute([$userPayload['uid']]);
+            $u = $stmt->fetch();
+            if ($u) {
+                $newToken = Vault::generateToken($u);
+                $u['token'] = $newToken;
+                echo json_encode([
+                    'success' => true,
+                    'token'   => $newToken,
+                    'user'    => $u
+                ], JSON_UNESCAPED_UNICODE);
+                exit();
+            }
+        }
     }
 }
 

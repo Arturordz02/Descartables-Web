@@ -108,6 +108,11 @@ if ($method === 'GET') {
 
 // 2. ACTUALIZAR CONFIGURACIÓN (POST o PUT)
 if ($method === 'POST' || $method === 'PUT') {
+    // Protección estricta: Solo administradores autorizados pueden modificar la configuración o teléfonos
+    if (class_exists('Vault')) {
+        Vault::requireAdmin();
+    }
+
     try {
         $rawInput = file_get_contents('php://input');
         $data = json_decode($rawInput, true);

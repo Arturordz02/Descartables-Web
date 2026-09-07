@@ -69,6 +69,11 @@ if ($method === 'GET') {
     }
 }
 
+// Control de Acceso: La gestión y alteración de categorías requiere privilegios de Administrador
+if (class_exists('Vault')) {
+    Vault::requireAdmin();
+}
+
 $rawInput = file_get_contents('php://input');
 $data = json_decode($rawInput, true);
 if (!$data || !is_array($data)) {

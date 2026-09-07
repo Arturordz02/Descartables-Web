@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
   <meta charset="UTF-8">
@@ -739,6 +739,25 @@
           </div>
         </div>
 
+        <!-- Barra de Selección Masiva (Cotizaciones) -->
+        <div id="adminCotizBatchActionsBar" class="hidden items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-brand-orange/10 border border-brand-orange/30 text-brand-orange mb-3 transition-all flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-brand-orange animate-pulse"></span>
+            <span class="text-xs font-bold text-slate-800 dark:text-slate-100">
+              <span id="adminCotizSelectedCount">0</span> cotización(es) seleccionada(s)
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="Admin.clearSelectedCotizaciones()" class="px-3 py-1.5 text-xs font-semibold text-stone-400 hover:text-stone-200 transition-colors cursor-pointer">
+              Deseleccionar
+            </button>
+            <button type="button" onclick="Admin.deleteSelectedCotizaciones()" class="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              <span>Eliminar seleccionadas</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Contenedor Híbrido de Cotizaciones (Tabla en PC / Tarjetas en Celular) -->
         <div class="admin-card rounded-2xl shadow-sm overflow-hidden">
           <!-- Vista Desktop -->
@@ -746,6 +765,9 @@
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="admin-card-inner font-bold border-b uppercase text-[10px] tracking-wider" style="border-color: var(--admin-border);">
+                  <th class="py-3.5 px-3 w-10 text-center">
+                    <input type="checkbox" id="selectAllCotizaciones" onchange="Admin.toggleSelectAllCotizaciones(this.checked)" class="rounded border-stone-600 text-brand-orange focus:ring-brand-orange cursor-pointer" title="Seleccionar todas las cotizaciones">
+                  </th>
                   <th class="py-3.5 px-4">Código</th>
                   <th class="py-3.5 px-4">Cliente / Razón Social</th>
                   <th class="py-3.5 px-3">RUC / DNI</th>
@@ -758,7 +780,7 @@
               </thead>
               <tbody id="adminCotizacionesTableBody" class="divide-y" style="border-color: var(--admin-border-subtle);">
                 <tr>
-                  <td colspan="8" class="py-12 text-center text-stone-400">
+                  <td colspan="9" class="py-12 text-center text-stone-400">
                     <div class="inline-block w-6 h-6 border-2 border-brand-orange border-t-transparent rounded-full animate-spin mb-2"></div>
                     <p>Consultando cotizaciones registradas...</p>
                   </td>
@@ -1961,9 +1983,9 @@
   </div>
 
   <!-- ==================== SCRIPTS JS ==================== -->
-  <script src="assets/js/contact-config.js?v=20260907_2"></script>
-  <script src="assets/js/api.js?v=20260907_2"></script>
-  <script src="assets/js/auth.js?v=20260907_2"></script>
+  <script src="assets/js/contact-config.js?v=20260907_10"></script>
+  <script src="assets/js/api.js?v=20260907_10"></script>
+  <script src="assets/js/auth.js?v=20260907_10"></script>
   <script>
     // ==================== SISTEMA DE DIÁLOGOS DE CONFIRMACIÓN / ALERTAS IN-APP ====================
     const ConfirmDialog = {
@@ -2340,6 +2362,8 @@
     const Admin = {
       products: [],
       cotizaciones: [],
+      selectedCotizaciones: new Set(),
+      currentRenderedCotizaciones: [],
       currentCotizacion: null,
       users: [],
       reclamaciones: [],
@@ -2378,11 +2402,14 @@
             AdminNotifications.markCotizacionesSeen();
           }
           this.loadCotizaciones();
-        } else if (tabName === 'reclamaciones') {
-          if (typeof AdminNotifications !== 'undefined') {
-            AdminNotifications.markReclamacionesSeen();
+        } else {
+          this.clearSelectedCotizaciones();
+          if (tabName === 'reclamaciones') {
+            if (typeof AdminNotifications !== 'undefined') {
+              AdminNotifications.markReclamacionesSeen();
+            }
+            this.loadReclamaciones();
           }
-          this.loadReclamaciones();
         }
 
         const tabs = ['productos', 'categorias', 'cotizaciones', 'usuarios', 'reclamaciones', 'metricas', 'configuracion', 'banners'];
@@ -2539,82 +2566,101 @@
 
         // Render Desktop Table
         if (tbody) {
-          tbody.innerHTML = list.map((cat, index) => `
+          tbody.innerHTML = list.map((cat, index) => {
+            const safeId = parseInt(cat.id, 10) || 0;
+            const nombre = this.escapeHtml(cat.nombre || '');
+            const slug = this.escapeHtml(cat.slug || '');
+            const descripcion = this.escapeHtml(cat.descripcion || '');
+            const icono = this.escapeHtml(cat.icono || 'package');
+            const totalProds = parseInt(cat.total_productos, 10) || 0;
+            const colorClass = this.escapeHtml(cat.color || 'from-orange-500/20 to-amber-500/20');
+
+            return `
             <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
               <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-gradient-to-br ${cat.color} border flex items-center justify-center flex-shrink-0 text-slate-700 dark:text-slate-200 shadow-xs" style="border-color: var(--admin-border);">
+                  <div class="w-8 h-8 rounded-lg bg-gradient-to-br ${colorClass} border flex items-center justify-center flex-shrink-0 text-slate-700 dark:text-slate-200 shadow-xs" style="border-color: var(--admin-border);">
                     ${this.getCategoryIconSvg(cat.icono)}
                   </div>
                   <div>
-                    <p class="font-bold text-xs text-slate-800 dark:text-slate-200 leading-snug">${cat.nombre}</p>
-                    <span class="text-[10px] text-slate-400 font-mono">ID #${cat.id}</span>
+                    <p class="font-bold text-xs text-slate-800 dark:text-slate-200 leading-snug">${nombre}</p>
+                    <span class="text-[10px] text-slate-400 font-mono">ID #${safeId}</span>
                   </div>
                 </div>
               </td>
               <td class="py-3 px-3 font-mono font-medium text-slate-600 dark:text-slate-300 text-[11px]">
-                <code class="px-2 py-0.5 rounded text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">${cat.slug}</code>
+                <code class="px-2 py-0.5 rounded text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">${slug}</code>
               </td>
-              <td class="py-3 px-3 text-slate-500 dark:text-slate-400 text-xs max-w-[280px] truncate" title="${cat.descripcion}">
-                ${cat.descripcion || '—'}
+              <td class="py-3 px-3 text-slate-500 dark:text-slate-400 text-xs max-w-[280px] truncate" title="${descripcion}">
+                ${descripcion || '—'}
               </td>
               <td class="py-3 px-3 text-center">
                 <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
                   <span class="w-1.5 h-1.5 rounded-full bg-brand-orange"></span>
-                  <code>${cat.icono}</code>
+                  <code>${icono}</code>
                 </span>
               </td>
               <td class="py-3 px-3 text-center">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${cat.total_productos > 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60'}">
-                  ${cat.total_productos} prod.
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${totalProds > 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60'}">
+                  ${totalProds} prod.
                 </span>
               </td>
               <td class="py-3 px-4 text-right">
                 <div class="flex items-center justify-end gap-1">
-                  <button onclick="Admin.editCategory(${cat.id})" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-orange hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" title="Editar Categoría" aria-label="Editar">
+                  <button onclick="Admin.editCategory(${safeId})" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-orange hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" title="Editar Categoría" aria-label="Editar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
-                  <button onclick="Admin.confirmDeleteCategory(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', ${cat.total_productos})" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Categoría" aria-label="Eliminar">
+                  <button onclick="Admin.confirmDeleteCategory(${safeId})" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Categoría" aria-label="Eliminar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
               </td>
             </tr>
-          `).join('');
+            `;
+          }).join('');
         }
 
         // Render Mobile Cards
         if (mobileContainer) {
-          mobileContainer.innerHTML = list.map(cat => `
+          mobileContainer.innerHTML = list.map(cat => {
+            const safeId = parseInt(cat.id, 10) || 0;
+            const nombre = this.escapeHtml(cat.nombre || '');
+            const slug = this.escapeHtml(cat.slug || '');
+            const descripcion = this.escapeHtml(cat.descripcion || '');
+            const totalProds = parseInt(cat.total_productos, 10) || 0;
+            const colorClass = this.escapeHtml(cat.color || 'from-orange-500/20 to-amber-500/20');
+
+            return `
             <div class="pt-3 first:pt-0 space-y-2.5">
               <div class="flex items-start gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${cat.color} border flex items-center justify-center flex-shrink-0 text-brand-orange shadow-xs" style="border-color: var(--admin-border);">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${colorClass} border flex items-center justify-center flex-shrink-0 text-brand-orange shadow-xs" style="border-color: var(--admin-border);">
                   ${this.getCategoryIconSvg(cat.icono)}
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center justify-between gap-1">
-                    <span class="font-mono font-bold text-stone-400 text-[10px] admin-card-inner px-1.5 py-0.5 rounded">${cat.slug}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${cat.total_productos > 0 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-stone-500/15 text-stone-400'}">
-                      ${cat.total_productos} productos
+                    <span class="font-mono font-bold text-stone-400 text-[10px] admin-card-inner px-1.5 py-0.5 rounded">${slug}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${totalProds > 0 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-stone-500/15 text-stone-400'}">
+                      ${totalProds} productos
                     </span>
                   </div>
-                  <p class="font-bold text-xs mt-1 leading-snug">${cat.nombre}</p>
-                  <p class="text-[10px] text-stone-400 truncate mt-0.5">${cat.descripcion || 'Sin descripción'}</p>
+                  <p class="font-bold text-xs mt-1 leading-snug">${nombre}</p>
+                  <p class="text-[10px] text-stone-400 truncate mt-0.5">${descripcion || 'Sin descripción'}</p>
                 </div>
               </div>
 
               <div class="grid grid-cols-2 gap-2 pt-1">
-                <button onclick="Admin.editCategory(${cat.id})" class="flex items-center justify-center gap-1.5 py-2 px-3 admin-card-inner hover:text-brand-orange rounded-xl text-xs font-bold transition-all tap-target cursor-pointer">
+                <button onclick="Admin.editCategory(${safeId})" class="flex items-center justify-center gap-1.5 py-2 px-3 admin-card-inner hover:text-brand-orange rounded-xl text-xs font-bold transition-all tap-target cursor-pointer">
                   <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span>Editar</span>
                 </button>
-                <button onclick="Admin.confirmDeleteCategory(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', ${cat.total_productos})" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all tap-target cursor-pointer">
+                <button onclick="Admin.confirmDeleteCategory(${safeId})" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all tap-target cursor-pointer">
                   <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   <span>Eliminar</span>
                 </button>
               </div>
             </div>
-          `).join('');
+          `;
+          }).join('');
         }
       },
 
@@ -2719,11 +2765,19 @@
       },
 
       async confirmDeleteCategory(id, nombre, totalProds) {
-        if (totalProds > 0) {
+        const cat = this.categories ? this.categories.find(c => c.id == id) : null;
+        if (cat) {
+          nombre = cat.nombre;
+          totalProds = cat.total_productos;
+        }
+        const safeNombre = this.escapeHtml(nombre || 'esta categoría');
+        const numProds = parseInt(totalProds, 10) || 0;
+
+        if (numProds > 0) {
           ConfirmDialog.alert({
             title: 'Acción No Permitida',
             subtitle: 'La categoría contiene productos activos',
-            message: `No se puede eliminar la categoría <b>"${nombre}"</b> porque contiene <b>${totalProds}</b> producto(s) asignado(s). Por favor reasigna o elimina los productos antes de borrar la categoría.`,
+            message: `No se puede eliminar la categoría <b>"${safeNombre}"</b> porque contiene <b>${numProds}</b> producto(s) asignado(s). Por favor reasigna o elimina los productos antes de borrar la categoría.`,
             buttonText: 'Entendido',
             type: 'warning'
           });
@@ -2733,7 +2787,7 @@
         const confirmed = await ConfirmDialog.show({
           title: 'Eliminar Categoría',
           subtitle: 'Esta acción no se puede deshacer',
-          message: `¿Estás seguro de que deseas eliminar permanentemente la categoría <b>"${nombre}"</b>?`,
+          message: `¿Estás seguro de que deseas eliminar permanentemente la categoría <b>"${safeNombre}"</b>?`,
           confirmText: 'Sí, eliminar categoría',
           cancelText: 'Cancelar',
           type: 'danger'
@@ -2946,70 +3000,80 @@
         // Render Desktop Table
         if (tbody) {
           tbody.innerHTML = list.map((prod, index) => {
+            const safeId = parseInt(prod.id, 10) || 0;
+            const nombre = this.escapeHtml(prod.nombre || '');
+            const descripcion = this.escapeHtml(prod.descripcion || '');
+            const sku = this.escapeHtml(prod.sku || '');
+            const presentacion = this.escapeHtml(prod.presentacion || '—');
+            const material = this.escapeHtml(prod.material || '—');
+            const imagenUrl = this.escapeHtml(prod.imagen_url || 'assets/images/productos/default.png');
+            const catNombre = this.escapeHtml(prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id) || '');
             const hasPrice = prod.precio !== null && prod.precio !== undefined && prod.precio !== '' && !isNaN(parseFloat(prod.precio)) && parseFloat(prod.precio) > 0;
+            const precioFormatted = hasPrice ? parseFloat(prod.precio).toFixed(2) : '';
+
             return `
             <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
               <td class="py-3 px-4">
                 <div class="flex items-center gap-3.5 py-0.5">
-                  <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-14 h-14 rounded-xl object-contain p-1 border flex-shrink-0 bg-white dark:bg-slate-900 shadow-xs" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
+                  <img src="${imagenUrl}" alt="${nombre}" class="w-14 h-14 rounded-xl object-contain p-1 border flex-shrink-0 bg-white dark:bg-slate-900 shadow-xs" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
                   <div class="min-w-0 flex-1">
-                    <p class="font-bold text-xs text-slate-800 dark:text-slate-100 leading-snug line-clamp-2" title="${prod.nombre}">${prod.nombre}</p>
-                    ${prod.descripcion ? `<p class="text-[11px] text-slate-400 dark:text-slate-500 line-clamp-1 mt-0.5" title="${prod.descripcion}">${prod.descripcion}</p>` : ''}
+                    <p class="font-bold text-xs text-slate-800 dark:text-slate-100 leading-snug line-clamp-2" title="${nombre}">${nombre}</p>
+                    ${descripcion ? `<p class="text-[11px] text-slate-400 dark:text-slate-500 line-clamp-1 mt-0.5" title="${descripcion}">${descripcion}</p>` : ''}
                   </div>
                 </div>
               </td>
-              <td class="py-3 px-3 font-mono font-semibold text-slate-600 dark:text-slate-300 text-[11px] whitespace-nowrap">${prod.sku}</td>
+              <td class="py-3 px-3 font-mono font-semibold text-slate-600 dark:text-slate-300 text-[11px] whitespace-nowrap">${sku}</td>
               <td class="py-3 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60 max-w-[130px] truncate" title="${prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id)}">
-                  ${prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id)}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60 max-w-[130px] truncate" title="${catNombre}">
+                  ${catNombre}
                 </span>
               </td>
               <td class="py-3 px-3 text-right whitespace-nowrap">
-                <div id="priceContainer_${prod.id}" class="relative inline-flex items-center justify-end min-w-[80px]">
+                <div id="priceContainer_${safeId}" class="relative inline-flex items-center justify-end min-w-[80px]">
                   <!-- Botón de lectura (clic para editar) -->
                   <button 
                     type="button" 
-                    id="priceDisplay_${prod.id}" 
-                    onclick="Admin.startInlinePriceEdit(${prod.id})" 
+                    id="priceDisplay_${safeId}" 
+                    onclick="Admin.startInlinePriceEdit(${safeId})" 
                     class="group/price flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors text-right cursor-pointer" 
                     title="Clic para editar precio"
                   >
                     ${hasPrice 
-                      ? `<span class="font-mono font-bold text-slate-900 dark:text-slate-100 text-xs tracking-tight group-hover/price:text-brand-orange transition-colors">S/ ${parseFloat(prod.precio).toFixed(2)}</span>` 
+                      ? `<span class="font-mono font-bold text-slate-900 dark:text-slate-100 text-xs tracking-tight group-hover/price:text-brand-orange transition-colors">S/ ${precioFormatted}</span>` 
                       : '<span class="text-slate-400 dark:text-slate-500 font-normal text-[11px] italic group-hover/price:text-brand-orange transition-colors">Sin definir</span>'}
                     <svg class="w-3 h-3 text-slate-400 opacity-0 group-hover/price:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                   </button>
 
                   <!-- Input editable inline -->
-                  <div id="priceEditWrapper_${prod.id}" class="hidden items-center gap-1">
+                  <div id="priceEditWrapper_${safeId}" class="hidden items-center gap-1">
                     <span class="text-[11px] font-mono font-bold text-slate-500">S/</span>
                     <input 
                       type="number" 
                       step="0.01" 
                       min="0" 
-                      id="priceInput_${prod.id}" 
-                      value="${hasPrice ? parseFloat(prod.precio).toFixed(2) : ''}" 
+                      id="priceInput_${safeId}" 
+                      value="${precioFormatted}" 
                       placeholder="0.00" 
                       class="w-20 px-1.5 py-0.5 font-mono text-xs font-bold text-right rounded border admin-input focus:outline-none focus:ring-1 focus:ring-brand-orange"
-                      onkeydown="Admin.handleInlinePriceKey(event, ${prod.id})"
-                      onblur="Admin.saveInlinePrice(${prod.id})"
+                      onkeydown="Admin.handleInlinePriceKey(event, ${safeId})"
+                      onblur="Admin.saveInlinePrice(${safeId})"
                     >
                   </div>
 
                   <!-- Spinner de precio -->
-                  <div id="priceSpinner_${prod.id}" class="hidden absolute right-1 inset-y-0 items-center justify-center">
+                  <div id="priceSpinner_${safeId}" class="hidden absolute right-1 inset-y-0 items-center justify-center">
                     <div class="w-3.5 h-3.5 border-2 border-brand-orange border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 </div>
               </td>
               <td class="py-3 px-3 text-center whitespace-nowrap">
-                ${getStockBadge(prod.stock_estado, prod.id)}
+                ${getStockBadge(prod.stock_estado, safeId)}
               </td>
               <td class="py-3 px-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                <span class="block max-w-[110px] truncate" title="${prod.presentacion || '—'}">${prod.presentacion || '—'}</span>
+                <span class="block max-w-[110px] truncate" title="${presentacion}">${presentacion}</span>
               </td>
               <td class="py-3 px-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                <span class="block max-w-[120px] truncate" title="${prod.material || '—'}">${prod.material || '—'}</span>
+                <span class="block max-w-[120px] truncate" title="${material}">${material}</span>
               </td>
               <td class="py-3 px-2 text-center whitespace-nowrap">
                 ${(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true') 
@@ -3023,13 +3087,13 @@
               </td>
               <td class="admin-sticky-col-td py-3 px-4 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1">
-                  <button onclick="Admin.duplicateProduct(${prod.id})" class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-500/10 transition-colors tap-target cursor-pointer" title="Duplicar producto" aria-label="Duplicar">
+                  <button onclick="Admin.duplicateProduct(${safeId})" class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-500/10 transition-colors tap-target cursor-pointer" title="Duplicar producto" aria-label="Duplicar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   </button>
-                  <button onclick="Admin.editProduct(${prod.id})" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-orange hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" title="Editar Producto" aria-label="Editar">
+                  <button onclick="Admin.editProduct(${safeId})" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-orange hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" title="Editar Producto" aria-label="Editar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
-                  <button onclick="Admin.confirmDeleteProduct(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Producto" aria-label="Eliminar">
+                  <button onclick="Admin.confirmDeleteProduct(${safeId})" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Producto" aria-label="Eliminar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
@@ -3042,42 +3106,51 @@
         // Render Mobile Cards
         if (mobileContainer) {
           mobileContainer.innerHTML = list.map(prod => {
+            const safeId = parseInt(prod.id, 10) || 0;
+            const nombre = this.escapeHtml(prod.nombre || '');
+            const sku = this.escapeHtml(prod.sku || '');
+            const presentacion = this.escapeHtml(prod.presentacion || '');
+            const material = this.escapeHtml(prod.material || '');
+            const imagenUrl = this.escapeHtml(prod.imagen_url || 'assets/images/productos/default.png');
+            const catNombre = this.escapeHtml(prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id) || '');
             const hasPrice = prod.precio !== null && prod.precio !== undefined && prod.precio !== '' && !isNaN(parseFloat(prod.precio)) && parseFloat(prod.precio) > 0;
+            const precioFormatted = hasPrice ? parseFloat(prod.precio).toFixed(2) : '';
+
             return `
             <div class="pt-3 first:pt-0 space-y-2.5">
               <div class="flex items-start gap-3">
-                <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-14 h-14 rounded-xl object-contain p-1 border flex-shrink-0 bg-white dark:bg-slate-900 shadow-xs" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
+                <img src="${imagenUrl}" alt="${nombre}" class="w-14 h-14 rounded-xl object-contain p-1 border flex-shrink-0 bg-white dark:bg-slate-900 shadow-xs" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center justify-between gap-1">
-                    <span class="font-mono font-semibold text-slate-600 dark:text-slate-300 text-[10px] admin-card-inner px-1.5 py-0.5 rounded border" style="border-color: var(--admin-border-subtle);">${prod.sku}</span>
+                    <span class="font-mono font-semibold text-slate-600 dark:text-slate-300 text-[10px] admin-card-inner px-1.5 py-0.5 rounded border" style="border-color: var(--admin-border-subtle);">${sku}</span>
                     <span class="font-mono text-xs">
                       ${hasPrice 
-                        ? `<span class="font-bold text-slate-900 dark:text-slate-100">S/ ${parseFloat(prod.precio).toFixed(2)}</span>` 
+                        ? `<span class="font-bold text-slate-900 dark:text-slate-100">S/ ${precioFormatted}</span>` 
                         : '<span class="text-slate-400 dark:text-slate-500 italic text-[11px]">Sin definir</span>'}
                     </span>
                   </div>
-                  <p class="font-bold text-xs mt-1 leading-snug line-clamp-2 text-slate-900 dark:text-slate-100">${prod.nombre}</p>
-                  <p class="text-[10px] text-slate-400 truncate mt-0.5">${prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id)} • ${prod.presentacion || ''}</p>
+                  <p class="font-bold text-xs mt-1 leading-snug line-clamp-2 text-slate-900 dark:text-slate-100">${nombre}</p>
+                  <p class="text-[10px] text-slate-400 truncate mt-0.5">${catNombre} • ${presentacion}</p>
                 </div>
               </div>
 
               <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
-                ${getStockBadge(prod.stock_estado, prod.id)}
+                ${getStockBadge(prod.stock_estado, safeId)}
                 ${(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true') ? '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">🌿 Bio</span>' : ''}
                 ${(prod.destacado == 1 || prod.destacado === true || prod.destacado === '1' || prod.destacado === 'true') ? '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40">⭐ Portada</span>' : ''}
-                <span class="text-slate-400 text-[10px] ml-auto">${prod.material || ''}</span>
+                <span class="text-slate-400 text-[10px] ml-auto">${material}</span>
               </div>
 
               <div class="grid grid-cols-3 gap-1.5 pt-1">
-                <button onclick="Admin.duplicateProduct(${prod.id})" class="flex items-center justify-center gap-1 py-1.5 px-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border border-indigo-500/20" title="Duplicar producto">
+                <button onclick="Admin.duplicateProduct(${safeId})" class="flex items-center justify-center gap-1 py-1.5 px-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border border-indigo-500/20" title="Duplicar producto">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   <span>Copiar</span>
                 </button>
-                <button onclick="Admin.editProduct(${prod.id})" class="flex items-center justify-center gap-1 py-1.5 px-2 admin-card-inner hover:text-brand-orange text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border" style="border-color: var(--admin-border-subtle);">
+                <button onclick="Admin.editProduct(${safeId})" class="flex items-center justify-center gap-1 py-1.5 px-2 admin-card-inner hover:text-brand-orange text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border" style="border-color: var(--admin-border-subtle);">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span>Editar</span>
                 </button>
-                <button onclick="Admin.confirmDeleteProduct(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}')" class="flex items-center justify-center gap-1 py-1.5 px-2 text-rose-500 hover:bg-rose-500/10 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border border-rose-500/20">
+                <button onclick="Admin.confirmDeleteProduct(${safeId})" class="flex items-center justify-center gap-1 py-1.5 px-2 text-rose-500 hover:bg-rose-500/10 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border border-rose-500/20">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   <span>Eliminar</span>
                 </button>
@@ -3558,10 +3631,16 @@
       },
 
       async confirmDeleteProduct(id, nombre) {
+        if (!nombre && this.products) {
+          const p = this.products.find(item => item.id == id);
+          if (p) nombre = p.nombre;
+        }
+        const safeNombre = this.escapeHtml(nombre || 'este producto');
+
         const confirmed = await ConfirmDialog.show({
           title: 'Eliminar Producto',
           subtitle: 'Esta acción removerá el ítem del catálogo web',
-          message: `¿Estás seguro de que deseas eliminar permanentemente <b>"${nombre}"</b> del catálogo?`,
+          message: `¿Estás seguro de que deseas eliminar permanentemente <b>"${safeNombre}"</b> del catálogo?`,
           confirmText: 'Sí, eliminar producto',
           cancelText: 'Cancelar',
           type: 'danger'
@@ -3627,8 +3706,20 @@
         if (tbody) {
           tbody.innerHTML = list.map((u, index) => {
             const cleanPhone = (u.telefono || '').replace(/[^0-9]/g, '');
+            const nombre = this.escapeHtml(u.nombre_razon_social || '');
+            const email = this.escapeHtml(u.email || '');
+            const tipoDoc = this.escapeHtml(u.tipo_documento || 'DNI');
+            const numDoc = this.escapeHtml(u.numero_documento || '—');
+            const tel = this.escapeHtml(u.telefono || '—');
+            const distrito = this.escapeHtml(u.distrito || 'Lima');
+            const departamento = this.escapeHtml(u.departamento || 'Lima');
+            const direccion = this.escapeHtml(u.direccion || '');
+            const rol = this.escapeHtml(u.rol || 'cliente');
+            const fechaStr = this.escapeHtml((u.creado_en || '').slice(0, 10));
+            const safeId = parseInt(u.id, 10) || 0;
+
             const waLink = cleanPhone.length >= 9 
-              ? `https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + u.nombre_razon_social + ', le saludamos de Descartables Peruanos.')}` 
+              ? `https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + (u.nombre_razon_social || '') + ', le saludamos de Descartables Peruanos.')}` 
               : '#';
 
             return `
@@ -3639,19 +3730,19 @@
                       ${(u.nombre_razon_social || 'C').charAt(0).toUpperCase()}
                     </div>
                     <div class="min-w-0">
-                      <p class="font-bold text-xs text-slate-800 dark:text-slate-200 truncate max-w-[200px]">${u.nombre_razon_social}</p>
-                      <p class="text-[11px] text-slate-400 truncate max-w-[200px]">${u.email}</p>
+                      <p class="font-bold text-xs text-slate-800 dark:text-slate-200 truncate max-w-[200px]">${nombre}</p>
+                      <p class="text-[11px] text-slate-400 truncate max-w-[200px]">${email}</p>
                     </div>
                   </div>
                 </td>
                 <td class="py-3 px-3">
                   <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold ${u.tipo_documento === 'RUC' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40'}">
-                    ${u.tipo_documento}: ${u.numero_documento}
+                    ${tipoDoc}: ${numDoc}
                   </span>
                 </td>
                 <td class="py-3 px-3">
                   <div class="flex items-center gap-2">
-                    <span class="font-mono text-slate-700 dark:text-slate-300 text-xs">${u.telefono || '—'}</span>
+                    <span class="font-mono text-slate-700 dark:text-slate-300 text-xs">${tel}</span>
                     ${cleanPhone.length >= 9 ? `
                       <a href="${waLink}" target="_blank" class="p-1 rounded text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Abrir WhatsApp">
                         <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/></svg>
@@ -3660,20 +3751,20 @@
                   </div>
                 </td>
                 <td class="py-3 px-3 text-slate-500 dark:text-slate-400">
-                  <p class="text-[11px] leading-tight text-slate-800 dark:text-slate-200">${u.distrito || 'Lima'}, ${u.departamento || 'Lima'}</p>
-                  <p class="text-[10px] text-slate-400 truncate max-w-[130px]">${u.direccion || ''}</p>
+                  <p class="text-[11px] leading-tight text-slate-800 dark:text-slate-200">${distrito}, ${departamento}</p>
+                  <p class="text-[10px] text-slate-400 truncate max-w-[130px]">${direccion}</p>
                 </td>
                 <td class="py-3 px-3 text-center">
                   <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${u.rol === 'admin' ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800/40' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40'}">
-                    ${u.rol}
+                    ${rol}
                   </span>
                 </td>
                 <td class="py-3 px-3 text-slate-400 text-[11px] whitespace-nowrap font-mono">
-                  ${(u.creado_en || '').slice(0, 10)}
+                  ${fechaStr}
                 </td>
                 <td class="py-3 px-4 text-right">
                   ${u.rol !== 'admin' ? `
-                    <button onclick="Admin.confirmDeleteUser(${u.id}, '${u.nombre_razon_social.replace(/'/g, "\\'")}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Cliente" aria-label="Eliminar">
+                    <button onclick="Admin.confirmDeleteUser(${safeId}, '${nombre.replace(/'/g, "\\'")}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Cliente" aria-label="Eliminar">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                   ` : '<span class="text-[10px] text-slate-400 font-bold">Admin Protegido</span>'}
@@ -3687,8 +3778,16 @@
         if (mobileContainer) {
           mobileContainer.innerHTML = list.map(u => {
             const cleanPhone = (u.telefono || '').replace(/[^0-9]/g, '');
+            const nombre = this.escapeHtml(u.nombre_razon_social || '');
+            const email = this.escapeHtml(u.email || 'Sin correo');
+            const tipoDoc = this.escapeHtml(u.tipo_documento || 'DNI');
+            const numDoc = this.escapeHtml(u.numero_documento || '—');
+            const distrito = this.escapeHtml(u.distrito || 'Lima');
+            const rol = this.escapeHtml(u.rol || 'cliente');
+            const safeId = parseInt(u.id, 10) || 0;
+
             const waLink = cleanPhone.length >= 9 
-              ? `https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + u.nombre_razon_social + ', le saludamos de Descartables Peruanos.')}` 
+              ? `https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + (u.nombre_razon_social || '') + ', le saludamos de Descartables Peruanos.')}` 
               : '#';
 
             return `
@@ -3699,23 +3798,23 @@
                       ${(u.nombre_razon_social || 'C').charAt(0).toUpperCase()}
                     </div>
                     <div class="min-w-0">
-                      <p class="font-bold text-xs leading-snug truncate">${u.nombre_razon_social}</p>
-                      <p class="text-[10px] text-stone-400 truncate">${u.email || 'Sin correo'}</p>
+                      <p class="font-bold text-xs leading-snug truncate">${nombre}</p>
+                      <p class="text-[10px] text-stone-400 truncate">${email}</p>
                     </div>
                   </div>
                   <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase flex-shrink-0 ${u.rol === 'admin' ? 'bg-rose-500/15 text-rose-400' : 'bg-emerald-500/15 text-emerald-400'}">
-                    ${u.rol}
+                    ${rol}
                   </span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 text-[11px] admin-card-inner p-2.5 rounded-xl border" style="border-color: var(--admin-border);">
                   <div>
                     <span class="text-[9px] text-stone-400 uppercase font-bold block">Documento</span>
-                    <span class="font-mono font-bold text-[11px]">${u.tipo_documento}: ${u.numero_documento}</span>
+                    <span class="font-mono font-bold text-[11px]">${tipoDoc}: ${numDoc}</span>
                   </div>
                   <div>
                     <span class="text-[9px] text-stone-400 uppercase font-bold block">Ubicación</span>
-                    <span class="text-[11px] truncate block">${u.distrito || 'Lima'}</span>
+                    <span class="text-[11px] truncate block">${distrito}</span>
                   </div>
                 </div>
 
@@ -3728,7 +3827,7 @@
                   ` : '<span class="text-[10px] text-stone-500">Sin teléfono</span>'}
 
                   ${u.rol !== 'admin' ? `
-                    <button onclick="Admin.confirmDeleteUser(${u.id}, '${u.nombre_razon_social.replace(/'/g, "\\'")}')" class="py-1.5 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all tap-target flex items-center gap-1 cursor-pointer">
+                    <button onclick="Admin.confirmDeleteUser(${safeId}, '${nombre.replace(/'/g, "\\'")}')" class="py-1.5 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all tap-target flex items-center gap-1 cursor-pointer">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                       <span>Eliminar</span>
                     </button>
@@ -3798,11 +3897,11 @@
       },
 
       updateReclamacionesStats(stats) {
-        const total = stats ? stats.total : this.reclamaciones.length;
-        const pendientes = stats ? stats.pendientes : this.reclamaciones.filter(r => (r.estado || 'Pendiente') === 'Pendiente').length;
-        const atendidos = stats ? stats.atendidos : this.reclamaciones.filter(r => r.estado === 'Atendido').length;
-        const reclamos = stats ? stats.reclamos : this.reclamaciones.filter(r => (r.tipo_reclamo || '').toLowerCase().includes('reclamo')).length;
-        const quejas = stats ? stats.quejas : this.reclamaciones.filter(r => (r.tipo_reclamo || '').toLowerCase().includes('queja')).length;
+        const total = (stats && stats.total != null) ? Number(stats.total) : this.reclamaciones.length;
+        const pendientes = (stats && stats.pendientes != null) ? Number(stats.pendientes) : this.reclamaciones.filter(r => (r.estado || 'Pendiente') === 'Pendiente').length;
+        const atendidos = (stats && stats.atendidos != null) ? Number(stats.atendidos) : this.reclamaciones.filter(r => r.estado === 'Atendido').length;
+        const reclamos = (stats && stats.reclamos != null) ? Number(stats.reclamos) : this.reclamaciones.filter(r => (r.tipo_reclamacion || r.tipo_reclamo || '').toLowerCase().includes('reclamo')).length;
+        const quejas = (stats && stats.quejas != null) ? Number(stats.quejas) : this.reclamaciones.filter(r => (r.tipo_reclamacion || r.tipo_reclamo || '').toLowerCase().includes('queja')).length;
 
         const elTotal = document.getElementById('metricTotalReclamos');
         if (elTotal) elTotal.textContent = total;
@@ -3863,9 +3962,9 @@
         // Render Desktop Table
         if (tbody) {
           tbody.innerHTML = list.map((r, index) => {
-            const code = r.codigo_hoja || r.codigo_seguimiento || `REC-${r.id}`;
+            const code = this.escapeHtml(r.codigo_hoja || r.codigo_seguimiento || `REC-${r.id}`);
             const tipoTexto = r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo';
-            const isReclamo = tipoTexto.toLowerCase().includes('reclamo');
+            const isReclamo = String(tipoTexto).toLowerCase().includes('reclamo');
             const tipoBadge = isReclamo 
               ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40">Reclamo</span>' 
               : '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40">Queja</span>';
@@ -3877,9 +3976,14 @@
               estadoBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">Atendido</span>';
             }
 
-            const fechaStr = (r.creado_en || r.fecha || '').slice(0, 10);
-            const safeId = r.id;
-            const nombreConsumidor = r.nombre_completo || r.nombre_consumidor || '—';
+            const fechaStr = this.escapeHtml((r.creado_en || r.fecha || '').slice(0, 10));
+            const safeId = parseInt(r.id, 10) || 0;
+            const nombreConsumidor = this.escapeHtml(r.nombre_completo || r.nombre_consumidor || '—');
+            const tipoDoc = this.escapeHtml(r.tipo_documento || 'DNI');
+            const numDoc = this.escapeHtml(r.numero_documento || '—');
+            const email = this.escapeHtml(r.email || '');
+            const tipoBien = this.escapeHtml(r.tipo_bien || 'Producto');
+            const descBien = this.escapeHtml(r.descripcion_bien || ('Monto: S/. ' + (parseFloat(r.monto_reclamado) || 0).toFixed(2)));
 
             return `
               <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
@@ -3889,13 +3993,13 @@
                 <td class="py-3 px-3">
                   <div>
                     <p class="font-bold text-xs text-slate-800 dark:text-slate-200">${nombreConsumidor}</p>
-                    <p class="text-[10px] text-slate-400">${r.tipo_documento || 'DNI'}: ${r.numero_documento || '—'} • ${r.email || ''}</p>
+                    <p class="text-[10px] text-slate-400">${tipoDoc}: ${numDoc} • ${email}</p>
                   </div>
                 </td>
                 <td class="py-3 px-3">
                   <div>
-                    <p class="font-medium text-xs text-slate-700 dark:text-slate-300 capitalize">${r.tipo_bien || 'Producto'}</p>
-                    <p class="text-[10px] text-slate-400 truncate max-w-[170px]">${r.descripcion_bien || ('Monto: S/. ' + (r.monto_reclamado || '0.00'))}</p>
+                    <p class="font-medium text-xs text-slate-700 dark:text-slate-300 capitalize">${tipoBien}</p>
+                    <p class="text-[10px] text-slate-400 truncate max-w-[170px]">${descBien}</p>
                   </div>
                 </td>
                 <td class="py-3 px-3 text-center">
@@ -3921,9 +4025,9 @@
         // Render Mobile Cards
         if (mobileContainer) {
           mobileContainer.innerHTML = list.map(r => {
-            const code = r.codigo_hoja || r.codigo_seguimiento || `REC-${r.id}`;
+            const code = this.escapeHtml(r.codigo_hoja || r.codigo_seguimiento || `REC-${r.id}`);
             const tipoTexto = r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo';
-            const isReclamo = tipoTexto.toLowerCase().includes('reclamo');
+            const isReclamo = String(tipoTexto).toLowerCase().includes('reclamo');
             const tipoBadge = isReclamo 
               ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-bold">Reclamo</span>' 
               : '<span class="px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 text-[10px] font-bold">Queja</span>';
@@ -3935,9 +4039,13 @@
               estadoBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold">Atendido</span>';
             }
 
-            const fechaStr = (r.creado_en || r.fecha || '').slice(0, 10);
-            const safeId = r.id;
-            const nombreConsumidor = r.nombre_completo || r.nombre_consumidor || '—';
+            const fechaStr = this.escapeHtml((r.creado_en || r.fecha || '').slice(0, 10));
+            const safeId = parseInt(r.id, 10) || 0;
+            const nombreConsumidor = this.escapeHtml(r.nombre_completo || r.nombre_consumidor || '—');
+            const tipoDoc = this.escapeHtml(r.tipo_documento || 'DNI');
+            const numDoc = this.escapeHtml(r.numero_documento || '—');
+            const tipoBien = this.escapeHtml(r.tipo_bien || 'Producto');
+            const descBien = this.escapeHtml(r.descripcion_bien || ('S/. ' + (parseFloat(r.monto_reclamado) || 0).toFixed(2)));
 
             return `
               <div class="pt-3 first:pt-0 space-y-2.5">
@@ -3945,7 +4053,7 @@
                   <div>
                     <span class="font-mono font-bold text-brand-orange text-xs">${code}</span>
                     <p class="font-bold text-xs mt-0.5 leading-snug">${nombreConsumidor}</p>
-                    <p class="text-[10px] text-stone-400">${r.tipo_documento || 'DNI'}: ${r.numero_documento || '—'} • ${fechaStr}</p>
+                    <p class="text-[10px] text-stone-400">${tipoDoc}: ${numDoc} • ${fechaStr}</p>
                   </div>
                   <div class="flex flex-col items-end gap-1 flex-shrink-0">
                     ${tipoBadge}
@@ -3954,7 +4062,7 @@
                 </div>
 
                 <div class="text-[11px] admin-card-inner p-2.5 rounded-xl border" style="border-color: var(--admin-border);">
-                  <p class="font-medium truncate"><span class="text-stone-400 uppercase font-bold text-[9px]">Bien:</span> ${r.tipo_bien || 'Producto'} - ${r.descripcion_bien || ('S/. ' + (r.monto_reclamado || '0.00'))}</p>
+                  <p class="font-medium truncate"><span class="text-stone-400 uppercase font-bold text-[9px]">Bien:</span> ${tipoBien} - ${descBien}</p>
                 </div>
 
                 <div class="pt-0.5">
@@ -4079,9 +4187,25 @@
           return;
         }
 
-        const codigoPrint = r.codigo_hoja || r.codigo_seguimiento || ('REC-' + r.id);
-        const tipoPrint = r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo';
-        const nombrePrint = r.nombre_completo || r.nombre_consumidor || '—';
+        const codigoPrint = this.escapeHtml(r.codigo_hoja || r.codigo_seguimiento || ('REC-' + r.id));
+        const tipoPrint = this.escapeHtml(r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo');
+        const nombrePrint = this.escapeHtml(r.nombre_completo || r.nombre_consumidor || '—');
+        const estadoPrint = this.escapeHtml(r.estado || 'Pendiente');
+        const tipoDocPrint = this.escapeHtml(r.tipo_documento || 'DNI');
+        const numDocPrint = this.escapeHtml(r.numero_documento || '—');
+        const emailPrint = this.escapeHtml(r.email || '—');
+        const telPrint = this.escapeHtml(r.telefono || '—');
+        const dirPrint = this.escapeHtml(r.direccion || '—');
+        const distPrint = this.escapeHtml(r.distrito || 'Lima');
+        const depPrint = this.escapeHtml(r.departamento || 'Lima');
+        const tipoBienPrint = this.escapeHtml(r.tipo_bien || 'Producto');
+        const montoPrint = parseFloat(r.monto_reclamado || 0).toFixed(2);
+        const descBienPrint = this.escapeHtml(r.descripcion_bien || '—');
+        const detallePrint = this.escapeHtml(r.detalle_reclamacion || '—');
+        const pedidoPrint = this.escapeHtml(r.pedido_consumidor || '—');
+        const respPrint = this.escapeHtml(r.respuesta_proveedor || 'En proceso de evaluación legal dentro del plazo de 15 días hábiles establecido por el Código de Protección y Defensa del Consumidor.');
+        const fechaRespPrint = this.escapeHtml(r.fecha_respuesta || 'Pendiente de emisión');
+        const fechaPrint = this.escapeHtml((r.creado_en || r.fecha || new Date().toISOString()).slice(0, 10));
 
         printWindow.document.write(`
           <!DOCTYPE html>
@@ -4124,9 +4248,9 @@
                 <div class="code">${codigoPrint}</div>
                 <div style="margin-top: 4px;">
                   <span class="badge ${tipoPrint === 'Queja' ? 'badge-queja' : 'badge-reclamo'}">${tipoPrint}</span>
-                  <span class="badge badge-estado">${r.estado || 'Pendiente'}</span>
+                  <span class="badge badge-estado">${estadoPrint}</span>
                 </div>
-                <div style="font-size: 10px; color: #888; margin-top: 3px;">Fecha: ${(r.creado_en || r.fecha || new Date().toISOString()).slice(0, 10)}</div>
+                <div style="font-size: 10px; color: #888; margin-top: 3px;">Fecha: ${fechaPrint}</div>
               </div>
             </div>
 
@@ -4134,34 +4258,34 @@
               <div class="section-title">1. Identificación del Consumidor Reclamante</div>
               <div class="grid">
                 <div><div class="label">Nombre o Razón Social:</div><div class="value">${nombrePrint}</div></div>
-                <div><div class="label">Documento de Identidad:</div><div class="value">${r.tipo_documento || 'DNI'}: ${r.numero_documento || '—'}</div></div>
-                <div><div class="label">Correo Electrónico:</div><div class="value">${r.email || '—'}</div></div>
-                <div><div class="label">Teléfono:</div><div class="value">${r.telefono || '—'}</div></div>
-                <div style="grid-column: 1 / -1;"><div class="label">Domicilio:</div><div class="value">${r.direccion || '—'} (${r.distrito || 'Lima'} - ${r.departamento || 'Lima'})</div></div>
+                <div><div class="label">Documento de Identidad:</div><div class="value">${tipoDocPrint}: ${numDocPrint}</div></div>
+                <div><div class="label">Correo Electrónico:</div><div class="value">${emailPrint}</div></div>
+                <div><div class="label">Teléfono:</div><div class="value">${telPrint}</div></div>
+                <div style="grid-column: 1 / -1;"><div class="label">Domicilio:</div><div class="value">${dirPrint} (${distPrint} - ${depPrint})</div></div>
               </div>
             </div>
 
             <div class="section">
               <div class="section-title">2. Identificación del Bien Contratado</div>
               <div class="grid-3">
-                <div><div class="label">Tipo de Bien:</div><div class="value">${r.tipo_bien || 'Producto'}</div></div>
-                <div><div class="label">Monto Reclamado:</div><div class="value" style="color: #C85A32;">S/. ${parseFloat(r.monto_reclamado || 0).toFixed(2)}</div></div>
-                <div><div class="label">Descripción:</div><div class="value">${r.descripcion_bien || '—'}</div></div>
+                <div><div class="label">Tipo de Bien:</div><div class="value">${tipoBienPrint}</div></div>
+                <div><div class="label">Monto Reclamado:</div><div class="value" style="color: #C85A32;">S/. ${montoPrint}</div></div>
+                <div><div class="label">Descripción:</div><div class="value">${descBienPrint}</div></div>
               </div>
             </div>
 
             <div class="section">
               <div class="section-title">3. Detalle de la Reclamación y Pedido del Consumidor</div>
-              <div style="margin-bottom: 8px;"><div class="label">Detalle de los hechos expuestos:</div><div class="box-text">${r.detalle_reclamacion || '—'}</div></div>
-              <div><div class="label">Pedido concreto del consumidor:</div><div class="box-text" style="background: #fefce8; border-color: #fef08a;">${r.pedido_consumidor || '—'}</div></div>
+              <div style="margin-bottom: 8px;"><div class="label">Detalle de los hechos expuestos:</div><div class="box-text">${detallePrint}</div></div>
+              <div><div class="label">Pedido concreto del consumidor:</div><div class="box-text" style="background: #fefce8; border-color: #fef08a;">${pedidoPrint}</div></div>
             </div>
 
             <div class="section">
               <div class="section-title">4. Acciones Adoptadas y Respuesta Oficial del Proveedor</div>
-              <div style="margin-bottom: 6px;"><div class="label">Respuesta fundamentada (Ley N° 31435):</div><div class="box-text" style="background: #f0fdf4; border-color: #bbf7d0;">${r.respuesta_proveedor || 'En proceso de evaluación legal dentro del plazo de 15 días hábiles establecido por el Código de Protección y Defensa del Consumidor.'}</div></div>
+              <div style="margin-bottom: 6px;"><div class="label">Respuesta fundamentada (Ley N° 31435):</div><div class="box-text" style="background: #f0fdf4; border-color: #bbf7d0;">${respPrint}</div></div>
               <div class="grid">
-                <div><div class="label">Estado actual:</div><div class="value">${r.estado || 'Pendiente'}</div></div>
-                <div><div class="label">Fecha de Respuesta:</div><div class="value">${r.fecha_respuesta || 'Pendiente de emisión'}</div></div>
+                <div><div class="label">Estado actual:</div><div class="value">${estadoPrint}</div></div>
+                <div><div class="label">Fecha de Respuesta:</div><div class="value">${fechaRespPrint}</div></div>
               </div>
             </div>
 
@@ -4183,18 +4307,22 @@
           if (res && res.success && Array.isArray(res.data)) {
             this.cotizaciones = res.data;
             this.updateCotizacionesStats(res.stats);
-            this.renderCotizaciones(this.cotizaciones);
           } else if (Array.isArray(res)) {
             this.cotizaciones = res;
             this.updateCotizacionesStats();
-            this.renderCotizaciones(this.cotizaciones);
           } else {
             this.cotizaciones = [];
-            this.renderCotizaciones([]);
           }
+          // Purgar IDs seleccionados que ya no existan
+          const existingIds = new Set(this.cotizaciones.map(c => Number(c.id)));
+          for (const id of this.selectedCotizaciones) {
+            if (!existingIds.has(id)) this.selectedCotizaciones.delete(id);
+          }
+          this.renderCotizaciones(this.cotizaciones);
         } catch (e) {
           console.error('Error cargando cotizaciones:', e);
           this.cotizaciones = [];
+          this.selectedCotizaciones.clear();
           this.renderCotizaciones([]);
         }
       },
@@ -4238,6 +4366,7 @@
       },
 
       renderCotizaciones(list) {
+        this.currentRenderedCotizaciones = list || [];
         const tbody = document.getElementById('adminCotizacionesTableBody');
         const mobileContainer = document.getElementById('adminCotizacionesMobileContainer');
         const badge = document.getElementById('adminCotizCountBadge');
@@ -4247,7 +4376,7 @@
           if (tbody) {
             tbody.innerHTML = `
               <tr>
-                <td colspan="8" class="py-12 text-center text-stone-400">
+                <td colspan="9" class="py-12 text-center text-stone-400">
                   <p class="font-medium text-xs">No se encontraron cotizaciones registradas.</p>
                 </td>
               </tr>
@@ -4260,19 +4389,20 @@
               </div>
             `;
           }
+          this.updateCotizacionesSelectionUI();
           return;
         }
 
         // Render Desktop Table
         if (tbody) {
           tbody.innerHTML = list.map((c, index) => {
-            const code = c.codigo_cotizacion || c.codigo || ('COT-' + c.id);
-            const cliente = c.cliente_nombre || c.nombre_cliente || 'Cliente General';
-            const doc = c.cliente_doc || c.documento || '—';
-            const tel = c.cliente_telefono || c.telefono || '';
-            const cleanPhone = tel.replace(/[^0-9]/g, '');
-            const destino = (c.destino || c.departamento || c.ciudad || 'Lima');
-            const comprobante = c.tipo_comprobante || 'Factura';
+            const code = this.escapeHtml(c.codigo_cotizacion || c.codigo || ('COT-' + c.id));
+            const cliente = this.escapeHtml(c.cliente_nombre || c.nombre_cliente || 'Cliente General');
+            const doc = this.escapeHtml(c.cliente_doc || c.documento || '—');
+            const tel = this.escapeHtml(c.cliente_telefono || c.telefono || '');
+            const cleanPhone = (c.cliente_telefono || c.telefono || '').replace(/[^0-9]/g, '');
+            const destino = this.escapeHtml(c.destino || c.departamento || c.ciudad || 'Lima');
+            const comprobante = this.escapeHtml(c.tipo_comprobante || 'Factura');
             
             let itemsCount = 0;
             let itemsList = [];
@@ -4283,18 +4413,16 @@
               itemsCount = 0;
             }
 
-            const estado = c.estado || 'Pendiente';
-            let estadoColor = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-800/40';
-            if (estado === 'En Contacto') estadoColor = 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200 dark:border-blue-800/40';
-            else if (estado === 'Cotizado') estadoColor = 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border-purple-200 dark:border-purple-800/40';
-            else if (estado === 'Atendido' || estado === 'Despachado') estadoColor = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40';
-            else if (estado === 'Cancelado') estadoColor = 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border-rose-200 dark:border-rose-800/40';
-
-            const fechaStr = (c.creado_en || '').slice(0, 10);
-            const safeId = c.id;
+            const estado = this.escapeHtml(c.estado || 'Pendiente');
+            const fechaStr = this.escapeHtml((c.creado_en || '').slice(0, 10));
+            const safeId = parseInt(c.id, 10) || 0;
+            const isSelected = this.selectedCotizaciones.has(Number(safeId));
 
             return `
-              <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
+              <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''} ${isSelected ? 'bg-brand-orange/5 dark:bg-brand-orange/10' : ''}">
+                <td class="py-3 px-3 text-center" onclick="event.stopPropagation()">
+                  <input type="checkbox" class="cotiz-row-checkbox rounded border-stone-600 text-brand-orange focus:ring-brand-orange cursor-pointer" value="${safeId}" ${isSelected ? 'checked' : ''} onchange="Admin.onCotizacionCheckboxChange(${safeId}, this.checked)">
+                </td>
                 <td class="py-3 px-4 font-mono font-bold text-slate-700 dark:text-slate-300 text-xs">
                   ${code}
                 </td>
@@ -4304,7 +4432,7 @@
                     <div class="flex items-center gap-1.5 mt-0.5">
                       <span class="text-[10px] text-slate-400">${tel || 'Sin teléfono'}</span>
                       ${cleanPhone.length >= 9 ? `
-                        <a href="https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + cliente + ', respecto a su cotización ' + code + ' en Descartables Peruanos:')}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 p-0.5" title="WhatsApp">
+                        <a href="https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + (c.cliente_nombre || c.nombre_cliente || '') + ', respecto a su cotización ' + (c.codigo_cotizacion || c.codigo || '') + ' en Descartables Peruanos:')}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 p-0.5" title="WhatsApp">
                           <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
                         </a>
                       ` : ''}
@@ -4326,7 +4454,7 @@
                   </span>
                 </td>
                 <td class="py-3 px-3 text-center">
-                  <select onchange="Admin.changeCotizacionStatus(${safeId}, this.value)" class="px-2 py-0.5 rounded text-[10px] font-semibold border ${estadoColor} admin-input focus:outline-none cursor-pointer">
+                  <select onchange="Admin.changeCotizacionStatus(${safeId}, this.value)" class="px-2 py-1 rounded-lg text-[10px] font-semibold admin-input focus:outline-none cursor-pointer">
                     <option value="Pendiente" ${estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                     <option value="En Contacto" ${estado === 'En Contacto' ? 'selected' : ''}>En Contacto</option>
                     <option value="Cotizado" ${estado === 'Cotizado' ? 'selected' : ''}>Cotizado</option>
@@ -4356,13 +4484,13 @@
         // Render Mobile Cards
         if (mobileContainer) {
           mobileContainer.innerHTML = list.map(c => {
-            const code = c.codigo_cotizacion || c.codigo || ('COT-' + c.id);
-            const cliente = c.cliente_nombre || c.nombre_cliente || 'Cliente General';
-            const doc = c.cliente_doc || c.documento || '—';
-            const tel = c.cliente_telefono || c.telefono || '';
-            const cleanPhone = tel.replace(/[^0-9]/g, '');
-            const destino = (c.destino || c.departamento || c.ciudad || 'Lima');
-            const comprobante = c.tipo_comprobante || 'Factura';
+            const code = this.escapeHtml(c.codigo_cotizacion || c.codigo || ('COT-' + c.id));
+            const cliente = this.escapeHtml(c.cliente_nombre || c.nombre_cliente || 'Cliente General');
+            const doc = this.escapeHtml(c.cliente_doc || c.documento || '—');
+            const tel = this.escapeHtml(c.cliente_telefono || c.telefono || '');
+            const cleanPhone = (c.cliente_telefono || c.telefono || '').replace(/[^0-9]/g, '');
+            const destino = this.escapeHtml(c.destino || c.departamento || c.ciudad || 'Lima');
+            const comprobante = this.escapeHtml(c.tipo_comprobante || 'Factura');
             
             let itemsCount = 0;
             let itemsList = [];
@@ -4373,23 +4501,21 @@
               itemsCount = 0;
             }
 
-            const estado = c.estado || 'Pendiente';
-            let estadoColor = 'bg-amber-500/15 text-amber-400 border-amber-500/30';
-            if (estado === 'En Contacto') estadoColor = 'bg-blue-500/15 text-blue-400 border-blue-500/30';
-            else if (estado === 'Cotizado') estadoColor = 'bg-purple-500/15 text-purple-400 border-purple-500/30';
-            else if (estado === 'Atendido' || estado === 'Despachado') estadoColor = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
-            else if (estado === 'Cancelado') estadoColor = 'bg-rose-500/15 text-rose-400 border-rose-500/30';
-
-            const fechaStr = (c.creado_en || '').slice(0, 10);
-            const safeId = c.id;
+            const estado = this.escapeHtml(c.estado || 'Pendiente');
+            const fechaStr = this.escapeHtml((c.creado_en || '').slice(0, 10));
+            const safeId = parseInt(c.id, 10) || 0;
+            const isSelected = this.selectedCotizaciones.has(Number(safeId));
 
             return `
-              <div class="pt-3 first:pt-0 space-y-2.5">
+              <div class="pt-3 first:pt-0 space-y-2.5 ${isSelected ? 'bg-brand-orange/5 dark:bg-brand-orange/10 p-2.5 rounded-2xl' : ''}">
                 <div class="flex items-start justify-between gap-2">
-                  <div>
-                    <span class="font-mono font-bold text-brand-orange text-xs">${code}</span>
-                    <p class="font-bold text-xs mt-0.5 leading-snug">${cliente}</p>
-                    <p class="text-[10px] text-stone-400">${doc} • ${destino} • ${fechaStr}</p>
+                  <div class="flex items-start gap-2.5">
+                    <input type="checkbox" class="cotiz-row-checkbox mt-1 rounded border-stone-600 text-brand-orange focus:ring-brand-orange cursor-pointer" value="${safeId}" ${isSelected ? 'checked' : ''} onchange="Admin.onCotizacionCheckboxChange(${safeId}, this.checked)">
+                    <div>
+                      <span class="font-mono font-bold text-brand-orange text-xs">${code}</span>
+                      <p class="font-bold text-xs mt-0.5 leading-snug">${cliente}</p>
+                      <p class="text-[10px] text-stone-400">${doc} • ${destino} • ${fechaStr}</p>
+                    </div>
                   </div>
                   <div class="flex flex-col items-end gap-1 flex-shrink-0">
                     <span class="px-2 py-0.5 rounded-full admin-card-inner font-bold text-[10px]">
@@ -4403,7 +4529,7 @@
 
                 <div class="flex items-center justify-between gap-2 admin-card-inner p-2.5 rounded-xl border" style="border-color: var(--admin-border);">
                   <span class="text-[10px] font-bold text-stone-400 uppercase">Estado:</span>
-                  <select onchange="Admin.changeCotizacionStatus(${safeId}, this.value)" class="px-2 py-1 rounded-xl text-[10px] font-bold border ${estadoColor} admin-input focus:outline-none cursor-pointer">
+                  <select onchange="Admin.changeCotizacionStatus(${safeId}, this.value)" class="px-2 py-1 rounded-xl text-[10px] font-bold admin-input focus:outline-none cursor-pointer">
                     <option value="Pendiente" ${estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                     <option value="En Contacto" ${estado === 'En Contacto' ? 'selected' : ''}>En Contacto</option>
                     <option value="Cotizado" ${estado === 'Cotizado' ? 'selected' : ''}>Cotizado</option>
@@ -4434,6 +4560,93 @@
               </div>
             `;
           }).join('');
+        }
+        this.updateCotizacionesSelectionUI();
+      },
+
+      toggleSelectAllCotizaciones(checked) {
+        const currentList = this.currentRenderedCotizaciones || this.cotizaciones || [];
+        if (checked) {
+          currentList.forEach(c => {
+            if (c.id) this.selectedCotizaciones.add(Number(c.id));
+          });
+        } else {
+          this.selectedCotizaciones.clear();
+        }
+        this.updateCotizacionesSelectionUI();
+      },
+
+      onCotizacionCheckboxChange(id, checked) {
+        id = Number(id);
+        if (checked) {
+          this.selectedCotizaciones.add(id);
+        } else {
+          this.selectedCotizaciones.delete(id);
+        }
+        this.updateCotizacionesSelectionUI();
+      },
+
+      clearSelectedCotizaciones() {
+        this.selectedCotizaciones.clear();
+        this.updateCotizacionesSelectionUI();
+      },
+
+      updateCotizacionesSelectionUI() {
+        const count = this.selectedCotizaciones.size;
+        const bar = document.getElementById('adminCotizBatchActionsBar');
+        const countEl = document.getElementById('adminCotizSelectedCount');
+        const selectAll = document.getElementById('selectAllCotizaciones');
+
+        if (bar) {
+          if (count > 0) {
+            bar.classList.remove('hidden');
+            bar.classList.add('flex');
+          } else {
+            bar.classList.add('hidden');
+            bar.classList.remove('flex');
+          }
+        }
+        if (countEl) countEl.textContent = count;
+
+        document.querySelectorAll('.cotiz-row-checkbox').forEach(cb => {
+          const id = Number(cb.value);
+          cb.checked = this.selectedCotizaciones.has(id);
+        });
+
+        const currentList = this.currentRenderedCotizaciones || this.cotizaciones || [];
+        if (selectAll) {
+          selectAll.checked = currentList.length > 0 && currentList.every(c => this.selectedCotizaciones.has(Number(c.id)));
+          selectAll.indeterminate = count > 0 && !selectAll.checked;
+        }
+      },
+
+      async deleteSelectedCotizaciones() {
+        const ids = Array.from(this.selectedCotizaciones);
+        if (ids.length === 0) return;
+
+        const count = ids.length;
+        const confirmed = await ConfirmDialog.show({
+          title: `Eliminar ${count} cotización(es)`,
+          subtitle: 'Esta acción no se puede deshacer',
+          message: `¿Estás seguro de eliminar las <b>${count}</b> cotización(es) seleccionadas? También se eliminarán de la vista de sus respectivos clientes.`,
+          confirmText: `Sí, eliminar ${count} cotización(es)`,
+          cancelText: 'Cancelar',
+          type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        try {
+          const res = await ApiService.deleteCotizacion(ids);
+          if (res.success) {
+            Toast.success(`${count} cotización(es) eliminada(s) correctamente.`);
+            this.selectedCotizaciones.clear();
+            await this.loadCotizaciones();
+          } else {
+            Toast.error(res.error || 'No se pudieron eliminar las cotizaciones.');
+          }
+        } catch (e) {
+          Toast.error('Error al procesar la eliminación masiva.');
         }
       },
 
@@ -4517,15 +4730,21 @@
           if (items.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-stone-400">Sin ítems detallados</td></tr>`;
           } else {
-            tbody.innerHTML = items.map((it, idx) => `
+            tbody.innerHTML = items.map((it, idx) => {
+              const sku = this.escapeHtml(it.sku || '—');
+              const nombre = this.escapeHtml(it.nombre || 'Producto');
+              const presentacion = this.escapeHtml(it.presentacion || '—');
+              const cantidad = parseInt(it.cantidad, 10) || 1;
+              return `
               <tr class="hover:bg-white/5 transition-colors">
                 <td class="py-2.5 px-3 text-center font-bold text-stone-400">${idx + 1}</td>
-                <td class="py-2.5 px-3 font-mono font-bold text-brand-orange text-[11px]">${it.sku || '—'}</td>
-                <td class="py-2.5 px-4 font-bold">${it.nombre || 'Producto'}</td>
-                <td class="py-2.5 px-3 text-stone-400">${it.presentacion || '—'}</td>
-                <td class="py-2.5 px-3 text-center font-bold admin-card-inner rounded-lg">${it.cantidad || 1}</td>
+                <td class="py-2.5 px-3 font-mono font-bold text-brand-orange text-[11px]">${sku}</td>
+                <td class="py-2.5 px-4 font-bold">${nombre}</td>
+                <td class="py-2.5 px-3 text-stone-400">${presentacion}</td>
+                <td class="py-2.5 px-3 text-center font-bold admin-card-inner rounded-lg">${cantidad}</td>
               </tr>
-            `).join('');
+              `;
+            }).join('');
           }
         }
 
@@ -4577,6 +4796,7 @@
           const res = await ApiService.deleteCotizacion(id);
           if (res.success) {
             Toast.success('Cotización eliminada correctamente.');
+            this.selectedCotizaciones.delete(Number(id));
             await this.loadCotizaciones();
           } else {
             Toast.error(res.error || 'No se pudo eliminar la cotización.');
@@ -4716,10 +4936,25 @@
           .replace(/Â°/g, '°');
       },
 
+      // Sanitización anti-XSS para renderizado dinámico en HTML
+      escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      },
+
       // ================= EXPORTADOR NATIVO EXCEL (.XLS / UTF-8) =================
       downloadCSV(filename, headers, rows, sheetName = 'Datos') {
         const cleanVal = (val) => {
           let str = this.cleanText(String(val ?? ''));
+          // Mitigación estricta de Formula Injection (CSV / Excel Injection: =, +, -, @)
+          if (/^[\=\+\-\@]/.test(str)) {
+            str = "'" + str;
+          }
           return str
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')

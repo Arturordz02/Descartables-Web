@@ -10,3 +10,12 @@ desktop.ini
 node_modules/
 vendor/
 
+# Archivos de configuración con contraseñas privadas (NUNCA subir a Git)
+api/secrets.php
+api/vault.local.php
+.env
+.env.*
+*.local.php
+scratch/
+
+

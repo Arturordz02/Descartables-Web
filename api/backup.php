@@ -25,39 +25,9 @@ if ($method !== 'GET' && $method !== 'POST') {
 
 $pdo = getDbConnection();
 
-// ================= 1. VALIDACIÓN DE SEGURIDAD (ADMIN ONLY) =================
-$adminId = isset($_REQUEST['admin_id']) ? intval($_REQUEST['admin_id']) : null;
-$adminDoc = isset($_REQUEST['admin_doc']) ? trim($_REQUEST['admin_doc']) : null;
-$adminEmail = isset($_REQUEST['admin_email']) ? trim($_REQUEST['admin_email']) : null;
-
-// Validar en la base de datos si el solicitante es Administrador
-$isAuthorized = false;
-$adminUser = null;
-
-if ($adminId) {
-    $stmtAuth = $pdo->prepare("SELECT id, nombre_razon_social, email, rol, tipo_documento, numero_documento FROM usuarios WHERE id = ? AND rol = 'admin' LIMIT 1");
-    $stmtAuth->execute([$adminId]);
-    $adminUser = $stmtAuth->fetch();
-    if ($adminUser) {
-        $isAuthorized = true;
-    }
-} elseif ($adminDoc || $adminEmail) {
-    $stmtAuth = $pdo->prepare("SELECT id, nombre_razon_social, email, rol, tipo_documento, numero_documento FROM usuarios WHERE (numero_documento = ? OR LOWER(email) = LOWER(?)) AND rol = 'admin' LIMIT 1");
-    $stmtAuth->execute([$adminDoc ?: '', $adminEmail ?: '']);
-    $adminUser = $stmtAuth->fetch();
-    if ($adminUser) {
-        $isAuthorized = true;
-    }
-} else {
-    // Si no se envió identificador explícito, comprobar si existe un usuario admin en el sistema
-    $stmtMaster = $pdo->query("SELECT id, nombre_razon_social, email, rol FROM usuarios WHERE rol = 'admin' LIMIT 1");
-    $adminUser = $stmtMaster->fetch();
-    if ($adminUser) {
-        $isAuthorized = true;
-    }
-}
-
-if (!$isAuthorized) {
+// ================= 1. VALIDACIÓN DE SEGURIDAD ESTRICTA (ADMIN ONLY) =================
+$adminUser = class_exists('Vault') ? Vault::requireAdmin() : null;
+if (!$adminUser) {
     http_response_code(403);
     echo json_encode([
         'success' => false,
@@ -112,7 +82,7 @@ try {
     // 2.4 Directorio de Usuarios (Clientes y Admins)
     $usuarios = [];
     try {
-        $stmtUsers = $pdo->query("SELECT id, tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol, creado_en FROM usuarios ORDER BY id ASC");
+        $stmtUsers = $pdo->query("SELECT id, tipo_documento, numero_documento, nombre_razon_social, email, telefono, departamento, provincia, distrito, direccion, rol, creado_en FROM usuarios ORDER BY id ASC");
         $usuarios = $stmtUsers->fetchAll();
     } catch (Exception $e) {
         $usuarios = [];

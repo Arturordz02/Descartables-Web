@@ -128,7 +128,11 @@ if ($method === 'GET') {
         exit();
     }
 
-    // Listado general para Panel Administrativo
+    // Listado general para Panel Administrativo: Requiere autorización de Administrador
+    if (class_exists('Vault')) {
+        Vault::requireAdmin();
+    }
+
     $stmt = $pdo->query("SELECT * FROM libro_reclamaciones ORDER BY id DESC");
     $resultados = $stmt->fetchAll();
 
@@ -136,20 +140,21 @@ if ($method === 'GET') {
     $stmtStats = $pdo->query("
         SELECT 
             COUNT(*) as total,
-            SUM(CASE WHEN estado = 'Pendiente' THEN 1 ELSE 0 END) as pendientes,
-            SUM(CASE WHEN estado = 'En Proceso' THEN 1 ELSE 0 END) as en_proceso,
-            SUM(CASE WHEN estado = 'Atendido' THEN 1 ELSE 0 END) as atendidos,
-            SUM(CASE WHEN tipo_reclamacion = 'Reclamo' THEN 1 ELSE 0 END) as reclamos,
-            SUM(CASE WHEN tipo_reclamacion = 'Queja' THEN 1 ELSE 0 END) as quejas
+            COALESCE(SUM(CASE WHEN estado = 'Pendiente' THEN 1 ELSE 0 END), 0) as pendientes,
+            COALESCE(SUM(CASE WHEN estado = 'En Proceso' THEN 1 ELSE 0 END), 0) as en_proceso,
+            COALESCE(SUM(CASE WHEN estado = 'Atendido' THEN 1 ELSE 0 END), 0) as atendidos,
+            COALESCE(SUM(CASE WHEN tipo_reclamacion = 'Reclamo' THEN 1 ELSE 0 END), 0) as reclamos,
+            COALESCE(SUM(CASE WHEN tipo_reclamacion = 'Queja' THEN 1 ELSE 0 END), 0) as quejas
         FROM libro_reclamaciones
     ");
-    $stats = $stmtStats->fetch() ?: [
-        'total' => count($resultados),
-        'pendientes' => 0,
-        'en_proceso' => 0,
-        'atendidos' => 0,
-        'reclamos' => 0,
-        'quejas' => 0
+    $rawStats = $stmtStats->fetch() ?: [];
+    $stats = [
+        'total'      => (int)($rawStats['total'] ?? count($resultados)),
+        'pendientes' => (int)($rawStats['pendientes'] ?? 0),
+        'en_proceso' => (int)($rawStats['en_proceso'] ?? 0),
+        'atendidos'  => (int)($rawStats['atendidos'] ?? 0),
+        'reclamos'   => (int)($rawStats['reclamos'] ?? 0),
+        'quejas'     => (int)($rawStats['quejas'] ?? 0)
     ];
 
     echo json_encode([
@@ -162,6 +167,11 @@ if ($method === 'GET') {
 }
 
 if ($method === 'PUT') {
+    // Solo un administrador puede actualizar el estado o respuesta de una reclamación
+    if (class_exists('Vault')) {
+        Vault::requireAdmin();
+    }
+
     $inputJSON = file_get_contents('php://input');
     $data = json_decode($inputJSON, true);
 

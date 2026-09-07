@@ -142,6 +142,10 @@ const Carrito = {
     });
   },
 
+  updateBadge() {
+    this.updateBadges();
+  },
+
   renderDrawerMarkup() {
     if (document.getElementById('cartDrawerContainer')) return;
 
@@ -444,8 +448,9 @@ const Carrito = {
       let activeUser = null;
       try { activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null'); } catch (e) {}
 
-      if (window.ApiService && typeof ApiService.saveCotizacion === 'function') {
-        const res = await ApiService.saveCotizacion({
+      const api = (typeof ApiService !== 'undefined' ? ApiService : window.ApiService) || null;
+      if (api && typeof api.saveCotizacion === 'function') {
+        const res = await api.saveCotizacion({
           usuario_id: activeUser?.id || null,
           documento: doc,
           cliente_doc: doc,
@@ -461,13 +466,41 @@ const Carrito = {
           items: this.items
         });
 
-        if (res && res.codigo_cotizacion) {
+        if (res && res.success && res.codigo_cotizacion) {
           quoteCode = res.codigo_cotizacion;
           this.lastQuoteCode = quoteCode;
+
+          // Limpiar carrito tras cotización exitosa
+          this.items = [];
+          this.saveToStorage();
+          this.renderCartItems();
+          this.updateBadges();
+
+          if (window.Toast) {
+            Toast.success(`¡Cotización ${quoteCode} registrada con éxito en el sistema!`);
+          }
+          this.closeDrawer();
+          this.openFormalQuoteModal(quoteCode);
+
+          if (typeof Auth !== 'undefined' && typeof Auth.renderHistorialCotizaciones === 'function') {
+            Auth.renderHistorialCotizaciones();
+          }
+          return;
+        } else if (res && !res.success) {
+          const errMsg = res.error || 'Error al procesar la cotización en el servidor.';
+          console.error('Fallo en cotización:', errMsg);
+          if (window.Toast) {
+            Toast.error('Error al registrar: ' + errMsg);
+          }
+          return;
         }
       }
     } catch (err) {
-      console.warn('Error al registrar cotización en sistema:', err);
+      console.error('Error al registrar cotización en sistema:', err);
+      if (window.Toast) {
+        Toast.error('Error de comunicación: ' + (err.message || 'Fallo de red'));
+      }
+      return;
     } finally {
       if (btnSubmit) {
         btnSubmit.disabled = false;
@@ -475,12 +508,17 @@ const Carrito = {
       }
     }
 
-    if (window.Toast) {
-      Toast.success(quoteCode ? `¡Cotización ${quoteCode} registrada con éxito en el sistema!` : '¡Cotización registrada con éxito!');
+    if (quoteCode) {
+      if (window.Toast) {
+        Toast.success(`¡Cotización ${quoteCode} registrada con éxito en el sistema!`);
+      }
+      this.closeDrawer();
+      this.openFormalQuoteModal(quoteCode);
+    } else {
+      if (window.Toast) {
+        Toast.error('No se pudo registrar la cotización. Por favor revise sus datos.');
+      }
     }
-
-    this.closeDrawer();
-    this.openFormalQuoteModal(quoteCode);
   },
 
   // Acción 2: Comunícate con nosotros (WhatsApp directo, ÚNICAMENTE para Empresas/RUC)

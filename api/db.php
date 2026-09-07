@@ -175,14 +175,11 @@ function ensureDatabaseInitialized($pdo) {
                 $checkStmt->execute([$adm['email'], $adm['doc']]);
                 $existing = $checkStmt->fetch();
 
-                $passHash = class_exists('Vault') ? Vault::hashPassword($adm['pass_raw']) : password_hash($adm['pass_raw'], PASSWORD_BCRYPT);
+                $passHash = $adm['pass_hash'] ?? ($adm['password'] ?? '');
 
-                if (!$existing) {
+                if (!$existing && !empty($passHash)) {
                     $insertStmt = $pdo->prepare("INSERT INTO usuarios (tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol) VALUES (?, ?, ?, ?, ?, ?, 'Lima', 'Lima', 'Cercado de Lima', ?, 'admin')");
                     $insertStmt->execute([$adm['tipo_doc'], $adm['doc'], $adm['nombre'], $adm['email'], $passHash, $adm['telefono'], $adm['direccion']]);
-                } else {
-                    $updateStmt = $pdo->prepare("UPDATE usuarios SET nombre_razon_social = ?, password = ?, rol = 'admin' WHERE id = ?");
-                    $updateStmt->execute([$adm['nombre'], $passHash, $existing['id']]);
                 }
             } catch (Exception $e) {}
         }
@@ -192,7 +189,7 @@ function ensureDatabaseInitialized($pdo) {
             $checkClient = $pdo->prepare("SELECT id FROM usuarios WHERE LOWER(email) = LOWER(?)");
             $checkClient->execute(['cliente@demo.pe']);
             if (!$checkClient->fetch()) {
-                $clientHash = password_hash('password123', PASSWORD_BCRYPT);
+                $clientHash = password_hash('Cliente@Demo2026!', PASSWORD_BCRYPT);
                 $stmtClient = $pdo->prepare("INSERT INTO usuarios (tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol) VALUES ('RUC', '20554433221', 'EMPRESA GASTRONÓMICA PERÚ S.A.C.', 'cliente@demo.pe', ?, '900000002', 'Lima', 'Lima', 'Miraflores', 'Av. José Larco 450', 'cliente')");
                 $stmtClient->execute([$clientHash]);
             }
