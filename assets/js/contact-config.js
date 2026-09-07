@@ -23,18 +23,18 @@ const COMPANY_CONTACT = {
   },
 
   whatsapp: {
-    principal: "+51 994 195 430",
-    principal_raw: "51994195430",
-    url_principal: "https://wa.me/51994195430",
-    secundario: "+51 994 009 692",
-    secundario_raw: "51994009692",
-    url_secundario: "https://wa.me/51994009692"
+    principal: "+51 900 000 000",
+    principal_raw: "51900000000",
+    url_principal: "https://wa.me/51900000000",
+    secundario: "+51 900 000 002",
+    secundario_raw: "51900000002",
+    url_secundario: "https://wa.me/51900000002"
   },
 
   telefonos: {
-    central: "(01) 564-1450",
-    central_raw: "015641450",
-    tel_link: "tel:+5115641450"
+    central: "(01) 000-0000",
+    central_raw: "010000000",
+    tel_link: "tel:+5110000000"
   },
 
   emails: {

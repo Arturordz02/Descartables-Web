@@ -1,11 +1,11 @@
 /**
  * Carrito Flotante de Cotización e Integración con WhatsApp Business
- * Plataforma Descartables Peruanos (+51 994 195 430)
+ * Plataforma Descartables Peruanos (+51 900 000 000)
  */
 
 const Carrito = {
   items: [],
-  whatsappNumber: '51994195430',
+  whatsappNumber: '51900000000',
 
   init() {
     this.loadFromStorage();
@@ -523,7 +523,7 @@ const Carrito = {
               </div>
               <p class="text-[11px] text-[#574B46] pt-1 leading-relaxed">
                 <strong>Domicilio Fiscal:</strong> Av. Alejandro Bertello 732-C, Cercado de Lima, Lima - Perú<br>
-                <strong>Central Telefónica:</strong> (01) 564-1450 | <strong>WhatsApp Ventas:</strong> +51 994 195 430<br>
+                <strong>Central Telefónica:</strong> (01) 000-0000 | <strong>WhatsApp Ventas:</strong> +51 900 000 000<br>
                 <strong>Correo Corporativo:</strong> ventas@descartablesperuanos.pe | <strong>Web:</strong> www.descartablesperuanos.pe
               </p>
             </div>
@@ -620,7 +620,7 @@ const Carrito = {
                 <strong>BCP Cta. Cte. Soles:</strong> 193-2645890-0-45<br>
                 <strong>CCI Interbancario:</strong> 002-19300264589004502<br>
                 <strong>BBVA Cta. Cte. Soles:</strong> 0011-0175-0100054890<br>
-                <strong>Billeteras Digitales:</strong> Yape / Plin al <strong>+51 994 195 430</strong>
+                <strong>Billeteras Digitales:</strong> Yape / Plin al <strong>+51 900 000 000</strong>
               </p>
             </div>
 

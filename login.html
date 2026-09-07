@@ -83,12 +83,6 @@
         <p class="text-xs text-espresso-muted">Ingresa con tu correo o número de DNI / RUC registrado.</p>
       </div>
 
-      <!-- Indicador en Vivo de Conexión con Base de Datos MySQL -->
-      <div id="backendStatusBadge" class="p-2 rounded-xl text-center text-[11px] bg-warm-sand text-espresso-muted flex items-center justify-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-        <span>Comprobando conexión con MySQL (XAMPP)...</span>
-      </div>
-
       <!-- Alerta de Error -->
       <div id="loginErrorBox" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 text-center"></div>
 
@@ -101,7 +95,7 @@
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-bold text-espresso">Contraseña *</label>
-            <a href="#" onclick="Toast.info('Comuníquese a la central (01) 564-1450 o WhatsApp +51 994 195 430 para restablecer sus accesos corporativos.', 5000); return false;" class="text-[11px] text-terracota hover:underline cursor-pointer">¿Olvidaste tu clave?</a>
+            <a href="#" onclick="Toast.info('Comuníquese a la central de atención para restablecer sus accesos corporativos.', 5000); return false;" class="text-[11px] text-terracota hover:underline cursor-pointer">¿Olvidaste tu clave?</a>
           </div>
           <div class="relative flex items-center">
             <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full bg-warm-cream border border-warm-border rounded-xl px-4 py-3 pr-11 text-xs text-espresso focus:outline-none focus:border-terracota">
@@ -118,23 +112,6 @@
           <span>Iniciar Sesión</span>
         </button>
       </form>
-
-      <!-- Cuenta de prueba sugerida con botones 1-click -->
-      <div class="p-3 bg-warm-sand rounded-2xl text-[11px] text-espresso-muted space-y-2 border border-warm-border/60">
-        <p class="font-bold text-espresso">Accesos de Prueba / Demostración:</p>
-        <p class="leading-relaxed">
-          • Master Admin: <code class="font-mono text-terracota font-bold">arturo@admin.ad</code><br>
-          • Cliente Demo: <code class="font-mono text-terracota font-bold">cliente@demo.pe</code><br>
-        </p>
-        <div class="flex items-center gap-2 pt-1">
-          <button type="button" onclick="document.getElementById('loginIdentificador').value='arturo@admin.ad'; document.getElementById('loginPassword').value='Arturo@Admin2026!';" class="px-2.5 py-1 bg-white hover:bg-stone-100 rounded-lg border border-warm-border font-bold text-[10px] text-espresso transition-colors">
-            Cargar Admin (Arturo)
-          </button>
-          <button type="button" onclick="document.getElementById('loginIdentificador').value='cliente@demo.pe'; document.getElementById('loginPassword').value='password123';" class="px-2.5 py-1 bg-white hover:bg-stone-100 rounded-lg border border-warm-border font-bold text-[10px] text-espresso transition-colors">
-            Cargar Cliente Demo
-          </button>
-        </div>
-      </div>
 
       <div class="text-center pt-2">
         <p class="text-xs text-espresso-muted">

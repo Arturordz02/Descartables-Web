@@ -358,7 +358,7 @@ const ApiService = {
         razon_social: 'DESCARTABLES PERUANOS S.A.C.',
         ruc: '20601234567',
         direccion: 'Av. Alejandro Bertello 732-C, Cercado de Lima',
-        telefono: '(01) 564-1450',
+        telefono: '(01) 000-0000',
         email: 'ventas@descartablesperuanos.pe'
       },
       plazo_legal: '15 días hábiles conforme a la Ley N° 31435 que modifica el Código de Protección y Defensa del Consumidor.'
@@ -507,7 +507,7 @@ const ApiService = {
         nombre_razon_social: 'Arturo (Master Admin)',
         email: 'arturo@admin.ad',
         password: 'Arturo@Admin2026!',
-        telefono: '994195430',
+        telefono: '900000000',
         departamento: 'Lima',
         provincia: 'Lima',
         distrito: 'Cercado de Lima',
@@ -521,7 +521,7 @@ const ApiService = {
         nombre_razon_social: 'Britney (Master Admin)',
         email: 'britney@admin.ad',
         password: 'Britney@Admin2026!',
-        telefono: '994009692',
+        telefono: '900000002',
         departamento: 'Lima',
         provincia: 'Lima',
         distrito: 'Cercado de Lima',
@@ -535,7 +535,7 @@ const ApiService = {
         nombre_razon_social: 'Lenin (Master Admin)',
         email: 'lenin@admin.ad',
         password: 'Lenin@Admin2026!',
-        telefono: '994009692',
+        telefono: '900000002',
         departamento: 'Lima',
         provincia: 'Lima',
         distrito: 'Cercado de Lima',
@@ -561,7 +561,7 @@ const ApiService = {
         nombre_razon_social: 'EMPRESA GASTRONÓMICA PERÚ S.A.C.',
         email: 'cliente@demo.pe',
         password: 'password123',
-        telefono: '994195430',
+        telefono: '900000000',
         departamento: 'Lima',
         provincia: 'Lima',
         distrito: 'Miraflores',
@@ -1032,9 +1032,9 @@ const ApiService = {
     // Modo Local / Fallback Offline
     const flat = configData.flat || configData;
     const enableRedirects = (flat.enable_redirects === 'true' || flat.enable_redirects === true || flat.enable_redirects === '1' || flat.enable_redirects === 1);
-    const waPrincipal = flat.whatsapp_principal || '+51 994 195 430';
-    const waSecundario = flat.whatsapp_secundario || '+51 994 009 692';
-    const telCentral = flat.telefono_central || '(01) 564-1450';
+    const waPrincipal = flat.whatsapp_principal || '+51 900 000 000';
+    const waSecundario = flat.whatsapp_secundario || '+51 900 000 002';
+    const telCentral = flat.telefono_central || '(01) 000-0000';
     let waPrinRaw = waPrincipal.replace(/[^0-9]/g, '');
     if (waPrinRaw.length === 9) waPrinRaw = '51' + waPrinRaw;
     let waSecRaw = waSecundario.replace(/[^0-9]/g, '');

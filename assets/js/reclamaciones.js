@@ -8,7 +8,7 @@ const Reclamaciones = {
     razon_social: "DESCARTABLES PERUANOS S.A.C.",
     ruc: "20601234567",
     direccion: "Av. Alejandro Bertello 732-C, Cercado de Lima",
-    telefono: "(01) 564-1450",
+    telefono: "(01) 000-0000",
     email: "reclamaciones@descartablesperuanos.pe"
   },
 

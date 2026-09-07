@@ -533,7 +533,7 @@ const Catalogo = {
           <div>
             <strong>DESCARTABLES PERUANOS S.A.C.</strong><br>
             Av. Alejandro Bertello 732-C, Cercado de Lima, Perú<br>
-            ventas@descartablesperuanos.pe | Central: (01) 564-1450 | WhatsApp: +51 994 195 430
+            ventas@descartablesperuanos.pe | Central: (01) 000-0000 | WhatsApp: +51 900 000 000
           </div>
           <div class="stamp">
             <strong>CONTROL DE CALIDAD Y EMISIÓN</strong><br>

@@ -193,7 +193,7 @@ function ensureDatabaseInitialized($pdo) {
             $checkClient->execute(['cliente@demo.pe']);
             if (!$checkClient->fetch()) {
                 $clientHash = password_hash('password123', PASSWORD_BCRYPT);
-                $stmtClient = $pdo->prepare("INSERT INTO usuarios (tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol) VALUES ('RUC', '20554433221', 'EMPRESA GASTRONÓMICA PERÚ S.A.C.', 'cliente@demo.pe', ?, '994009692', 'Lima', 'Lima', 'Miraflores', 'Av. José Larco 450', 'cliente')");
+                $stmtClient = $pdo->prepare("INSERT INTO usuarios (tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol) VALUES ('RUC', '20554433221', 'EMPRESA GASTRONÓMICA PERÚ S.A.C.', 'cliente@demo.pe', ?, '900000002', 'Lima', 'Lima', 'Miraflores', 'Av. José Larco 450', 'cliente')");
                 $stmtClient->execute([$clientHash]);
             }
         } catch (Exception $e) {}
@@ -262,9 +262,9 @@ function ensureDatabaseInitialized($pdo) {
                 'ruc' => '20601234567',
                 'direccion' => 'Av. Alejandro Bertello 732-C, Cercado de Lima, Lima, Perú',
                 'horario' => 'Lunes a Viernes: 8:00 AM - 6:00 PM | Sábados: 8:30 AM - 1:00 PM',
-                'whatsapp_principal' => '+51 994 195 430',
-                'whatsapp_secundario' => '+51 994 009 692',
-                'telefono_central' => '(01) 564-1450',
+                'whatsapp_principal' => '+51 900 000 000',
+                'whatsapp_secundario' => '+51 900 000 002',
+                'telefono_central' => '(01) 000-0000',
                 'email_ventas' => 'ventas@descartablesperuanos.pe',
                 'email_cotizaciones' => 'cotizaciones@descartablesperuanos.pe',
                 'facebook_url' => 'https://facebook.com/descartablesperuanos',

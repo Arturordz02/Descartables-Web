@@ -15,9 +15,9 @@ function buildStructuredConfig($flatConfig) {
         ? ($flatConfig['enable_redirects'] === 'true' || $flatConfig['enable_redirects'] === true || $flatConfig['enable_redirects'] === '1' || $flatConfig['enable_redirects'] === 1)
         : false;
 
-    $waPrincipal = $flatConfig['whatsapp_principal'] ?? '+51 994 195 430';
-    $waSecundario = $flatConfig['whatsapp_secundario'] ?? '+51 994 009 692';
-    $telCentral = $flatConfig['telefono_central'] ?? '(01) 564-1450';
+    $waPrincipal = $flatConfig['whatsapp_principal'] ?? '+51 900 000 000';
+    $waSecundario = $flatConfig['whatsapp_secundario'] ?? '+51 900 000 002';
+    $telCentral = $flatConfig['telefono_central'] ?? '(01) 000-0000';
 
     $waPrinRaw = preg_replace('/[^0-9]/', '', $waPrincipal);
     if (strlen($waPrinRaw) === 9) $waPrinRaw = '51' . $waPrinRaw;

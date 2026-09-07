@@ -140,10 +140,10 @@ ON DUPLICATE KEY UPDATE nombre=VALUES(nombre), descripcion=VALUES(descripcion);
 
 -- Cuentas Master Admin (Arturo, Britney, Lenin) y Clientes de Prueba
 INSERT INTO usuarios (tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol) VALUES
-('CE', 'ADM-ARTURO', 'Arturo (Master Admin)', 'arturo@admin.ad', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '994195430', 'Lima', 'Lima', 'Cercado de Lima', 'Lima, Perú', 'admin'),
-('CE', 'ADM-BRITNEY', 'Britney (Master Admin)', 'britney@admin.ad', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '994009692', 'Lima', 'Lima', 'Cercado de Lima', 'Lima, Perú', 'admin'),
-('CE', 'ADM-LENIN', 'Lenin (Master Admin)', 'lenin@admin.ad', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '994009692', 'Lima', 'Lima', 'Cercado de Lima', 'Lima, Perú', 'admin'),
-('RUC', '20554433221', 'EMPRESA GASTRONÓMICA PERÚ S.A.C.', 'cliente@demo.pe', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '994195430', 'Lima', 'Lima', 'Miraflores', 'Av. Larco 450', 'cliente')
+('CE', 'ADM-ARTURO', 'Arturo (Master Admin)', 'arturo@admin.ad', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '900000000', 'Lima', 'Lima', 'Cercado de Lima', 'Lima, Perú', 'admin'),
+('CE', 'ADM-BRITNEY', 'Britney (Master Admin)', 'britney@admin.ad', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '900000002', 'Lima', 'Lima', 'Cercado de Lima', 'Lima, Perú', 'admin'),
+('CE', 'ADM-LENIN', 'Lenin (Master Admin)', 'lenin@admin.ad', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '900000002', 'Lima', 'Lima', 'Cercado de Lima', 'Lima, Perú', 'admin'),
+('RUC', '20554433221', 'EMPRESA GASTRONÓMICA PERÚ S.A.C.', 'cliente@demo.pe', '$2y$10$4bnulbFW64U7Zc3F/k7vs.VJxUgavbsU0gPZ7kWMdBXDvF545S4Ky', '900000000', 'Lima', 'Lima', 'Miraflores', 'Av. Larco 450', 'cliente')
 ON DUPLICATE KEY UPDATE password=VALUES(password), nombre_razon_social=VALUES(nombre_razon_social), rol=VALUES(rol);
 
 

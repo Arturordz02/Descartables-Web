@@ -995,12 +995,12 @@
               <p class="text-[10px] font-bold uppercase tracking-wider text-stone-400">Dirección Fiscal:</p>
               <p class="font-bold">Av. Alejandro Bertello 732-C, Cercado de Lima</p>
               <p class="text-[10px] font-bold uppercase tracking-wider text-stone-400 pt-2">Teléfono Central:</p>
-              <p class="font-bold">(01) 564-1450</p>
+              <p class="font-bold">(01) 000-0000</p>
             </div>
 
             <div class="p-4 admin-card-inner rounded-xl space-y-1">
               <p class="text-[10px] font-bold uppercase tracking-wider text-stone-400">Línea de WhatsApp Ventas:</p>
-              <p class="font-bold text-emerald-400 font-mono">+51 994 195 430</p>
+              <p class="font-bold text-emerald-400 font-mono">+51 900 000 000</p>
               <p class="text-[10px] font-bold uppercase tracking-wider text-stone-400 pt-2">Normativa Libro Reclamaciones:</p>
               <p class="font-bold">Ley N° 31435 / D.S. 011-2011-PCM</p>
             </div>
@@ -1115,13 +1115,13 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold mb-1">WhatsApp Principal (Ventas / Atención)</label>
-                <input type="text" id="confWhatsappPrincipal" placeholder="+51 994 195 430" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-mono">
+                <input type="text" id="confWhatsappPrincipal" placeholder="+51 900 000 000" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-mono">
                 <p class="text-[10px] text-stone-400 mt-1">Se utiliza en el botón flotante, cabecera y cotizaciones rápidas.</p>
               </div>
 
               <div>
                 <label class="block text-xs font-bold mb-1">WhatsApp Secundario (Cotizaciones B2B)</label>
-                <input type="text" id="confWhatsappSecundario" placeholder="+51 994 009 692" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-mono">
+                <input type="text" id="confWhatsappSecundario" placeholder="+51 900 000 002" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-mono">
                 <p class="text-[10px] text-stone-400 mt-1">Línea de soporte comercial alternativa.</p>
               </div>
             </div>
@@ -1137,7 +1137,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label class="block text-xs font-bold mb-1">Teléfono Fijo / Central</label>
-                <input type="text" id="confTelefonoCentral" placeholder="(01) 564-1450" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-mono">
+                <input type="text" id="confTelefonoCentral" placeholder="(01) 000-0000" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-mono">
               </div>
 
               <div>
@@ -3898,7 +3898,7 @@
               <div>
                 <div class="company">DESCARTABLES PERUANOS S.A.C.</div>
                 <div class="ruc">RUC: 20601234567 | Av. Alejandro Bertello 732-C, Cercado de Lima</div>
-                <div class="ruc">Teléfono: (01) 564-1450 | Email: ventas@descartablesperu.com</div>
+                <div class="ruc">Teléfono: (01) 000-0000 | Email: ventas@descartablesperu.com</div>
               </div>
               <div class="sheet-title">
                 <h1>LIBRO DE RECLAMACIONES VIRTUAL</h1>
@@ -4413,7 +4413,7 @@
               <div>
                 <div class="company">DESCARTABLES PERUANOS S.A.C.</div>
                 <div class="ruc">RUC: 20601234567 | Av. Alejandro Bertello 732-C, Cercado de Lima</div>
-                <div class="ruc">WhatsApp: +51 994 195 430 | Email: ventas@descartablesperu.com</div>
+                <div class="ruc">WhatsApp: +51 900 000 000 | Email: ventas@descartablesperu.com</div>
               </div>
               <div class="title-box">
                 <h1>COTIZACIÓN CORPORATIVA</h1>
@@ -4701,9 +4701,9 @@
             if (el) el.value = val || '';
           };
 
-          setVal('confWhatsappPrincipal', conf.whatsapp?.principal || flat.whatsapp_principal || '+51 994 195 430');
-          setVal('confWhatsappSecundario', conf.whatsapp?.secundario || flat.whatsapp_secundario || '+51 994 009 692');
-          setVal('confTelefonoCentral', conf.telefonos?.central || flat.telefono_central || '(01) 564-1450');
+          setVal('confWhatsappPrincipal', conf.whatsapp?.principal || flat.whatsapp_principal || '+51 900 000 000');
+          setVal('confWhatsappSecundario', conf.whatsapp?.secundario || flat.whatsapp_secundario || '+51 900 000 002');
+          setVal('confTelefonoCentral', conf.telefonos?.central || flat.telefono_central || '(01) 000-0000');
           setVal('confEmailVentas', conf.emails?.ventas || flat.email_ventas || 'ventas@descartablesperuanos.pe');
           setVal('confEmailCotizaciones', conf.emails?.cotizaciones || flat.email_cotizaciones || 'cotizaciones@descartablesperuanos.pe');
           setVal('confRazonSocial', conf.empresa?.razon_social || flat.razon_social || 'DESCARTABLES PERUANOS S.A.C.');

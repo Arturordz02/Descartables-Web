@@ -43,7 +43,7 @@ Inspirado en tendencias modernas de UI/UX (**Shadcn Warm Theme**, **Tailwind OKL
 - Drawer lateral persistente en toda la web.
 - Configuración de comprobante (*Factura con RUC* o *Boleta de Venta con DNI*).
 - Selección de agencia de envíos a provincias (*Shalom, Marvisur, Flores Hermanos* o recojo en almacén en Lima).
-- Generación automática de mensaje formateado directo a la central de ventas: `+51 994 195 430`.
+- Generación automática de mensaje formateado directo a la central de ventas: `+51 900 000 000`.
 
 ### 2. Libro de Reclamaciones Virtual Oficial (INDECOPI)
 - Cumplimiento estricto del **D.S. N° 011-2011-PCM** y la **Ley N° 31435** (plazo de respuesta máximo de 15 días hábiles).
@@ -93,8 +93,8 @@ Simplemente abre `index.html` en tu navegador o mediante la extensión Live Serv
 - **Razón Social:** DESCARTABLES PERUANOS S.A.C.
 - **RUC:** 20601234567
 - **Dirección Central:** Av. Alejandro Bertello 732-C, Cercado de Lima, Lima, Perú.
-- **Central Telefónica:** (01) 564-1450
-- **WhatsApp de Ventas:** +51 994 195 430 / +51 994 009 692
+- **Central Telefónica:** (01) 000-0000
+- **WhatsApp de Ventas:** +51 900 000 000 / +51 900 000 002
 
 ---
 

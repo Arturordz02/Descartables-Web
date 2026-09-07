@@ -90,7 +90,29 @@ class Vault {
                 ]
             ],
 
-            // 4. Llaves de Seguridad y Tokens
+            // 4. Datos de Contacto Reales y Oficiales (Custodiados de Forma Segura en el Vault)
+            'official_contact' => [
+                'whatsapp_principal'  => '+51 994 195 430',
+                'whatsapp_secundario' => '+51 994 009 692',
+                'telefono_central'    => '(01) 564-1450',
+                'email_ventas'        => 'ventas@descartablesperuanos.pe',
+                'email_cotizaciones'  => 'cotizaciones@descartablesperuanos.pe',
+                'direccion'           => 'Av. Alejandro Bertello 732-C, Cercado de Lima, Lima, Perú',
+                'ruc'                 => '20601234567',
+                'razon_social'        => 'DESCARTABLES PERUANOS S.A.C.',
+                'nombre_comercial'    => 'Descartables Peruanos'
+            ],
+
+            // 5. Datos de Contacto Genéricos / Placeholders (Para fase de desarrollo/demo pública)
+            'placeholder_contact' => [
+                'whatsapp_principal'  => '+51 900 000 000',
+                'whatsapp_secundario' => '+51 900 000 002',
+                'telefono_central'    => '(01) 000-0000',
+                'email_ventas'        => 'contacto@descartablesperuanos.pe',
+                'email_cotizaciones'  => 'cotizaciones@descartablesperuanos.pe'
+            ],
+
+            // 6. Llaves de Seguridad y Tokens
             'security' => [
                 'token_salt'     => 'DP_Peru_SecureSalt_2026_x89aF72kL9',
                 'system_version' => '2.5.0-Enterprise',
@@ -131,6 +153,22 @@ class Vault {
     public static function getMasterAdmins() {
         $secrets = self::getSecretsStorage();
         return $secrets['admins'];
+    }
+
+    /**
+     * Retorna los datos de contacto oficiales custodiados
+     */
+    public static function getOfficialContact() {
+        $secrets = self::getSecretsStorage();
+        return $secrets['official_contact'];
+    }
+
+    /**
+     * Retorna los datos de contacto genéricos / placeholders
+     */
+    public static function getPlaceholderContact() {
+        $secrets = self::getSecretsStorage();
+        return $secrets['placeholder_contact'];
     }
 
     /**
