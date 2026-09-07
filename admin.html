@@ -2752,6 +2752,9 @@
               </td>
               <td class="admin-sticky-col-td py-3 px-4 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1">
+                  <button onclick="Admin.duplicateProduct(${prod.id})" class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-500/10 transition-colors tap-target cursor-pointer" title="Duplicar producto" aria-label="Duplicar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  </button>
                   <button onclick="Admin.editProduct(${prod.id})" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-orange hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" title="Editar Producto" aria-label="Editar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
@@ -2794,12 +2797,16 @@
                 <span class="text-slate-400 text-[10px] ml-auto">${prod.material || ''}</span>
               </div>
 
-              <div class="grid grid-cols-2 gap-2 pt-1">
-                <button onclick="Admin.editProduct(${prod.id})" class="flex items-center justify-center gap-1.5 py-1.5 px-3 admin-card-inner hover:text-brand-orange text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border" style="border-color: var(--admin-border-subtle);">
+              <div class="grid grid-cols-3 gap-1.5 pt-1">
+                <button onclick="Admin.duplicateProduct(${prod.id})" class="flex items-center justify-center gap-1 py-1.5 px-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border border-indigo-500/20" title="Duplicar producto">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  <span>Copiar</span>
+                </button>
+                <button onclick="Admin.editProduct(${prod.id})" class="flex items-center justify-center gap-1 py-1.5 px-2 admin-card-inner hover:text-brand-orange text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border" style="border-color: var(--admin-border-subtle);">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span>Editar</span>
                 </button>
-                <button onclick="Admin.confirmDeleteProduct(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}')" class="flex items-center justify-center gap-1.5 py-1.5 px-3 text-rose-500 hover:bg-rose-500/10 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border border-rose-500/20">
+                <button onclick="Admin.confirmDeleteProduct(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}')" class="flex items-center justify-center gap-1 py-1.5 px-2 text-rose-500 hover:bg-rose-500/10 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border border-rose-500/20">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   <span>Eliminar</span>
                 </button>
@@ -3001,6 +3008,16 @@
         document.getElementById('modalProductTitle').textContent = 'Agregar Nuevo Producto';
         document.getElementById('formProducto').reset();
         document.getElementById('prodFormId').value = '';
+
+        const nombreInput = document.getElementById('prodFormNombre');
+        if (nombreInput) {
+          nombreInput.placeholder = 'Ej: Contenedor Térmico CT-4 Pamolsa';
+        }
+        const skuInput = document.getElementById('prodFormSku');
+        if (skuInput) {
+          skuInput.placeholder = 'Ej: PAM-CT4-BLA';
+        }
+
         document.getElementById('prodFormPrecio').value = '';
         document.getElementById('prodFormStockEstado').value = 'en_stock';
         document.getElementById('prodFormImgUrl').value = '';
@@ -3039,6 +3056,16 @@
 
         document.getElementById('modalProductTitle').textContent = 'Editar Producto';
         document.getElementById('prodFormId').value = prod.id;
+
+        const nombreInput = document.getElementById('prodFormNombre');
+        if (nombreInput) {
+          nombreInput.placeholder = 'Ej: Contenedor Térmico CT-4 Pamolsa';
+        }
+        const skuInput = document.getElementById('prodFormSku');
+        if (skuInput) {
+          skuInput.placeholder = 'Ej: PAM-CT4-BLA';
+        }
+
         document.getElementById('prodFormNombre').value = prod.nombre;
         document.getElementById('prodFormPrecio').value = (prod.precio !== null && prod.precio !== undefined) ? prod.precio : '';
         document.getElementById('prodFormStockEstado').value = prod.stock_estado || 'en_stock';
@@ -3066,6 +3093,61 @@
         const modal = document.getElementById('modalProducto');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+      },
+
+      async duplicateProduct(id) {
+        const prod = this.products.find(p => p.id === id);
+        if (!prod) return;
+
+        document.getElementById('modalProductTitle').textContent = `Duplicar Producto: ${prod.nombre}`;
+        document.getElementById('prodFormId').value = '';
+
+        // Limpiar nombre y sugerir en placeholder
+        const nombreInput = document.getElementById('prodFormNombre');
+        if (nombreInput) {
+          nombreInput.value = '';
+          nombreInput.placeholder = `Copia de ${prod.nombre}`;
+        }
+
+        // Pre-llenar campos compartidos
+        document.getElementById('prodFormPrecio').value = (prod.precio !== null && prod.precio !== undefined && prod.precio !== '') ? prod.precio : '';
+        document.getElementById('prodFormStockEstado').value = prod.stock_estado || 'en_stock';
+        document.getElementById('prodFormPresentacion').value = prod.presentacion || '';
+        document.getElementById('prodFormMaterial').value = prod.material || '';
+        document.getElementById('prodFormDescripcion').value = prod.descripcion || '';
+        document.getElementById('prodFormImgUrl').value = prod.imagen_url || '';
+        document.getElementById('prodFormBiodegradable').checked = Boolean(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true');
+        document.getElementById('prodFormDestacado').checked = Boolean(prod.destacado == 1 || prod.destacado === true || prod.destacado === '1' || prod.destacado === 'true');
+
+        // Configurar selector de SKU en 'Otros' para obligar a escribir un SKU nuevo
+        this.populateSkuSelect('__otro__');
+        const skuInput = document.getElementById('prodFormSku');
+        if (skuInput) {
+          skuInput.value = '';
+          skuInput.placeholder = 'Ingresa nuevo SKU (ej: ' + prod.sku + '-V2)';
+        }
+
+        await this.populateCategorySelect(prod.categoria_id);
+
+        const fileInput = document.getElementById('prodFormFileInput');
+        if (fileInput) fileInput.value = '';
+
+        // Reutilizar la imagen del producto original
+        const statusEl = document.getElementById('prodFormImgStatus');
+        if (statusEl) {
+          statusEl.textContent = prod.imagen_url ? '✓ Imagen original lista para reutilizar' : 'PNG, JPG o WebP (Máx 10 MB)';
+          statusEl.className = prod.imagen_url ? 'text-[10px] font-bold text-emerald-400' : 'text-[10px] font-bold text-stone-400';
+        }
+
+        this.updateImagePreview(prod.imagen_url);
+
+        const modal = document.getElementById('modalProducto');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        setTimeout(() => {
+          document.getElementById('prodFormNombre')?.focus();
+        }, 100);
       },
 
       updateImagePreview(url) {
