@@ -1864,11 +1864,156 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL DE CONFIRMACIÓN / ALERTAS IN-APP ==================== -->
+  <div id="modalConfirmDialog" onclick="if(event.target === this) ConfirmDialog.cancel()" class="fixed inset-0 z-[9999] bg-slate-950/75 backdrop-blur-xs hidden items-center justify-center p-4 animate-fade-in">
+    <div class="admin-card rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border text-left space-y-4 relative" style="border-color: var(--admin-border);">
+      
+      <!-- Encabezado con Icono Dinámico y Títulos -->
+      <div class="flex items-start gap-3.5">
+        <div id="confirmDialogIconContainer" class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-xs">
+          <!-- Icono SVG inyectado dinámicamente -->
+        </div>
+        <div class="min-w-0 flex-1 pt-0.5">
+          <h3 id="confirmDialogTitle" class="font-heading font-extrabold text-base text-slate-900 dark:text-slate-100 leading-tight">
+            Confirmar Acción
+          </h3>
+          <p id="confirmDialogSubtitle" class="text-[11px] text-slate-400 mt-0.5">
+            Mensaje del sistema
+          </p>
+        </div>
+        <button type="button" onclick="ConfirmDialog.cancel()" class="p-1 rounded-lg text-slate-400 hover:text-slate-200 transition-colors cursor-pointer" title="Cerrar">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Cuerpo del Mensaje -->
+      <div class="admin-card-inner rounded-xl p-3.5 border text-xs text-slate-700 dark:text-slate-300 leading-relaxed space-y-1" style="border-color: var(--admin-border-subtle);">
+        <p id="confirmDialogMessage" class="break-words"></p>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex items-center justify-end gap-2.5 pt-2">
+        <button type="button" id="confirmDialogBtnCancel" onclick="ConfirmDialog.cancel()" class="px-4 py-2 rounded-xl border admin-card-inner text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-colors cursor-pointer tap-target" style="border-color: var(--admin-border);">
+          Cancelar
+        </button>
+        <button type="button" id="confirmDialogBtnConfirm" onclick="ConfirmDialog.confirm()" class="px-4 py-2 rounded-xl text-white text-xs font-bold shadow-md transition-colors cursor-pointer tap-target flex items-center gap-1.5">
+          <span id="confirmDialogBtnConfirmText">Confirmar</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ==================== SCRIPTS JS ==================== -->
   <script src="assets/js/contact-config.js?v=20260905_1"></script>
   <script src="assets/js/api.js?v=20260905_2"></script>
   <script src="assets/js/auth.js?v=20260905_2"></script>
   <script>
+    // ==================== SISTEMA DE DIÁLOGOS DE CONFIRMACIÓN / ALERTAS IN-APP ====================
+    const ConfirmDialog = {
+      resolveFn: null,
+
+      show({
+        title = 'Confirmar Acción',
+        subtitle = 'Esta acción requiere confirmación',
+        message = '¿Deseas continuar con esta acción?',
+        confirmText = 'Confirmar',
+        cancelText = 'Cancelar',
+        type = 'danger'
+      } = {}) {
+        return new Promise((resolve) => {
+          this.resolveFn = resolve;
+          
+          const modal = document.getElementById('modalConfirmDialog');
+          const titleEl = document.getElementById('confirmDialogTitle');
+          const subtitleEl = document.getElementById('confirmDialogSubtitle');
+          const messageEl = document.getElementById('confirmDialogMessage');
+          const btnConfirm = document.getElementById('confirmDialogBtnConfirm');
+          const btnConfirmText = document.getElementById('confirmDialogBtnConfirmText');
+          const btnCancel = document.getElementById('confirmDialogBtnCancel');
+          const iconContainer = document.getElementById('confirmDialogIconContainer');
+
+          if (titleEl) titleEl.textContent = title;
+          if (subtitleEl) subtitleEl.textContent = subtitle;
+          if (messageEl) messageEl.innerHTML = message;
+          if (btnConfirmText) btnConfirmText.textContent = confirmText;
+          if (btnCancel) {
+            btnCancel.textContent = cancelText || 'Cancelar';
+            btnCancel.style.display = cancelText ? 'inline-block' : 'none';
+          }
+
+          if (iconContainer && btnConfirm) {
+            if (type === 'danger') {
+              iconContainer.className = 'w-10 h-10 rounded-xl bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center justify-center flex-shrink-0';
+              iconContainer.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
+              btnConfirm.className = 'px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-600/25 transition-colors cursor-pointer tap-target flex items-center gap-1.5';
+            } else if (type === 'warning') {
+              iconContainer.className = 'w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 border border-amber-500/30 flex items-center justify-center flex-shrink-0';
+              iconContainer.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+              btnConfirm.className = 'px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md shadow-amber-600/25 transition-colors cursor-pointer tap-target flex items-center gap-1.5';
+            } else if (type === 'success') {
+              iconContainer.className = 'w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 flex items-center justify-center flex-shrink-0';
+              iconContainer.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+              btnConfirm.className = 'px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/25 transition-colors cursor-pointer tap-target flex items-center gap-1.5';
+            } else {
+              iconContainer.className = 'w-10 h-10 rounded-xl bg-brand-orange/15 text-brand-orange border border-brand-orange/30 flex items-center justify-center flex-shrink-0';
+              iconContainer.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+              btnConfirm.className = 'px-4 py-2 rounded-xl bg-brand-orange hover:bg-brand-orangeDark text-white text-xs font-bold shadow-md shadow-brand-orange/25 transition-colors cursor-pointer tap-target flex items-center gap-1.5';
+            }
+          }
+
+          if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+          }
+        });
+      },
+
+      alert({ title = 'Información', subtitle = 'Aviso del sistema', message = '', buttonText = 'Entendido', type = 'info' } = {}) {
+        return this.show({
+          title,
+          subtitle,
+          message,
+          confirmText: buttonText,
+          cancelText: '',
+          type
+        });
+      },
+
+      confirm() {
+        this.close(true);
+      },
+
+      cancel() {
+        this.close(false);
+      },
+
+      close(result = false) {
+        const modal = document.getElementById('modalConfirmDialog');
+        if (modal) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+        if (this.resolveFn) {
+          const fn = this.resolveFn;
+          this.resolveFn = null;
+          fn(result);
+        }
+      }
+    };
+
+    window.ConfirmDialog = ConfirmDialog;
+
+    // Listener para cerrar diálogo con tecla Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('modalConfirmDialog');
+        if (modal && !modal.classList.contains('hidden')) {
+          ConfirmDialog.cancel();
+        }
+      }
+    });
+
     // GESTOR DE TEMA (CLARO / OSCURO)
     const ThemeManager = {
       init() {
@@ -2304,11 +2449,28 @@
 
       async confirmDeleteCategory(id, nombre, totalProds) {
         if (totalProds > 0) {
-          Toast.error(`No se puede eliminar "${nombre}" porque contiene ${totalProds} producto(s) asignado(s). Reasigna o elimina los productos primero.`);
+          ConfirmDialog.alert({
+            title: 'Acción No Permitida',
+            subtitle: 'La categoría contiene productos activos',
+            message: `No se puede eliminar la categoría <b>"${nombre}"</b> porque contiene <b>${totalProds}</b> producto(s) asignado(s). Por favor reasigna o elimina los productos antes de borrar la categoría.`,
+            buttonText: 'Entendido',
+            type: 'warning'
+          });
           return;
         }
 
-        if (confirm(`¿Estás seguro de que deseas eliminar permanentemente la categoría "${nombre}"?`)) {
+        const confirmed = await ConfirmDialog.show({
+          title: 'Eliminar Categoría',
+          subtitle: 'Esta acción no se puede deshacer',
+          message: `¿Estás seguro de que deseas eliminar permanentemente la categoría <b>"${nombre}"</b>?`,
+          confirmText: 'Sí, eliminar categoría',
+          cancelText: 'Cancelar',
+          type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        try {
           const res = await ApiService.deleteCategory(id);
           if (res.success) {
             Toast.success('Categoría eliminada correctamente.');
@@ -2318,6 +2480,8 @@
           } else {
             Toast.error(res.error || 'No se pudo eliminar la categoría.');
           }
+        } catch (e) {
+          Toast.error('Ocurrió un error al eliminar la categoría.');
         }
       },
 
@@ -2821,7 +2985,18 @@
       },
 
       async confirmDeleteProduct(id, nombre) {
-        if (confirm(`¿Estás seguro de que deseas eliminar permanentemente "${nombre}" del catálogo?`)) {
+        const confirmed = await ConfirmDialog.show({
+          title: 'Eliminar Producto',
+          subtitle: 'Esta acción removerá el ítem del catálogo web',
+          message: `¿Estás seguro de que deseas eliminar permanentemente <b>"${nombre}"</b> del catálogo?`,
+          confirmText: 'Sí, eliminar producto',
+          cancelText: 'Cancelar',
+          type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        try {
           const res = await ApiService.deleteProduct(id);
           if (res.success) {
             Toast.success('Producto eliminado correctamente.');
@@ -2831,6 +3006,8 @@
           } else {
             Toast.error(res.error || 'No se pudo eliminar el producto.');
           }
+        } catch (e) {
+          Toast.error('Ocurrió un error al eliminar el producto.');
         }
       },
 
@@ -3008,7 +3185,18 @@
       },
 
       async confirmDeleteUser(id, nombre) {
-        if (confirm(`¿Eliminar la cuenta del usuario "${nombre}" de la base de datos?`)) {
+        const confirmed = await ConfirmDialog.show({
+          title: 'Eliminar Cliente / Usuario',
+          subtitle: 'Se removerá la cuenta y acceso del usuario',
+          message: `¿Estás seguro de que deseas eliminar la cuenta de <b>"${nombre}"</b> de la base de datos?`,
+          confirmText: 'Sí, eliminar cuenta',
+          cancelText: 'Cancelar',
+          type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        try {
           const res = await ApiService.deleteUser(id);
           if (res.success) {
             Toast.success('Usuario eliminado correctamente.');
@@ -3017,6 +3205,8 @@
           } else {
             Toast.error(res.error || 'No se pudo eliminar el usuario.');
           }
+        } catch (e) {
+          Toast.error('Ocurrió un error al eliminar el usuario.');
         }
       },
 
@@ -3787,7 +3977,18 @@
       },
 
       async confirmDeleteCotizacion(id, codigo) {
-        if (confirm(`¿Estás seguro de eliminar la cotización ${codigo}? Esta acción no se puede deshacer.`)) {
+        const confirmed = await ConfirmDialog.show({
+          title: 'Eliminar Cotización B2B',
+          subtitle: 'Esta acción no se puede deshacer',
+          message: `¿Estás seguro de eliminar el registro de cotización <b>${codigo}</b> del sistema?`,
+          confirmText: 'Sí, eliminar cotización',
+          cancelText: 'Cancelar',
+          type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        try {
           const res = await ApiService.deleteCotizacion(id);
           if (res.success) {
             Toast.success('Cotización eliminada correctamente.');
@@ -3795,6 +3996,8 @@
           } else {
             Toast.error(res.error || 'No se pudo eliminar la cotización.');
           }
+        } catch (e) {
+          Toast.error('Ocurrió un error al eliminar la cotización.');
         }
       },
 
