@@ -33,22 +33,13 @@ class Vault {
      */
     private static function getSecretsStorage() {
         return [
-            // 1. Credenciales de Base de Datos MySQL
+            // 1. Credenciales de Base de Datos MySQL (Producción Exclusiva InfinityFree)
             'db' => [
-                'local' => [
-                    'host' => '127.0.0.1',
-                    'port' => '3306',
-                    'name' => 'descartables_db',
-                    'user' => 'root',
-                    'pass' => ''
-                ],
-                'production' => [
-                    'host' => 'sql201.infinityfree.com',
-                    'port' => '3306',
-                    'name' => 'if0_42834426_descartables',
-                    'user' => 'if0_42834426',
-                    'pass' => 'Contra246World'
-                ]
+                'host' => 'sql201.infinityfree.com',
+                'port' => '3306',
+                'name' => 'if0_42834426_descartables',
+                'user' => 'if0_42834426',
+                'pass' => 'Contra246World'
             ],
 
             // 2. Credenciales del Despliegue FTP (Hosting)
@@ -116,35 +107,24 @@ class Vault {
             'security' => [
                 'token_salt'     => 'DP_Peru_SecureSalt_2026_x89aF72kL9',
                 'system_version' => '2.5.0-Enterprise',
-                'environment'    => self::isLocalEnvironment() ? 'development' : 'production'
+                'environment'    => 'production'
             ]
         ];
     }
 
     /**
-     * Detecta si la ejecución es en localhost/XAMPP o en la nube (InfinityFree)
-     */
-    public static function isLocalEnvironment() {
-        $http_host = isset($_SERVER['HTTP_HOST']) ? strtolower($_SERVER['HTTP_HOST']) : '';
-        $server_addr = isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '';
-
-        return (
-            empty($http_host) ||
-            strpos($http_host, 'localhost') !== false ||
-            strpos($http_host, '127.0.0.1') !== false ||
-            strpos($http_host, '::1') !== false ||
-            $server_addr === '127.0.0.1' ||
-            $server_addr === '::1'
-        );
-    }
-
-    /**
-     * Retorna la configuración de MySQL adecuada para el entorno actual
+     * Retorna la configuración de MySQL en InfinityFree
      */
     public static function getDbCredentials() {
         $secrets = self::getSecretsStorage();
-        $env = self::isLocalEnvironment() ? 'local' : 'production';
-        return $secrets['db'][$env];
+        return $secrets['db'];
+    }
+
+    /**
+     * Compatibilidad de entorno
+     */
+    public static function isLocalEnvironment() {
+        return false;
     }
 
     /**

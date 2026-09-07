@@ -204,14 +204,23 @@ const Carrito = {
 
         <!-- Footer Fijo de Acciones (SIEMPRE VISIBLE ABAJO) -->
         <div id="cartFooterArea" class="p-4 sm:p-5 bg-white border-t border-[#EAE3DA] flex-shrink-0 space-y-2 shadow-lg">
-          <button id="btnSendWhatsApp" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all tap-target cursor-pointer">
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+          <!-- Botón 1: Enviar Cotización (Solo guarda en sistema/BD, para TODOS los clientes) -->
+          <button id="btnSubmitQuote" class="w-full py-3.5 px-4 rounded-xl bg-[#C85A32] hover:bg-[#B84A22] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-terracota/20 transition-all tap-target cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <span>Enviar Cotización por WhatsApp</span>
+            <span>Enviar Cotización</span>
           </button>
 
-          <!-- Botón Cotización Formal en PDF -->
+          <!-- Botón 2: Comunícate con nosotros (WhatsApp directo, ÚNICAMENTE para Empresas/RUC) -->
+          <button id="btnWhatsAppContact" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all tap-target cursor-pointer hidden">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+            </svg>
+            <span>Comunícate con nosotros</span>
+          </button>
+
+          <!-- Botón 3: Cotización Formal en PDF -->
           <button id="btnOpenFormalQuote" type="button" class="w-full py-2.5 px-4 rounded-xl bg-[#F4EFEA] hover:bg-stone-200 text-[#1F1815] font-bold text-xs flex items-center justify-center gap-2 border border-[#EAE3DA] transition-all shadow-xs tap-target cursor-pointer">
             <svg class="w-4 h-4 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -251,6 +260,7 @@ const Carrito = {
         if (nameInput && !nameInput.value) nameInput.value = activeUser.nombre_razon_social || '';
         if (tipoComp && activeUser.tipo_documento === 'RUC') tipoComp.value = 'Factura';
       }
+      this.updateWhatsAppButtonVisibility();
     } catch (e) {}
   },
 
@@ -311,6 +321,35 @@ const Carrito = {
     `).join('');
   },
 
+  lastQuoteCode: null,
+
+  // Determina si el cliente actual es de tipo Empresa / Negocio (RUC)
+  isBusinessClient() {
+    try {
+      const activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null');
+      if (activeUser && activeUser.tipo_documento === 'RUC') {
+        return true;
+      }
+      const tipoComp = document.getElementById('cotizacionTipoComp');
+      const docInput = document.getElementById('cotizacionDoc');
+      if (tipoComp && tipoComp.value === 'Factura' && docInput && docInput.value.trim().length === 11) {
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  },
+
+  // Actualiza la visibilidad condicional del botón de WhatsApp en tiempo real
+  updateWhatsAppButtonVisibility() {
+    const btnWa = document.getElementById('btnWhatsAppContact');
+    if (!btnWa) return;
+    if (this.isBusinessClient()) {
+      btnWa.classList.remove('hidden');
+    } else {
+      btnWa.classList.add('hidden');
+    }
+  },
+
   openDrawer() {
     const backdrop = document.getElementById('cartBackdrop');
     const drawer = document.getElementById('cartDrawer');
@@ -318,6 +357,7 @@ const Carrito = {
 
     this.renderCartItems();
     this.prefillCustomerData();
+    this.updateWhatsAppButtonVisibility();
 
     backdrop.classList.remove('pointer-events-none', 'opacity-0');
     backdrop.classList.add('opacity-100');
@@ -361,7 +401,8 @@ const Carrito = {
     return text;
   },
 
-  async sendToWhatsApp() {
+  // Acción 1: Enviar Cotización (Solo guarda en sistema/BD, disponible para TODOS los clientes)
+  async submitQuote() {
     if (this.items.length === 0) {
       if (window.Toast) Toast.warning('Tu carrito de cotización está vacío. Agrega productos para cotizar.');
       return;
@@ -372,42 +413,69 @@ const Carrito = {
     const nombre = document.getElementById('cotizacionNombre')?.value.trim() || 'Cliente Web';
     const destino = document.getElementById('cotizacionDestino')?.value || 'Lima Metropolitana';
 
+    const btnSubmit = document.getElementById('btnSubmitQuote');
+    const originalHtml = btnSubmit ? btnSubmit.innerHTML : '';
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<span>Enviando cotización...</span>';
+    }
+
     let quoteCode = '';
-    if (window.ApiService && typeof ApiService.saveCotizacion === 'function') {
-      try {
+    try {
+      let activeUser = null;
+      try { activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null'); } catch (e) {}
+
+      if (window.ApiService && typeof ApiService.saveCotizacion === 'function') {
         const res = await ApiService.saveCotizacion({
+          usuario_id: activeUser?.id || null,
           documento: doc,
+          cliente_doc: doc,
           nombre_cliente: nombre,
+          cliente_nombre: nombre,
+          email: activeUser?.email || '',
+          cliente_email: activeUser?.email || '',
+          telefono: activeUser?.telefono || '',
+          cliente_telefono: activeUser?.telefono || '',
           tipo_comprobante: tipoComp,
           destino: destino,
+          departamento: destino,
           items: this.items
         });
+
         if (res && res.codigo_cotizacion) {
           quoteCode = res.codigo_cotizacion;
+          this.lastQuoteCode = quoteCode;
         }
-      } catch (e) {
-        console.warn('No se pudo registrar la cotización en backend:', e);
+      }
+    } catch (err) {
+      console.warn('Error al registrar cotización en sistema:', err);
+    } finally {
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalHtml;
       }
     }
 
-    const shouldRedirect = (typeof COMPANY_CONTACT !== 'undefined' && COMPANY_CONTACT.ENABLE_REDIRECTS);
-    const message = this.buildWhatsAppText(quoteCode);
+    if (window.Toast) {
+      Toast.success(quoteCode ? `¡Cotización ${quoteCode} registrada con éxito en el sistema!` : '¡Cotización registrada con éxito!');
+    }
+
+    this.closeDrawer();
+    this.openFormalQuoteModal(quoteCode);
+  },
+
+  // Acción 2: Comunícate con nosotros (WhatsApp directo, ÚNICAMENTE para Empresas/RUC)
+  openWhatsAppDirect() {
+    if (!this.isBusinessClient()) {
+      if (window.Toast) Toast.warning('La atención directa por WhatsApp está disponible para clientes corporativos (RUC).');
+      return;
+    }
+
+    const message = this.buildWhatsAppText(this.lastQuoteCode || '');
     const encoded = encodeURIComponent(message);
     const waNumber = (typeof COMPANY_CONTACT !== 'undefined' && COMPANY_CONTACT.whatsapp && COMPANY_CONTACT.whatsapp.principal_raw) || this.whatsappNumber;
     const waUrl = `https://wa.me/${waNumber}?text=${encoded}`;
-
-    if (shouldRedirect) {
-      if (window.Toast) {
-        Toast.success(quoteCode ? `Cotización ${quoteCode} registrada con éxito. Redirigiendo a WhatsApp...` : 'Redirigiendo a WhatsApp...');
-      }
-      window.open(waUrl, '_blank');
-    } else {
-      if (window.Toast) {
-        Toast.success(`¡Cotización ${quoteCode || ''} registrada exitosamente! (Redirección a WhatsApp pausada).`);
-      }
-      this.closeDrawer();
-      this.openFormalQuoteModal();
-    }
+    window.open(waUrl, '_blank');
   },
 
   getItemReferencePrice(item) {
@@ -431,7 +499,7 @@ const Carrito = {
     return 55.00;
   },
 
-  async openFormalQuoteModal() {
+  async openFormalQuoteModal(existingCode = null) {
     if (this.items.length === 0) {
       if (window.Toast) Toast.warning('Tu carrito de cotización está vacío. Agrega productos para generar la proforma.');
       return;
@@ -442,25 +510,43 @@ const Carrito = {
     const nombre = document.getElementById('cotizacionNombre')?.value.trim() || 'Cliente Corporativo';
     const destino = document.getElementById('cotizacionDestino')?.value || 'Lima Metropolitana';
 
-    // Registrar cotización en MySQL o LocalStorage
-    let quoteCode = 'COT-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+    // Determinar código de cotización sin duplicar guardado
+    let quoteCode = existingCode || this.lastQuoteCode;
     let fechaHoy = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
     let fechaVence = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
 
-    if (window.ApiService && typeof ApiService.saveCotizacion === 'function') {
-      try {
-        const res = await ApiService.saveCotizacion({
-          documento: doc,
-          nombre_cliente: nombre,
-          tipo_comprobante: tipoComp,
-          destino: destino,
-          items: this.items
-        });
-        if (res && res.codigo_cotizacion) {
-          quoteCode = res.codigo_cotizacion;
+    // Si no existía código previo (ej. el cliente hizo clic directo en "Descargar Proforma"), guardar UNA sola vez
+    if (!quoteCode) {
+      if (window.ApiService && typeof ApiService.saveCotizacion === 'function') {
+        try {
+          let activeUser = null;
+          try { activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null'); } catch (e) {}
+
+          const res = await ApiService.saveCotizacion({
+            usuario_id: activeUser?.id || null,
+            documento: doc,
+            cliente_doc: doc,
+            nombre_cliente: nombre,
+            cliente_nombre: nombre,
+            email: activeUser?.email || '',
+            cliente_email: activeUser?.email || '',
+            telefono: activeUser?.telefono || '',
+            cliente_telefono: activeUser?.telefono || '',
+            tipo_comprobante: tipoComp,
+            destino: destino,
+            departamento: destino,
+            items: this.items
+          });
+          if (res && res.codigo_cotizacion) {
+            quoteCode = res.codigo_cotizacion;
+            this.lastQuoteCode = quoteCode;
+          }
+        } catch (e) {
+          console.warn('Error registrando cotización formal en backend:', e);
         }
-      } catch (e) {
-        console.warn('Error registrando cotización formal en backend:', e);
+      }
+      if (!quoteCode) {
+        quoteCode = 'COT-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
       }
     }
 
@@ -485,6 +571,8 @@ const Carrito = {
       document.body.appendChild(modal);
     }
 
+    const isEmpresa = this.isBusinessClient();
+
     modal.innerHTML = `
       <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[96vh] overflow-y-auto shadow-2xl border border-stone-200 relative my-4 sm:my-8 touch-scroll">
         
@@ -500,7 +588,7 @@ const Carrito = {
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
               <span>Guardar como PDF / Imprimir</span>
             </button>
-            <button onclick="Carrito.sendToWhatsApp()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer tap-target">
+            <button onclick="Carrito.openWhatsAppDirect()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer tap-target ${isEmpresa ? 'flex' : 'hidden'}">
               <span>WhatsApp</span>
             </button>
             <button onclick="Carrito.closeFormalQuoteModal()" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition-colors cursor-pointer tap-target">
@@ -674,9 +762,21 @@ const Carrito = {
         return;
       }
 
-      // Enviar WhatsApp
+      // Acción 1: Enviar Cotización (Solo guarda en el sistema/BD)
+      if (e.target.closest('#btnSubmitQuote')) {
+        this.submitQuote();
+        return;
+      }
+
+      // Acción 2: Comunícate con nosotros (WhatsApp directo)
+      if (e.target.closest('#btnWhatsAppContact')) {
+        this.openWhatsAppDirect();
+        return;
+      }
+
+      // Botón retrocompatible
       if (e.target.closest('#btnSendWhatsApp')) {
-        this.sendToWhatsApp();
+        this.submitQuote();
         return;
       }
 
@@ -729,6 +829,18 @@ const Carrito = {
             if (p) this.addItem(p, qty);
           });
         }
+      }
+    });
+
+    // Monitoreo dinámico del tipo de documento para mostrar/ocultar WhatsApp
+    document.addEventListener('input', (e) => {
+      if (e.target && (e.target.id === 'cotizacionDoc' || e.target.id === 'cotizacionTipoComp')) {
+        this.updateWhatsAppButtonVisibility();
+      }
+    });
+    document.addEventListener('change', (e) => {
+      if (e.target && (e.target.id === 'cotizacionDoc' || e.target.id === 'cotizacionTipoComp')) {
+        this.updateWhatsAppButtonVisibility();
       }
     });
 

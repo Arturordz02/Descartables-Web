@@ -7,7 +7,7 @@ const ApiService = {
   baseUrl: 'api',
   hasBackend: null,
 
-  // Verifica si el servidor PHP/MySQL responde probando múltiples rutas de XAMPP
+  // Verifica la disponibilidad del backend MySQL en InfinityFree
   async checkBackendAvailability() {
     if (this.hasBackend !== null) return this.hasBackend;
 
@@ -15,15 +15,11 @@ const ApiService = {
     if (window.location.protocol.startsWith('http')) {
       candidates.push(this.baseUrl);
       const pathParts = window.location.pathname.split('/').filter(Boolean);
-      if (pathParts.length > 0 && (pathParts[0].includes('descartables') || pathParts[0].includes('Web'))) {
+      if (pathParts.length > 0) {
         candidates.push(`/${pathParts[0]}/api`);
       }
     }
-    candidates.push('http://localhost/descartables/api');
-    candidates.push('http://127.0.0.1/descartables/api');
-    candidates.push('http://localhost/Web - Descartables/api');
-    candidates.push('http://127.0.0.1/Web - Descartables/api');
-    candidates.push('http://localhost/api');
+    candidates.push('api');
 
     for (const cand of candidates) {
       try {
@@ -40,7 +36,6 @@ const ApiService = {
           if (json.success) {
             this.baseUrl = cand;
             this.hasBackend = true;
-            console.log(`[ApiService] Conectado exitosamente a MySQL vía: ${cand}`);
             return true;
           }
         }
@@ -50,7 +45,6 @@ const ApiService = {
     }
 
     this.hasBackend = false;
-    console.warn('[ApiService] Backend MySQL no detectado. Modo LocalStorage activado.');
     return false;
   },
 
@@ -607,12 +601,12 @@ const ApiService = {
         console.error('Error al registrar en MySQL:', e);
         return {
           success: false,
-          error: 'Error de comunicación con el servidor MySQL (XAMPP). Verifique que Apache y MySQL estén iniciados.'
+          error: 'Error de comunicación con el servidor MySQL. Verifique su conexión.'
         };
       }
     }
 
-    // Fallback Local (si no hay servidor XAMPP disponible o protocolo file://)
+    // Fallback Local
     const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
     const exists = users.find(u => u.numero_documento === userData.numero_documento || u.email === userData.email);
     if (exists) {
@@ -635,9 +629,7 @@ const ApiService = {
 
     return { 
       success: true, 
-      message: window.location.protocol === 'file:' 
-        ? 'Registrado localmente (Modo archivo file://). Para ver en phpMyAdmin abre en http://localhost/descartables/.' 
-        : 'Usuario registrado exitosamente.', 
+      message: 'Usuario registrado exitosamente.', 
       user: sessionUser 
     };
   },

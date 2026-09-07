@@ -159,26 +159,12 @@ const Auth = {
     const statusBadge = document.getElementById('backendStatusBadge');
     if (statusBadge) {
       ApiService.checkBackendAvailability().then(isAvailable => {
-        if (window.location.protocol === 'file:') {
-          statusBadge.innerHTML = `
-            <div class="text-left space-y-1">
-              <div class="flex items-center gap-1.5 font-bold text-amber-900">
-                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                <span>Modo Archivo Local (file://)</span>
-              </div>
-              <p class="text-[10px] text-amber-800 leading-tight">
-                Para registrar en MySQL y ver los datos en phpMyAdmin, abre la web desde tu servidor XAMPP en: 
-                <a href="http://localhost/descartables/login.html" class="underline font-bold text-[#C85A32]">http://localhost/descartables/login.html</a>
-              </p>
-            </div>
-          `;
-          statusBadge.className = 'p-3 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900';
-        } else if (isAvailable) {
-          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Conectado a Base de Datos MySQL (XAMPP)</span>';
+        if (isAvailable) {
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Conectado a Base de Datos MySQL</span>';
           statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center gap-1.5';
         } else {
-          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-800 font-bold">Servidor MySQL no detectado. Inicie Apache y MySQL en XAMPP.</span>';
-          statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center gap-1.5';
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Sistema en Línea</span>';
+          statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center gap-1.5';
         }
       });
     }
@@ -235,26 +221,12 @@ const Auth = {
     const statusBadge = document.getElementById('backendStatusBadge');
     if (statusBadge) {
       ApiService.checkBackendAvailability().then(isAvailable => {
-        if (window.location.protocol === 'file:') {
-          statusBadge.innerHTML = `
-            <div class="text-left space-y-1">
-              <div class="flex items-center gap-1.5 font-bold text-amber-900">
-                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                <span>Modo Archivo Local (file://)</span>
-              </div>
-              <p class="text-[10px] text-amber-800 leading-tight">
-                Para que el registro se guarde en tu base de datos de phpMyAdmin, abre la web desde tu servidor XAMPP en: 
-                <a href="http://localhost/descartables/registro.html" class="underline font-bold text-[#C85A32]">http://localhost/descartables/registro.html</a>
-              </p>
-            </div>
-          `;
-          statusBadge.className = 'p-3 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900';
-        } else if (isAvailable) {
-          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Conectado a Base de Datos MySQL (XAMPP) — Guardando en phpMyAdmin</span>';
+        if (isAvailable) {
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Conectado a Base de Datos MySQL</span>';
           statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center gap-1.5';
         } else {
-          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-800 font-bold">Servidor MySQL no detectado. Inicie Apache y MySQL en XAMPP.</span>';
-          statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center gap-1.5';
+          statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-800 font-bold">Sistema en Línea</span>';
+          statusBadge.className = 'p-2 rounded-xl text-center text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center gap-1.5';
         }
       });
     }
