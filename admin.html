@@ -1961,9 +1961,9 @@
   </div>
 
   <!-- ==================== SCRIPTS JS ==================== -->
-  <script src="assets/js/contact-config.js?v=20260905_1"></script>
-  <script src="assets/js/api.js?v=20260905_2"></script>
-  <script src="assets/js/auth.js?v=20260905_2"></script>
+  <script src="assets/js/contact-config.js?v=20260907_2"></script>
+  <script src="assets/js/api.js?v=20260907_2"></script>
+  <script src="assets/js/auth.js?v=20260907_2"></script>
   <script>
     // ==================== SISTEMA DE DIÁLOGOS DE CONFIRMACIÓN / ALERTAS IN-APP ====================
     const ConfirmDialog = {
@@ -2372,13 +2372,17 @@
         this.currentTab = tabName;
         AdminLayout.closeSidebar();
 
-        // Marcar elementos como vistos al ingresar a la pestaña correspondiente
-        if (typeof AdminNotifications !== 'undefined') {
-          if (tabName === 'cotizaciones') {
+        // Marcar elementos como vistos y recargar datos al ingresar a la pestaña correspondiente
+        if (tabName === 'cotizaciones') {
+          if (typeof AdminNotifications !== 'undefined') {
             AdminNotifications.markCotizacionesSeen();
-          } else if (tabName === 'reclamaciones') {
+          }
+          this.loadCotizaciones();
+        } else if (tabName === 'reclamaciones') {
+          if (typeof AdminNotifications !== 'undefined') {
             AdminNotifications.markReclamacionesSeen();
           }
+          this.loadReclamaciones();
         }
 
         const tabs = ['productos', 'categorias', 'cotizaciones', 'usuarios', 'reclamaciones', 'metricas', 'configuracion', 'banners'];
