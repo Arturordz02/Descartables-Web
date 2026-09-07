@@ -18,6 +18,9 @@ const Auth = {
   },
 
   logout() {
+    if (typeof AdminNotifications !== 'undefined' && typeof AdminNotifications.stop === 'function') {
+      AdminNotifications.stop();
+    }
     localStorage.removeItem('dp_usuario_activo');
     if (window.showToast) {
       window.showToast('Sesión cerrada correctamente', 'info');

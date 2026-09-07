@@ -1418,6 +1418,86 @@ const ApiService = {
     return { success: true, message: 'Cotización eliminada localmente.' };
   },
 
+  // Chequeo de notificaciones liviano en tiempo real para Panel de Administrador
+  async checkNotifications(lastCotizId = null, lastRecId = null) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const queryParams = new URLSearchParams();
+        if (lastCotizId !== null && lastCotizId !== undefined) {
+          queryParams.append('last_cotizacion_id', lastCotizId);
+        }
+        if (lastRecId !== null && lastRecId !== undefined) {
+          queryParams.append('last_reclamacion_id', lastRecId);
+        }
+        queryParams.append('_t', Date.now().toString());
+
+        const res = await fetch(`${this.baseUrl}/notificaciones.php?${queryParams.toString()}`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) return json;
+        }
+      } catch (e) {
+        console.warn('Fallo en polling de notificaciones MySQL, usando fallback local.');
+      }
+    }
+
+    // Modo Local / Offline
+    const localQuotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
+    const localClaims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
+
+    const maxCotizId = localQuotes.reduce((max, q) => Math.max(max, parseInt(q.id, 10) || 0), 0);
+    const maxRecId = localClaims.reduce((max, r) => Math.max(max, parseInt(r.id, 10) || 0), 0);
+
+    const pendientesCotiz = localQuotes.filter(q => (q.estado || 'Pendiente') === 'Pendiente').length;
+    const pendientesRec = localClaims.filter(r => (r.estado || 'Pendiente') === 'Pendiente').length;
+
+    let nuevasQuotes = [];
+    if (lastCotizId !== null && lastCotizId !== undefined && maxCotizId > lastCotizId) {
+      nuevasQuotes = localQuotes
+        .filter(q => (parseInt(q.id, 10) || 0) > lastCotizId)
+        .map(q => ({
+          id: q.id,
+          codigo_cotizacion: q.codigo_cotizacion || ('COT-' + q.id),
+          cliente: q.nombre_cliente || q.cliente_nombre || 'Cliente Corporativo',
+          creado_en: q.creado_en || ''
+        }));
+    }
+
+    let nuevosClaims = [];
+    if (lastRecId !== null && lastRecId !== undefined && maxRecId > lastRecId) {
+      nuevosClaims = localClaims
+        .filter(r => (parseInt(r.id, 10) || 0) > lastRecId)
+        .map(r => ({
+          id: r.id,
+          codigo_hoja: r.codigo_hoja || ('REC-' + r.id),
+          tipo_reclamacion: r.tipo_reclamacion || 'Reclamo',
+          nombre_completo: r.nombre_completo || 'Consumidor',
+          creado_en: r.creado_en || ''
+        }));
+    }
+
+    return {
+      success: true,
+      mode: 'local',
+      server_time: Math.floor(Date.now() / 1000),
+      cotizaciones: {
+        max_id: maxCotizId,
+        nuevas_count: nuevasQuotes.length,
+        pendientes: pendientesCotiz,
+        nuevas: nuevasQuotes
+      },
+      reclamaciones: {
+        max_id: maxRecId,
+        nuevas_count: nuevosClaims.length,
+        pendientes: pendientesRec,
+        nuevos: nuevosClaims
+      }
+    };
+  },
+
   // ================= GESTIÓN DE USUARIOS =================
   async getUsers(filters = {}) {
     const isAvailable = await this.checkBackendAvailability();
