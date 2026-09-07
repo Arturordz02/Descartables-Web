@@ -1515,6 +1515,120 @@ const ApiService = {
       };
       reader.readAsDataURL(file);
     });
+  },
+
+  // ================= EXPORTACIÓN / BACKUP COMPLETO EN 1 CLIC =================
+  async downloadFullBackup(currentUser = null) {
+    const isAvailable = await this.checkBackendAvailability();
+    const adminUser = currentUser || (typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null);
+    
+    // Si backend MySQL está disponible, solicitar al API PHP
+    if (isAvailable) {
+      try {
+        const queryParams = new URLSearchParams();
+        if (adminUser) {
+          if (adminUser.id) queryParams.append('admin_id', adminUser.id);
+          if (adminUser.numero_documento) queryParams.append('admin_doc', adminUser.numero_documento);
+          if (adminUser.email) queryParams.append('admin_email', adminUser.email);
+        }
+
+        const res = await fetch(`${this.baseUrl}/backup.php?${queryParams.toString()}`);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => null);
+          throw new Error(errData?.error || `Error del servidor HTTP ${res.status}`);
+        }
+        
+        const json = await res.json();
+        if (json.success && json.data) {
+          const filename = json.filename || `backup_descartables_${new Date().toISOString().slice(0,10)}.json`;
+          this._triggerJsonDownload(json.data, filename);
+          return { success: true, filename, metadata: json.metadata || json.data._metadata };
+        } else {
+          throw new Error(json.error || 'No se pudo generar la copia de seguridad.');
+        }
+      } catch (err) {
+        console.warn('[ApiService] Falló la exportación remota desde MySQL, compilando respaldo local:', err);
+      }
+    }
+
+    // Modo de respaldo local / standalone si el backend no responde
+    try {
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+      const filename = `backup_descartables_${dateStr}.json`;
+
+      const [categories, products, quotes, reclamaciones, users, config] = await Promise.all([
+        this.getCategories().catch(() => []),
+        this.getProducts({}, true).catch(() => []),
+        this.getCotizaciones().catch(() => []),
+        this.getReclamacionesAdmin().then(r => r.data || []).catch(() => []),
+        this.getUsers().then(r => r.data || []).catch(() => []),
+        this.getCompanyConfig().catch(() => ({}))
+      ]);
+
+      const flatConfig = config.flat || {};
+      const datosNegocio = {};
+      const bannersData = {};
+      Object.keys(flatConfig).forEach(k => {
+        if (k.startsWith('banner_') || k.startsWith('hero_')) {
+          bannersData[k] = flatConfig[k];
+        } else {
+          datosNegocio[k] = flatConfig[k];
+        }
+      });
+
+      const backupPayload = {
+        _metadata: {
+          sistema: 'Descartables Peruanos - Plataforma Web & Panel Administrativo',
+          version_backup: '1.0 (Modo Local/Offline)',
+          fecha_exportacion: now.toISOString(),
+          timestamp: Math.floor(Date.now() / 1000),
+          generado_por: {
+            id: adminUser?.id || 1,
+            nombre_razon_social: adminUser?.nombre_razon_social || 'Master Admin',
+            rol: adminUser?.rol || 'admin'
+          },
+          resumen_conteos: {
+            configuracion_claves: Object.keys(flatConfig).length,
+            categorias: categories.length,
+            productos: products.length,
+            usuarios: users.length,
+            cotizaciones: quotes.length,
+            libro_reclamaciones: reclamaciones.length
+          }
+        },
+        datos_del_negocio: datosNegocio,
+        banners_y_avisos: bannersData,
+        configuracion_completa: flatConfig,
+        categorias: categories,
+        productos: products,
+        usuarios: users,
+        cotizaciones: quotes,
+        libro_reclamaciones: reclamaciones
+      };
+
+      this._triggerJsonDownload(backupPayload, filename);
+      return { success: true, filename, metadata: backupPayload._metadata };
+    } catch (localErr) {
+      console.error('[ApiService] Error generando copia de seguridad local:', localErr);
+      return { success: false, error: 'No se pudo generar el archivo de respaldo: ' + localErr.message };
+    }
+  },
+
+  _triggerJsonDownload(dataObject, filename) {
+    const jsonString = typeof dataObject === 'string' ? dataObject : JSON.stringify(dataObject, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 200);
   }
 };
 

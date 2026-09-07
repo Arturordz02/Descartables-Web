@@ -1022,10 +1022,66 @@
             <p class="text-xs text-stone-400 mt-1">Actualiza los teléfonos, WhatsApp, correos, enlaces y datos fiscales sin necesidad de modificar código fuente.</p>
           </div>
 
-          <button type="button" onclick="Admin.saveConfiguracion(event)" id="btnSaveConfigTop" class="px-5 py-2.5 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-xl text-xs font-bold shadow-md shadow-brand-orange/20 transition-all flex items-center justify-center gap-2 tap-target cursor-pointer flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            <span>Guardar Cambios</span>
-          </button>
+          <div class="flex items-center gap-2.5 flex-wrap flex-shrink-0">
+            <button type="button" onclick="Admin.downloadFullBackup()" id="btnDownloadBackupTop" class="px-4 py-2.5 bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 tap-target cursor-pointer" title="Descargar copia de seguridad en formato JSON">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Descargar Copia de Seguridad</span>
+            </button>
+            <button type="button" onclick="Admin.saveConfiguracion(event)" id="btnSaveConfigTop" class="px-5 py-2.5 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-xl text-xs font-bold shadow-md shadow-brand-orange/20 transition-all flex items-center justify-center gap-2 tap-target cursor-pointer flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>Guardar Cambios</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bloque: Copia de Seguridad del Sistema (Backup en 1 Clic) -->
+        <div class="admin-card p-5 sm:p-6 rounded-2xl shadow-sm space-y-4 border border-indigo-500/30 bg-gradient-to-r from-indigo-950/20 via-transparent to-transparent">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-3.5" style="border-color: var(--admin-border);">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-indigo-500/15 flex items-center justify-center flex-shrink-0 border border-indigo-500/30 text-indigo-400 shadow-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-heading font-bold text-sm text-slate-900 dark:text-slate-100">Copia de Seguridad del Sistema</h3>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-indigo-500/15 text-indigo-500 border border-indigo-500/20">1 Clic</span>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Descarga al instante un respaldo completo en formato JSON con todos tus productos, categorías, cotizaciones, clientes, reclamaciones y datos del negocio.</p>
+              </div>
+            </div>
+
+            <button type="button" onclick="Admin.downloadFullBackup()" id="btnDownloadBackupCard" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 tap-target cursor-pointer flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Descargar Respaldo JSON</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-center text-xs">
+            <div class="p-2.5 rounded-xl admin-card-inner border" style="border-color: var(--admin-border);">
+              <span class="block font-bold text-indigo-500 dark:text-indigo-400 text-sm font-mono" id="backupCountProds">—</span>
+              <span class="text-[10px] text-slate-400 font-semibold">Productos</span>
+            </div>
+            <div class="p-2.5 rounded-xl admin-card-inner border" style="border-color: var(--admin-border);">
+              <span class="block font-bold text-amber-500 dark:text-amber-400 text-sm font-mono" id="backupCountCats">—</span>
+              <span class="text-[10px] text-slate-400 font-semibold">Categorías</span>
+            </div>
+            <div class="p-2.5 rounded-xl admin-card-inner border" style="border-color: var(--admin-border);">
+              <span class="block font-bold text-emerald-500 dark:text-emerald-400 text-sm font-mono" id="backupCountCotiz">—</span>
+              <span class="text-[10px] text-slate-400 font-semibold">Cotizaciones</span>
+            </div>
+            <div class="p-2.5 rounded-xl admin-card-inner border" style="border-color: var(--admin-border);">
+              <span class="block font-bold text-blue-500 dark:text-blue-400 text-sm font-mono" id="backupCountUsers">—</span>
+              <span class="text-[10px] text-slate-400 font-semibold">Usuarios / Clientes</span>
+            </div>
+            <div class="p-2.5 rounded-xl admin-card-inner border" style="border-color: var(--admin-border);">
+              <span class="block font-bold text-rose-500 dark:text-rose-400 text-sm font-mono" id="backupCountRecs">—</span>
+              <span class="text-[10px] text-slate-400 font-semibold">Reclamaciones</span>
+            </div>
+            <div class="p-2.5 rounded-xl admin-card-inner border" style="border-color: var(--admin-border);">
+              <span class="block font-bold text-purple-500 dark:text-purple-400 text-sm font-mono" id="backupCountConfig">✓ Completa</span>
+              <span class="text-[10px] text-slate-400 font-semibold">Configuración & Banners</span>
+            </div>
+          </div>
         </div>
 
         <form id="formConfiguracion" onsubmit="Admin.saveConfiguracion(event)" class="space-y-6">
@@ -4713,6 +4769,59 @@
         }
       },
 
+      // ================= COPIA DE SEGURIDAD (BACKUP EN 1 CLIC) =================
+      async downloadFullBackup() {
+        const user = Auth.getCurrentUser();
+        if (!user || user.rol !== 'admin') {
+          Toast.error('Acceso denegado: Solo el Administrador Master puede descargar copias de seguridad.');
+          return;
+        }
+
+        const btnTop = document.getElementById('btnDownloadBackupTop');
+        const btnCard = document.getElementById('btnDownloadBackupCard');
+
+        const originalHtmlTop = btnTop ? btnTop.innerHTML : '';
+        const originalHtmlCard = btnCard ? btnCard.innerHTML : '';
+
+        const loadingHtml = `
+          <svg class="w-4 h-4 animate-spin text-current flex-shrink-0" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span>Generando backup...</span>
+        `;
+
+        if (btnTop) {
+          btnTop.disabled = true;
+          btnTop.innerHTML = loadingHtml;
+        }
+        if (btnCard) {
+          btnCard.disabled = true;
+          btnCard.innerHTML = loadingHtml;
+        }
+
+        try {
+          const res = await ApiService.downloadFullBackup(user);
+          if (res && res.success) {
+            Toast.success(`¡Copia de seguridad descargada exitosamente! (${res.filename})`);
+          } else {
+            Toast.error(res?.error || 'No se pudo generar la copia de seguridad.');
+          }
+        } catch (err) {
+          console.error('Error al generar backup:', err);
+          Toast.error('Ocurrió un error al procesar la copia de seguridad.');
+        } finally {
+          if (btnTop) {
+            btnTop.disabled = false;
+            btnTop.innerHTML = originalHtmlTop;
+          }
+          if (btnCard) {
+            btnCard.disabled = false;
+            btnCard.innerHTML = originalHtmlCard;
+          }
+        }
+      },
+
       // ================= SEGURIDAD & CAMBIO DE CONTRASEÑA =================
       openPasswordModal() {
         const modal = document.getElementById('modalCambioPassword');
@@ -4965,9 +5074,6 @@
       },
 
       updateStats() {
-
-
-
         const metricProd = document.getElementById('metricTotalProd');
         if (metricProd) metricProd.textContent = this.products.length;
 
@@ -4984,6 +5090,22 @@
         if (metricEmpresas) {
           metricEmpresas.textContent = this.users.filter(u => u.tipo_documento === 'RUC').length;
         }
+
+        // Actualizar badges de conteo del bloque de copia de seguridad
+        const backupProds = document.getElementById('backupCountProds');
+        if (backupProds) backupProds.textContent = `${this.products.length} ítems`;
+
+        const backupCats = document.getElementById('backupCountCats');
+        if (backupCats) backupCats.textContent = `${this.categories.length} líneas`;
+
+        const backupCotiz = document.getElementById('backupCountCotiz');
+        if (backupCotiz) backupCotiz.textContent = `${this.cotizaciones ? this.cotizaciones.length : 0} reg.`;
+
+        const backupUsers = document.getElementById('backupCountUsers');
+        if (backupUsers) backupUsers.textContent = `${this.users.length} cuentas`;
+
+        const backupRecs = document.getElementById('backupCountRecs');
+        if (backupRecs) backupRecs.textContent = `${this.reclamaciones ? this.reclamaciones.length : 0} hojas`;
 
         this.updateReclamacionesStats();
         this.updateCotizacionesStats();
