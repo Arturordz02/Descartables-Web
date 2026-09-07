@@ -269,13 +269,67 @@ if ($method === 'POST') {
     }
 }
 
-// 3. EDITAR PRODUCTO (PUT)
-if ($method === 'PUT') {
+// 3. EDITAR PRODUCTO (PUT o PATCH)
+if ($method === 'PUT' || $method === 'PATCH') {
     try {
         $id = (int)($data['id'] ?? ($_GET['id'] ?? 0));
         if ($id <= 0) {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'ID de producto no válido.'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        // Detección de edición rápida (cuando solo se actualiza precio o disponibilidad)
+        $isQuickUpdate = isset($data['quick_update']) || (empty($data['nombre']) && empty($data['sku']) && (array_key_exists('stock_estado', $data) || array_key_exists('precio', $data)));
+
+        if ($isQuickUpdate) {
+            $fieldsToUpdate = [];
+            $params = [];
+
+            if (array_key_exists('stock_estado', $data)) {
+                $stock_estado = trim($data['stock_estado']);
+                if (!in_array($stock_estado, ['en_stock', 'bajo_pedido', 'agotado'])) {
+                    $stock_estado = 'en_stock';
+                }
+                $fieldsToUpdate[] = "stock_estado = ?";
+                $params[] = $stock_estado;
+            }
+
+            if (array_key_exists('precio', $data)) {
+                $precio = ($data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
+                $fieldsToUpdate[] = "precio = ?";
+                $params[] = $precio;
+            }
+
+            if (empty($fieldsToUpdate)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'No se proporcionaron campos válidos para actualizar.'], JSON_UNESCAPED_UNICODE);
+                exit();
+            }
+
+            $params[] = $id;
+            $updateSql = "UPDATE productos SET " . implode(', ', $fieldsToUpdate) . " WHERE id = ?";
+            $stmt = $pdo->prepare($updateSql);
+            $stmt->execute($params);
+
+            $fetchStmt = $pdo->prepare("SELECT p.*, c.nombre as categoria_nombre, c.slug as categoria_slug 
+                                        FROM productos p 
+                                        LEFT JOIN categorias c ON p.categoria_id = c.id 
+                                        WHERE p.id = ?");
+            $fetchStmt->execute([$id]);
+            $updated = $fetchStmt->fetch();
+            $updated['id'] = (int)$updated['id'];
+            $updated['categoria_id'] = (int)$updated['categoria_id'];
+            $updated['precio'] = ($updated['precio'] !== null && $updated['precio'] !== '') ? (float)$updated['precio'] : null;
+            $updated['stock_estado'] = !empty($updated['stock_estado']) ? $updated['stock_estado'] : 'en_stock';
+            $updated['biodegradable'] = (bool)$updated['biodegradable'];
+            $updated['destacado'] = (bool)$updated['destacado'];
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Producto actualizado correctamente.',
+                'data'    => $updated
+            ], JSON_UNESCAPED_UNICODE);
             exit();
         }
 
