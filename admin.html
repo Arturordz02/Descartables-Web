@@ -406,7 +406,7 @@
     </header>
 
     <!-- CUERPO PRINCIPAL -->
-    <main class="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
+    <main class="flex-1 w-full max-w-[1560px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
 
       <!-- ==================== TAB 1: PRODUCTOS ==================== -->
       <section id="tabProductos" class="space-y-4 animate-fade-in">
@@ -446,19 +446,19 @@
           
           <!-- Vista Desktop (Tablets y Computadoras) -->
           <div class="hidden md:block overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+            <table class="admin-table w-full text-left text-xs">
               <thead>
                 <tr class="admin-card-inner font-bold border-b uppercase text-[10px] tracking-wider" style="border-color: var(--admin-border);">
-                  <th class="py-3.5 px-4">Producto</th>
-                  <th class="py-3.5 px-3">SKU</th>
-                  <th class="py-3.5 px-3">Categoría</th>
-                  <th class="py-3.5 px-3">Precio Ref.</th>
-                  <th class="py-3.5 px-3 text-center">Disponibilidad</th>
-                  <th class="py-3.5 px-3">Presentación</th>
-                  <th class="py-3.5 px-3">Material</th>
-                  <th class="py-3.5 px-3 text-center">Eco-Bio</th>
-                  <th class="py-3.5 px-3 text-center">Destacado</th>
-                  <th class="py-3.5 px-4 text-right">Acciones</th>
+                  <th class="py-3.5 px-4 min-w-[280px] lg:min-w-[340px] xl:min-w-[380px]">Producto</th>
+                  <th class="py-3.5 px-3 whitespace-nowrap">SKU</th>
+                  <th class="py-3.5 px-3 whitespace-nowrap">Categoría</th>
+                  <th class="py-3.5 px-3 text-right whitespace-nowrap">Precio Ref.</th>
+                  <th class="py-3.5 px-3 text-center whitespace-nowrap">Disponibilidad</th>
+                  <th class="py-3.5 px-3 whitespace-nowrap">Presentación</th>
+                  <th class="py-3.5 px-3 whitespace-nowrap">Material</th>
+                  <th class="py-3.5 px-3 text-center whitespace-nowrap">Eco-Bio</th>
+                  <th class="py-3.5 px-3 text-center whitespace-nowrap">Destacado</th>
+                  <th class="py-3.5 px-4 text-right whitespace-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody id="adminProductsTableBody" class="divide-y" style="border-color: var(--admin-border-subtle);">
@@ -2448,51 +2448,57 @@
         }
 
         const getStockBadge = (st) => {
-          if (st === 'agotado') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-500 dark:bg-rose-500/15 dark:text-rose-400 border border-rose-500/20" title="Sin stock temporal">🔴 Agotado</span>';
-          if (st === 'bajo_pedido') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/20" title="Bajo pedido / Fabricación B2B">🟡 Bajo Pedido</span>';
-          return '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-500/20" title="Disponible para entrega inmediata">🟢 En Stock</span>';
+          if (st === 'agotado') {
+            return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 whitespace-nowrap" title="Agotado - Sin stock temporal"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0"></span>Agotado</span>';
+          }
+          if (st === 'bajo_pedido') {
+            return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap" title="Bajo Pedido - Fabricación o cotización B2B"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>Pedido</span>';
+          }
+          return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap" title="En Stock - Disponible para entrega inmediata"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"></span>Stock</span>';
         };
 
         // Render Desktop Table
         if (tbody) {
-          tbody.innerHTML = list.map((prod, index) => `
+          tbody.innerHTML = list.map((prod, index) => {
+            const hasPrice = prod.precio !== null && prod.precio !== undefined && prod.precio !== '' && !isNaN(parseFloat(prod.precio)) && parseFloat(prod.precio) > 0;
+            return `
             <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
               <td class="py-3 px-4">
-                <div class="flex items-center gap-3">
-                  <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-9 h-9 rounded-lg object-contain p-0.5 border flex-shrink-0 bg-white dark:bg-slate-900" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
-                  <div class="min-w-0">
-                    <p class="font-bold text-xs text-slate-800 dark:text-slate-200 leading-snug truncate max-w-[220px]">${prod.nombre}</p>
-                    <p class="text-[10px] text-slate-400 truncate max-w-[200px]">${prod.descripcion || ''}</p>
+                <div class="flex items-center gap-3.5 py-0.5">
+                  <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-14 h-14 rounded-xl object-contain p-1 border flex-shrink-0 bg-white dark:bg-slate-900 shadow-xs" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
+                  <div class="min-w-0 flex-1">
+                    <p class="font-bold text-xs text-slate-800 dark:text-slate-100 leading-snug line-clamp-2" title="${prod.nombre}">${prod.nombre}</p>
+                    ${prod.descripcion ? `<p class="text-[11px] text-slate-400 dark:text-slate-500 line-clamp-1 mt-0.5" title="${prod.descripcion}">${prod.descripcion}</p>` : ''}
                   </div>
                 </div>
               </td>
-              <td class="py-3 px-3 font-mono font-semibold text-slate-600 dark:text-slate-300 text-[11px]">${prod.sku}</td>
-              <td class="py-3 px-3">
+              <td class="py-3 px-3 font-mono font-semibold text-slate-600 dark:text-slate-300 text-[11px] whitespace-nowrap">${prod.sku}</td>
+              <td class="py-3 px-3 whitespace-nowrap">
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
                   ${prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id)}
                 </span>
               </td>
-              <td class="py-3 px-3 font-mono font-semibold text-slate-900 dark:text-slate-100 text-[11px]">
-                ${prod.precio !== null && prod.precio !== undefined && prod.precio !== '' 
-                  ? 'S/ ' + parseFloat(prod.precio).toFixed(2) 
-                  : '<span class="text-slate-400 font-normal">—</span>'}
+              <td class="py-3 px-3 text-right whitespace-nowrap">
+                ${hasPrice 
+                  ? `<span class="font-mono font-bold text-slate-900 dark:text-slate-100 text-xs tracking-tight">S/ ${parseFloat(prod.precio).toFixed(2)}</span>` 
+                  : '<span class="text-slate-400 dark:text-slate-500 font-normal text-[11px] italic">Sin definir</span>'}
               </td>
-              <td class="py-3 px-3 text-center">
+              <td class="py-3 px-3 text-center whitespace-nowrap">
                 ${getStockBadge(prod.stock_estado)}
               </td>
-              <td class="py-3 px-3 text-slate-500 dark:text-slate-400">${prod.presentacion}</td>
-              <td class="py-3 px-3 text-slate-700 dark:text-slate-300">${prod.material}</td>
-              <td class="py-3 px-3 text-center">
+              <td class="py-3 px-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">${prod.presentacion || '—'}</td>
+              <td class="py-3 px-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">${prod.material || '—'}</td>
+              <td class="py-3 px-3 text-center whitespace-nowrap">
                 ${(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true') 
                   ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40" title="Producto Eco-Biodegradable">🌿 Bio</span>' 
                   : '<span class="text-slate-400 text-xs">—</span>'}
               </td>
-              <td class="py-3 px-3 text-center">
+              <td class="py-3 px-3 text-center whitespace-nowrap">
                 ${(prod.destacado == 1 || prod.destacado === true || prod.destacado === '1' || prod.destacado === 'true') 
                   ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40" title="Producto Destacado en Portada">⭐ Sí</span>' 
                   : '<span class="text-slate-400 text-xs">—</span>'}
               </td>
-              <td class="py-3 px-4 text-right">
+              <td class="py-3 px-4 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1">
                   <button onclick="Admin.editProduct(${prod.id})" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-orange hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" title="Editar Producto" aria-label="Editar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -2503,20 +2509,25 @@
                 </div>
               </td>
             </tr>
-          `).join('');
+          `;
+          }).join('');
         }
 
         // Render Mobile Cards
         if (mobileContainer) {
-          mobileContainer.innerHTML = list.map(prod => `
+          mobileContainer.innerHTML = list.map(prod => {
+            const hasPrice = prod.precio !== null && prod.precio !== undefined && prod.precio !== '' && !isNaN(parseFloat(prod.precio)) && parseFloat(prod.precio) > 0;
+            return `
             <div class="pt-3 first:pt-0 space-y-2.5">
               <div class="flex items-start gap-3">
-                <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-12 h-12 rounded-lg object-contain p-0.5 border flex-shrink-0 bg-white dark:bg-slate-900" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
+                <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-14 h-14 rounded-xl object-contain p-1 border flex-shrink-0 bg-white dark:bg-slate-900 shadow-xs" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center justify-between gap-1">
                     <span class="font-mono font-semibold text-slate-600 dark:text-slate-300 text-[10px] admin-card-inner px-1.5 py-0.5 rounded border" style="border-color: var(--admin-border-subtle);">${prod.sku}</span>
-                    <span class="font-mono font-bold text-xs">
-                      ${prod.precio !== null && prod.precio !== undefined && prod.precio !== '' ? 'S/ ' + parseFloat(prod.precio).toFixed(2) : '<span class="text-slate-400 font-normal">S/ —</span>'}
+                    <span class="font-mono text-xs">
+                      ${hasPrice 
+                        ? `<span class="font-bold text-slate-900 dark:text-slate-100">S/ ${parseFloat(prod.precio).toFixed(2)}</span>` 
+                        : '<span class="text-slate-400 dark:text-slate-500 italic text-[11px]">Sin definir</span>'}
                     </span>
                   </div>
                   <p class="font-bold text-xs mt-1 leading-snug line-clamp-2 text-slate-900 dark:text-slate-100">${prod.nombre}</p>
@@ -2542,7 +2553,8 @@
                 </button>
               </div>
             </div>
-          `).join('');
+          `;
+          }).join('');
         }
       },
 
