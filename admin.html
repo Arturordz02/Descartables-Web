@@ -256,6 +256,14 @@
           <span>Datos del Negocio</span>
         </div>
       </button>
+
+      <!-- Item: Banners y Avisos de Portada -->
+      <button id="tabBtnBanners" onclick="Admin.switchTab('banners')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+          <span>Banners y Avisos</span>
+        </div>
+      </button>
     </nav>
 
     <!-- Footer del Sidebar -->
@@ -1062,6 +1070,168 @@
 
       </section>
 
+      <!-- ==================== TAB: BANNERS Y AVISOS ==================== -->
+      <section id="tabBanners" class="space-y-6 hidden animate-fade-in">
+        
+        <!-- Cabecera de la sección -->
+        <div class="admin-card p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 text-rose-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+              <h2 class="font-heading font-extrabold text-lg sm:text-xl text-white">Gestión de Banners y Avisos de Portada</h2>
+            </div>
+            <p class="text-xs text-stone-400 mt-1">Personaliza el mensaje promocional superior, los textos del Hero principal y los anuncios de temporada.</p>
+          </div>
+
+          <button type="button" onclick="Admin.saveBanners(event)" id="btnSaveBannersTop" class="px-5 py-2.5 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-xl text-xs font-bold shadow-md shadow-brand-orange/20 transition-all flex items-center justify-center gap-2 tap-target cursor-pointer flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>Guardar Banners</span>
+          </button>
+        </div>
+
+        <form id="formBanners" onsubmit="Admin.saveBanners(event)" class="space-y-6">
+          
+          <!-- Bloque 1: Barra Promocional Superior (TopBar) -->
+          <div class="admin-card p-5 sm:p-6 rounded-2xl shadow-sm space-y-5">
+            <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--admin-border);">
+              <div class="flex items-center gap-2 text-amber-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <h3 class="font-heading font-bold text-sm text-white">1. Barra de Aviso Superior (TopBar)</h3>
+              </div>
+            </div>
+
+            <!-- Switch Activar/Desactivar TopBar -->
+            <div class="p-4 rounded-xl border admin-card-inner flex flex-col sm:flex-row sm:items-center justify-between gap-3" style="border-color: var(--admin-border);">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs">Mostrar Barra Promocional Superior en la web</span>
+                  <span id="badgeBannerTopStatus" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400">Visible</span>
+                </div>
+                <p class="text-[11px] text-stone-400">Aparece en la parte más alta de la página de inicio con información comercial o de envíos.</p>
+              </div>
+
+              <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" id="bannerTopEnabled" checked onchange="Admin.updateBannerTopBadge(this.checked)" class="sr-only peer">
+                <div class="w-11 h-6 bg-stone-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold mb-1">Badge / Etiqueta Destacada</label>
+                <input type="text" id="bannerTopBadge" placeholder="Envíos a Todo el Perú" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs">
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-bold mb-1">Texto Principal del Aviso</label>
+                <input type="text" id="bannerTopTexto" placeholder="Sede: Av. Bertello 732-C, Cercado de Lima | Envíos diarios a nivel nacional" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs">
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque 2: Hero Principal de Inicio -->
+          <div class="admin-card p-5 sm:p-6 rounded-2xl shadow-sm space-y-5">
+            <div class="flex items-center gap-2 text-brand-orange border-b pb-3" style="border-color: var(--admin-border);">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <h3 class="font-heading font-bold text-sm text-white">2. Hero Banner Principal de Portada (Index)</h3>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold mb-1">Badge Superior del Hero</label>
+              <input type="text" id="heroBadgeInput" placeholder="Venta al por Mayor y Menor • Envíos a todo el Perú" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold mb-1">Título Principal del Hero</label>
+              <input type="text" id="heroTituloInput" placeholder="Envases y Descartables para el Sector Gastronómico e Industrial" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-bold">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold mb-1">Subtítulo / Descripción del Hero</label>
+              <textarea id="heroSubtituloInput" rows="2" placeholder="Abastecemos a restaurantes, pollerías, cafeterías, empresas de catering y distribuidores..." class="w-full admin-input rounded-xl p-3 text-xs leading-relaxed"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="p-3.5 rounded-xl border admin-card-inner space-y-2.5" style="border-color: var(--admin-border);">
+                <span class="text-[11px] font-bold text-brand-orange uppercase tracking-wider block">Botón Primario</span>
+                <input type="text" id="heroBtnPrimaryTextInput" placeholder="Explorar Catálogo Completo" class="w-full admin-input rounded-xl px-3 py-2 text-xs font-semibold">
+                <input type="text" id="heroBtnPrimaryLinkInput" placeholder="catalogo.html" class="w-full admin-input rounded-xl px-3 py-2 text-xs font-mono">
+              </div>
+
+              <div class="p-3.5 rounded-xl border admin-card-inner space-y-2.5" style="border-color: var(--admin-border);">
+                <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">Botón Secundario</span>
+                <input type="text" id="heroBtnSecondaryTextInput" placeholder="Asesoría Comercial" class="w-full admin-input rounded-xl px-3 py-2 text-xs font-semibold">
+                <input type="text" id="heroBtnSecondaryLinkInput" placeholder="contacto.html" class="w-full admin-input rounded-xl px-3 py-2 text-xs font-mono">
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque 3: Banner Promocional de Temporada / B2B -->
+          <div class="admin-card p-5 sm:p-6 rounded-2xl shadow-sm space-y-5">
+            <div class="flex items-center gap-2 text-purple-400 border-b pb-3" style="border-color: var(--admin-border);">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+              <h3 class="font-heading font-bold text-sm text-white">3. Banner Promocional de Temporada (Pie de Inicio)</h3>
+            </div>
+
+            <!-- Switch Activar/Desactivar Promo -->
+            <div class="p-4 rounded-xl border admin-card-inner flex flex-col sm:flex-row sm:items-center justify-between gap-3" style="border-color: var(--admin-border);">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs">Mostrar Banner Promocional en Inicio</span>
+                  <span id="badgeBannerPromoStatus" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400">Visible</span>
+                </div>
+                <p class="text-[11px] text-stone-400">Aparece antes del pie de página para incentivar cotizaciones masivas o descuentos por temporada.</p>
+              </div>
+
+              <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" id="bannerPromoEnabled" checked onchange="Admin.updateBannerPromoBadge(this.checked)" class="sr-only peer">
+                <div class="w-11 h-6 bg-stone-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold mb-1">Badge de Campaña</label>
+                <input type="text" id="bannerPromoBadgeInput" placeholder="OFERTA DE TEMPORADA" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs uppercase">
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-bold mb-1">Título de la Promoción</label>
+                <input type="text" id="bannerPromoTituloInput" placeholder="Precios Especiales por Cajón y Millar para Restaurantes" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-bold">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold mb-1">Descripción / Condiciones</label>
+              <textarea id="bannerPromoSubtituloInput" rows="2" placeholder="Cotiza directamente por volumen y accede a descuentos exclusivos con despacho inmediato a nivel nacional." class="w-full admin-input rounded-xl p-3 text-xs leading-relaxed"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold mb-1">Texto del Botón Promocional</label>
+                <input type="text" id="bannerPromoBtnTextInput" placeholder="Solicitar Cotización Mayorista" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-semibold">
+              </div>
+              <div>
+                <label class="block text-xs font-bold mb-1">Enlace de Destino</label>
+                <input type="text" id="bannerPromoBtnLinkInput" placeholder="catalogo.html" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-mono">
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Botón Guardar Inferior -->
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button type="submit" id="btnSaveBannersBottom" class="px-8 py-3 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-xl text-xs font-bold shadow-lg shadow-brand-orange/25 transition-all flex items-center gap-2 tap-target cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>Guardar Todos los Banners y Avisos</span>
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+
     </main>
 
   </div>
@@ -1646,6 +1816,7 @@
         await this.loadUsers();
         await this.loadReclamaciones();
         await this.loadConfiguracion();
+        await this.loadBanners();
         this.updateStats();
       },
 
@@ -1653,11 +1824,12 @@
         this.currentTab = tabName;
         AdminLayout.closeSidebar();
 
-        const tabs = ['productos', 'categorias', 'cotizaciones', 'usuarios', 'reclamaciones', 'metricas', 'configuracion'];
+        const tabs = ['productos', 'categorias', 'cotizaciones', 'usuarios', 'reclamaciones', 'metricas', 'configuracion', 'banners'];
         tabs.forEach(tab => {
           const el = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
           const btn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
           if (!el || !btn) return;
+
 
 
           if (tab === tabName) {
@@ -4003,7 +4175,133 @@
         }
       },
 
+      // ================= GESTIÓN DE BANNERS Y AVISOS =================
+      updateBannerTopBadge(isChecked) {
+        const badge = document.getElementById('badgeBannerTopStatus');
+        if (badge) {
+          badge.textContent = isChecked ? 'Visible' : 'Oculto';
+          badge.className = isChecked 
+            ? 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400' 
+            : 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-stone-700 text-stone-300';
+        }
+      },
+
+      updateBannerPromoBadge(isChecked) {
+        const badge = document.getElementById('badgeBannerPromoStatus');
+        if (badge) {
+          badge.textContent = isChecked ? 'Visible' : 'Oculto';
+          badge.className = isChecked 
+            ? 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400' 
+            : 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-stone-700 text-stone-300';
+        }
+      },
+
+      async loadBanners() {
+        try {
+          const res = await ApiService.getCompanyConfig();
+          const conf = res?.data || (typeof COMPANY_CONTACT !== 'undefined' ? COMPANY_CONTACT : null);
+          if (!conf) return;
+
+          const flat = conf.flat || {};
+          const banners = conf.banners || {};
+
+          // TopBar
+          const topEnabled = banners.top ? banners.top.enabled !== false : (flat.banner_top_enabled !== 'false');
+          const chkTop = document.getElementById('bannerTopEnabled');
+          if (chkTop) {
+            chkTop.checked = topEnabled;
+            this.updateBannerTopBadge(topEnabled);
+          }
+          const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || '';
+          };
+          setVal('bannerTopBadge', banners.top?.badge || flat.banner_top_badge || 'Envíos a Todo el Perú');
+          setVal('bannerTopTexto', banners.top?.texto || flat.banner_top_texto || 'Sede: Av. Bertello 732-C, Cercado de Lima | Envíos diarios a nivel nacional');
+
+          // Hero
+          setVal('heroBadgeInput', banners.hero?.badge || flat.hero_badge || 'Venta al por Mayor y Menor • Envíos a todo el Perú');
+          setVal('heroTituloInput', banners.hero?.titulo || flat.hero_titulo || 'Envases y Descartables para el Sector Gastronómico e Industrial');
+          setVal('heroSubtituloInput', banners.hero?.subtitulo || flat.hero_subtitulo || 'Abastecemos a restaurantes, pollerías, cafeterías, empresas de catering y distribuidores con productos de primera calidad: Pamolsa, Proplas, cubiertos reforzados y empaques 100% biodegradables.');
+          setVal('heroBtnPrimaryTextInput', banners.hero?.btn_primary_text || flat.hero_btn_primary_text || 'Explorar Catálogo Completo');
+          setVal('heroBtnPrimaryLinkInput', banners.hero?.btn_primary_link || flat.hero_btn_primary_link || 'catalogo.html');
+          setVal('heroBtnSecondaryTextInput', banners.hero?.btn_secondary_text || flat.hero_btn_secondary_text || 'Asesoría Comercial');
+          setVal('heroBtnSecondaryLinkInput', banners.hero?.btn_secondary_link || flat.hero_btn_secondary_link || 'contacto.html');
+
+          // Promo
+          const promoEnabled = banners.promo ? banners.promo.enabled !== false : (flat.banner_promo_enabled !== 'false');
+          const chkPromo = document.getElementById('bannerPromoEnabled');
+          if (chkPromo) {
+            chkPromo.checked = promoEnabled;
+            this.updateBannerPromoBadge(promoEnabled);
+          }
+          setVal('bannerPromoBadgeInput', banners.promo?.badge || flat.banner_promo_badge || 'OFERTA DE TEMPORADA');
+          setVal('bannerPromoTituloInput', banners.promo?.titulo || flat.banner_promo_titulo || 'Precios Especiales por Cajón y Millar para Restaurantes');
+          setVal('bannerPromoSubtituloInput', banners.promo?.subtitulo || flat.banner_promo_subtitulo || 'Cotiza directamente por volumen y accede a descuentos exclusivos con despacho inmediato a nivel nacional.');
+          setVal('bannerPromoBtnTextInput', banners.promo?.btn_text || flat.banner_promo_btn_text || 'Solicitar Cotización Mayorista');
+          setVal('bannerPromoBtnLinkInput', banners.promo?.btn_link || flat.banner_promo_btn_link || 'catalogo.html');
+
+        } catch (e) {
+          console.warn('Error al cargar banners en Admin:', e);
+        }
+      },
+
+      async saveBanners(e) {
+        if (e) e.preventDefault();
+
+        const getVal = (id) => (document.getElementById(id)?.value || '').trim();
+        const topEnabled = document.getElementById('bannerTopEnabled')?.checked || false;
+        const promoEnabled = document.getElementById('bannerPromoEnabled')?.checked || false;
+
+        const payload = {
+          banner_top_enabled: topEnabled ? 'true' : 'false',
+          banner_top_badge: getVal('bannerTopBadge'),
+          banner_top_texto: getVal('bannerTopTexto'),
+          hero_badge: getVal('heroBadgeInput'),
+          hero_titulo: getVal('heroTituloInput'),
+          hero_subtitulo: getVal('heroSubtituloInput'),
+          hero_btn_primary_text: getVal('heroBtnPrimaryTextInput'),
+          hero_btn_primary_link: getVal('heroBtnPrimaryLinkInput'),
+          hero_btn_secondary_text: getVal('heroBtnSecondaryTextInput'),
+          hero_btn_secondary_link: getVal('heroBtnSecondaryLinkInput'),
+          banner_promo_enabled: promoEnabled ? 'true' : 'false',
+          banner_promo_badge: getVal('bannerPromoBadgeInput'),
+          banner_promo_titulo: getVal('bannerPromoTituloInput'),
+          banner_promo_subtitulo: getVal('bannerPromoSubtituloInput'),
+          banner_promo_btn_text: getVal('bannerPromoBtnTextInput'),
+          banner_promo_btn_link: getVal('bannerPromoBtnLinkInput')
+        };
+
+        const btnTop = document.getElementById('btnSaveBannersTop');
+        const btnBottom = document.getElementById('btnSaveBannersBottom');
+        if (btnTop) { btnTop.disabled = true; btnTop.innerHTML = '<span>Guardando...</span>'; }
+        if (btnBottom) { btnBottom.disabled = true; btnBottom.innerHTML = '<span>Guardando...</span>'; }
+
+        try {
+          const res = await ApiService.updateCompanyConfig(payload);
+          if (res && res.success) {
+            Toast.success('¡Banners y avisos de portada guardados con éxito!');
+            await this.loadBanners();
+          } else {
+            Toast.error(res?.error || 'No se pudieron guardar los banners.');
+          }
+        } catch (err) {
+          console.error('Error al guardar banners:', err);
+          Toast.error('Ocurrió un error al guardar los banners.');
+        } finally {
+          if (btnTop) { 
+            btnTop.disabled = false; 
+            btnTop.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Guardar Banners</span>'; 
+          }
+          if (btnBottom) { 
+            btnBottom.disabled = false; 
+            btnBottom.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Guardar Todos los Banners y Avisos</span>'; 
+          }
+        }
+      },
+
       updateStats() {
+
 
 
         const metricProd = document.getElementById('metricTotalProd');

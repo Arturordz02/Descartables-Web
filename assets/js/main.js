@@ -610,11 +610,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 8. Hidratación Dinámica de Datos de Contacto de la Empresa
+  // 8. Hidratación Dinámica de Datos de Contacto y Banners de la Empresa
   hydrateFrontendCompanyContact();
+  hydrateFrontendBanners();
   if (window.ApiService && typeof ApiService.getCompanyConfig === 'function') {
     ApiService.getCompanyConfig().then(() => {
       hydrateFrontendCompanyContact();
+      hydrateFrontendBanners();
     }).catch(() => {});
   }
 });
@@ -650,5 +652,75 @@ function hydrateFrontendCompanyContact() {
     `.trim();
   }
 }
+
+function hydrateFrontendBanners() {
+  const conf = window.COMPANY_CONTACT;
+  if (!conf || !conf.banners) return;
+  const b = conf.banners;
+
+  // 1. TopBar Notification
+  const topBar = document.getElementById('topNotificationBar');
+  if (topBar) {
+    if (b.top && b.top.enabled === false) {
+      topBar.classList.add('hidden');
+    } else {
+      topBar.classList.remove('hidden');
+      const topTxt = document.getElementById('topNotificationText');
+      if (topTxt && b.top?.texto) topTxt.textContent = b.top.texto;
+      const topBadge = document.getElementById('topNotificationBadge');
+      if (topBadge && b.top?.badge) topBadge.textContent = b.top.badge;
+    }
+  }
+
+  // 2. Hero Section
+  const heroBadgeText = document.getElementById('heroBadgeText');
+  if (heroBadgeText && b.hero?.badge) heroBadgeText.textContent = b.hero.badge;
+
+  const heroTitle = document.getElementById('heroMainTitle');
+  if (heroTitle && b.hero?.titulo) heroTitle.innerHTML = b.hero.titulo;
+
+  const heroSub = document.getElementById('heroSubTitle');
+  if (heroSub && b.hero?.subtitulo) heroSub.innerHTML = b.hero.subtitulo;
+
+  const heroBtnPri = document.getElementById('heroBtnPrimary');
+  const heroBtnPriTxt = document.getElementById('heroBtnPrimaryText');
+  if (heroBtnPri && b.hero) {
+    if (b.hero.btn_primary_link) heroBtnPri.href = b.hero.btn_primary_link;
+    if (heroBtnPriTxt && b.hero.btn_primary_text) heroBtnPriTxt.textContent = b.hero.btn_primary_text;
+  }
+
+  const heroBtnSec = document.getElementById('heroBtnSecondary');
+  const heroBtnSecTxt = document.getElementById('heroBtnSecondaryText');
+  if (heroBtnSec && b.hero) {
+    if (b.hero.btn_secondary_link) heroBtnSec.href = b.hero.btn_secondary_link;
+    if (heroBtnSecTxt && b.hero.btn_secondary_text) heroBtnSecTxt.textContent = b.hero.btn_secondary_text;
+  }
+
+  // 3. Promo Callout Section
+  const promoSection = document.getElementById('promoCalloutSection');
+  if (promoSection) {
+    if (b.promo && b.promo.enabled === false) {
+      promoSection.classList.add('hidden');
+    } else {
+      promoSection.classList.remove('hidden');
+      const promoBadge = document.getElementById('promoCalloutBadge');
+      if (promoBadge && b.promo?.badge) promoBadge.textContent = b.promo.badge;
+
+      const promoTitle = document.getElementById('promoCalloutTitle');
+      if (promoTitle && b.promo?.titulo) promoTitle.textContent = b.promo.titulo;
+
+      const promoSub = document.getElementById('promoCalloutSub');
+      if (promoSub && b.promo?.subtitulo) promoSub.textContent = b.promo.subtitulo;
+
+      const promoBtn = document.getElementById('promoCalloutBtn');
+      const promoBtnTxt = document.getElementById('promoCalloutBtnText');
+      if (promoBtn && b.promo) {
+        if (b.promo.btn_link) promoBtn.href = b.promo.btn_link;
+        if (promoBtnTxt && b.promo.btn_text) promoBtnTxt.textContent = b.promo.btn_text;
+      }
+    }
+  }
+}
+
 
 

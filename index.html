@@ -71,12 +71,12 @@
 <body class="bg-warm-cream text-espresso antialiased selection:bg-terracota selection:text-white">
 
   <!-- TopBar de Notificaciones / Datos de Atención Comercial en Perú -->
-  <div class="bg-espresso text-warm-cream text-[10px] sm:text-[11px] py-2 px-3 sm:px-4 border-b border-stone-800">
+  <div id="topNotificationBar" class="bg-espresso text-warm-cream text-[10px] sm:text-[11px] py-2 px-3 sm:px-4 border-b border-stone-800">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1.5 sm:gap-2 text-center sm:text-left">
       <div class="flex items-center gap-2 sm:gap-4 flex-wrap justify-center sm:justify-start">
         <span class="flex items-center gap-1 text-amber-400 font-medium">
           <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <span>Sede: Av. Bertello 732-C, Cercado de Lima</span>
+          <span id="topNotificationText">Sede: Av. Bertello 732-C, Cercado de Lima</span>
         </span>
         <span class="hidden md:inline text-stone-500">|</span>
         <span class="hidden md:flex items-center gap-1.5 text-stone-300">
@@ -85,17 +85,16 @@
         </span>
       </div>
       <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
-        <span class="bg-terracota/30 text-amber-300 px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider">
+        <span id="topNotificationBadge" class="bg-terracota/30 text-amber-300 px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider">
           Envíos a Todo el Perú
         </span>
-        <a href="https://wa.me/51994195430" target="_blank" class="hover:text-emerald-400 flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold transition-colors">
-        <div class="flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-stone-300">
+        <a id="topNotificationWa" href="javascript:void(0)" onclick="if(window.COMPANY_CONTACT && window.COMPANY_CONTACT.ENABLE_REDIRECTS){window.open(window.COMPANY_CONTACT.whatsapp.url_principal,'_blank');}else{if(window.showToast){showToast('Atención por WhatsApp: ' + (window.COMPANY_CONTACT?.whatsapp.principal || '+51 994 195 430') + ' (Pausado temporalmente)','info');}}" class="hover:text-emerald-400 flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold transition-colors">
           <span>WhatsApp: +51 994 195 430</span>
         </a>
-        </div>
       </div>
     </div>
   </div>
+
 
   <!-- Header Principal con Efecto Glassmorphism -->
   <header class="sticky top-0 z-40 glass-warm border-b border-warm-border">
@@ -206,30 +205,31 @@
         <!-- Texto Principal Hero -->
         <div class="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left">
           
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-terracota-light border border-terracota/20 text-terracota text-[11px] sm:text-xs font-semibold max-w-full truncate">
+          <div id="heroBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-terracota-light border border-terracota/20 text-terracota text-[11px] sm:text-xs font-semibold max-w-full truncate">
             <span class="w-2 h-2 rounded-full bg-terracota animate-pulse flex-shrink-0"></span>
-            <span class="truncate">Venta al por Mayor y Menor • Envíos a todo el Perú</span>
+            <span id="heroBadgeText" class="truncate">Venta al por Mayor y Menor • Envíos a todo el Perú</span>
           </div>
 
-          <h1 class="font-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold text-espresso tracking-tight leading-[1.15]">
+          <h1 id="heroMainTitle" class="font-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold text-espresso tracking-tight leading-[1.15]">
             Envases y Descartables para el <span class="text-transparent bg-clip-text bg-gradient-to-r from-terracota to-amberPeru">Sector Gastronómico e Industrial</span>
           </h1>
 
-          <p class="text-espresso-muted text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+          <p id="heroSubTitle" class="text-espresso-muted text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
             Abastecemos a restaurantes, pollerías, cafeterías, empresas de catering y distribuidores con productos de primera calidad: <strong>Pamolsa, Proplas, cubiertos reforzados y empaques 100% biodegradables</strong>.
           </p>
 
           <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start pt-2">
-            <a href="catalogo.html" class="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-terracota hover:bg-terracota-hover text-white font-bold text-xs sm:text-sm shadow-xl shadow-terracota/25 transition-all flex items-center justify-center gap-2 group tap-target">
-              <span>Explorar Catálogo Completo</span>
+            <a id="heroBtnPrimary" href="catalogo.html" class="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-terracota hover:bg-terracota-hover text-white font-bold text-xs sm:text-sm shadow-xl shadow-terracota/25 transition-all flex items-center justify-center gap-2 group tap-target">
+              <span id="heroBtnPrimaryText">Explorar Catálogo Completo</span>
               <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </a>
 
-            <button class="open-cart-trigger w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-white hover:bg-warm-sand border border-warm-border text-espresso font-bold text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2 tap-target">
-              <svg class="w-5 h-5 text-terracota" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              <span>Cotizador Express</span>
-            </button>
+            <a id="heroBtnSecondary" href="contacto.html" class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-white hover:bg-warm-sand border border-warm-border text-espresso font-bold text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2 tap-target">
+              <svg class="w-5 h-5 text-terracota" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              <span id="heroBtnSecondaryText">Asesoría Comercial</span>
+            </a>
           </div>
+
 
           <!-- Métricas de Confianza en Perú -->
           <div class="pt-6 border-t border-warm-border grid grid-cols-3 gap-2 sm:gap-4 text-center lg:text-left">
@@ -568,6 +568,29 @@
 
       </div>
 
+    </div>
+  </section>
+
+  <!-- BANNER PROMOCIONAL DE TEMPORADA / OFERTAS B2B -->
+  <section id="promoCalloutSection" class="py-10 bg-gradient-to-r from-espresso via-stone-900 to-espresso text-warm-cream border-y border-stone-800 relative overflow-hidden">
+    <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+        <div class="space-y-2 max-w-2xl">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-extrabold uppercase tracking-wider">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span id="promoCalloutBadge">OFERTA DE TEMPORADA</span>
+          </div>
+          <h2 id="promoCalloutTitle" class="font-heading font-black text-xl sm:text-3xl text-white">Precios Especiales por Cajón y Millar para Restaurantes</h2>
+          <p id="promoCalloutSub" class="text-xs sm:text-sm text-stone-300 leading-relaxed">Cotiza directamente por volumen y accede a descuentos exclusivos con despacho inmediato a nivel nacional.</p>
+        </div>
+        <div class="flex-shrink-0">
+          <a id="promoCalloutBtn" href="catalogo.html" class="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-terracota to-amberPeru hover:opacity-95 text-white font-heading font-extrabold text-xs sm:text-sm shadow-xl shadow-terracota/25 transition-all tap-target">
+            <span id="promoCalloutBtnText">Solicitar Cotización Mayorista</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+        </div>
+      </div>
     </div>
   </section>
 

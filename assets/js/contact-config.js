@@ -45,8 +45,35 @@ const COMPANY_CONTACT = {
   redes: {
     facebook: "https://facebook.com/descartablesperuanos",
     instagram: "https://instagram.com/descartablesperuanos"
+  },
+
+  banners: {
+    top: {
+      enabled: true,
+      texto: "Envíos a todo el Perú por agencias • Atención mayorista directa",
+      badge: "Envíos a Todo el Perú",
+      link: "catalogo.html"
+    },
+    hero: {
+      badge: "Venta al por Mayor y Menor • Envíos a todo el Perú",
+      titulo: "Envases y Descartables para el Sector Gastronómico e Industrial",
+      subtitulo: "Abastecemos a restaurantes, pollerías, cafeterías, empresas de catering y distribuidores con productos de primera calidad: Pamolsa, Proplas, cubiertos reforzados y empaques 100% biodegradables.",
+      btn_primary_text: "Explorar Catálogo",
+      btn_primary_link: "catalogo.html",
+      btn_secondary_text: "Asesoría Comercial",
+      btn_secondary_link: "contacto.html"
+    },
+    promo: {
+      enabled: true,
+      badge: "OFERTA DE TEMPORADA",
+      titulo: "Precios Especiales por Cajón y Millar para Restaurantes",
+      subtitulo: "Cotiza directamente por volumen y accede a descuentos exclusivos con despacho inmediato a nivel nacional.",
+      btn_text: "Solicitar Cotización Mayorista",
+      btn_link: "catalogo.html"
+    }
   }
 };
+
 
 // Hidratación desde localStorage si ya fue configurada previamente en el Admin
 if (typeof localStorage !== 'undefined') {
