@@ -5,6 +5,7 @@
  * Descartables Peruanos S.A.C.
  * ==============================================================================
  *
+ * 
  * Endpoint ultra-liviano optimizado para chequeos periódicos (cada 2-3 min).
  * Retorna conteos de nuevos registros, IDs máximos y resumen de nuevos elementos
  * sin sobrecargar el servidor ni transferir conjuntos de datos pesados.
