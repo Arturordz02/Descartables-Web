@@ -6,18 +6,25 @@
 
 require_once __DIR__ . '/db.php';
 
+header('Content-Type: application/json; charset=utf-8');
+
 $pdo = getDbConnection();
 
-// Auto-migración silenciosa y segura de columnas estado y notas
+// Auto-migración silenciosa y segura de columnas de cotizaciones
 if ($pdo) {
     try {
-        $pdo->query("SELECT estado FROM cotizaciones LIMIT 1");
-    } catch (Exception $e) {
-        try {
+        $cols = $pdo->query("SHOW COLUMNS FROM cotizaciones")->fetchAll(PDO::FETCH_COLUMN);
+        
+        if (!in_array('estado', $cols)) {
             $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN estado VARCHAR(30) DEFAULT 'Pendiente'");
+        }
+        if (!in_array('notas', $cols)) {
             $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN notas TEXT NULL");
-        } catch (Exception $ignored) {}
-    }
+        }
+        if (!in_array('total_items', $cols)) {
+            $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN total_items INT NOT NULL DEFAULT 0");
+        }
+    } catch (Exception $ignored) {}
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -101,14 +108,21 @@ if ($method === 'DELETE' || ($method === 'POST' && isset($data['action']) && $da
 
 // 3. REGISTRAR NUEVA COTIZACIÓN (POST)
 if ($method === 'POST') {
-    if (empty($data['documento']) || empty($data['nombre_cliente']) || empty($data['items'])) {
+    $items = !empty($data['items']) ? $data['items'] : (!empty($data['detalle_items']) ? $data['detalle_items'] : []);
+    $documento = trim($data['documento'] ?? $data['cliente_doc'] ?? '');
+    $nombre = trim($data['nombre_cliente'] ?? $data['cliente_nombre'] ?? '');
+
+    if (empty($items)) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'error'   => 'Faltan campos obligatorios para registrar la cotización (documento, nombre, items).'
+            'error'   => 'Faltan productos/items para registrar la cotización.'
         ], JSON_UNESCAPED_UNICODE);
         exit();
     }
+
+    if (empty($documento)) $documento = 'No especificado';
+    if (empty($nombre)) $nombre = 'Cliente Web';
 
     if (!$pdo) {
         // Modo local de respaldo sin base de datos activa
@@ -132,37 +146,63 @@ if ($method === 'POST') {
 
         $usuario_id = !empty($data['usuario_id']) ? (int)$data['usuario_id'] : null;
         $tipo_comprobante = in_array($data['tipo_comprobante'] ?? '', ['Boleta', 'Factura']) ? $data['tipo_comprobante'] : 'Factura';
-        $documento = trim($data['documento']);
-        $nombre = trim($data['nombre_cliente']);
-        $telefono = trim($data['telefono'] ?? '');
-        $destino = trim($data['destino'] ?? 'Lima Metropolitana');
-        $items = $data['items'];
+        $telefono = trim($data['telefono'] ?? $data['cliente_telefono'] ?? '');
+        $email = trim($data['email'] ?? $data['cliente_email'] ?? '');
+        $destino = trim($data['destino'] ?? $data['departamento'] ?? 'Lima Metropolitana');
         $total_items = is_array($items) ? array_reduce($items, fn($carry, $i) => $carry + (int)($i['cantidad'] ?? 1), 0) : 0;
         $estado = 'Pendiente';
         $notas = trim($data['notas'] ?? '');
+        $itemsJson = is_string($items) ? $items : json_encode($items, JSON_UNESCAPED_UNICODE);
 
-        $sql = "INSERT INTO cotizaciones (
-            codigo_cotizacion, usuario_id, tipo_comprobante, documento, 
-            nombre_cliente, telefono, destino, detalle_items, total_items, estado, notas, creado_en
-        ) VALUES (
-            ?, ?, ?, ?, 
-            ?, ?, ?, ?, ?, ?, ?, NOW()
-        )";
+        // Detectar columnas existentes en la tabla cotizaciones
+        $cols = $pdo->query("SHOW COLUMNS FROM cotizaciones")->fetchAll(PDO::FETCH_COLUMN);
 
+        $insertCols = ['codigo_cotizacion'];
+        $insertVals = [$codigo];
+        $placeholders = ['?'];
+
+        if (in_array('usuario_id', $cols)) { $insertCols[] = 'usuario_id'; $insertVals[] = $usuario_id; $placeholders[] = '?'; }
+        if (in_array('tipo_comprobante', $cols)) { $insertCols[] = 'tipo_comprobante'; $insertVals[] = $tipo_comprobante; $placeholders[] = '?'; }
+
+        // Nombre
+        if (in_array('nombre_cliente', $cols)) { $insertCols[] = 'nombre_cliente'; $insertVals[] = $nombre; $placeholders[] = '?'; }
+        elseif (in_array('cliente_nombre', $cols)) { $insertCols[] = 'cliente_nombre'; $insertVals[] = $nombre; $placeholders[] = '?'; }
+
+        // Documento
+        if (in_array('documento', $cols)) { $insertCols[] = 'documento'; $insertVals[] = $documento; $placeholders[] = '?'; }
+        elseif (in_array('cliente_doc', $cols)) { $insertCols[] = 'cliente_doc'; $insertVals[] = $documento; $placeholders[] = '?'; }
+
+        // Teléfono
+        if (in_array('telefono', $cols)) { $insertCols[] = 'telefono'; $insertVals[] = $telefono; $placeholders[] = '?'; }
+        elseif (in_array('cliente_telefono', $cols)) { $insertCols[] = 'cliente_telefono'; $insertVals[] = $telefono; $placeholders[] = '?'; }
+
+        // Email
+        if (in_array('email', $cols)) { $insertCols[] = 'email'; $insertVals[] = $email; $placeholders[] = '?'; }
+        elseif (in_array('cliente_email', $cols)) { $insertCols[] = 'cliente_email'; $insertVals[] = $email; $placeholders[] = '?'; }
+
+        // Destino / Departamento
+        if (in_array('destino', $cols)) { $insertCols[] = 'destino'; $insertVals[] = $destino; $placeholders[] = '?'; }
+        elseif (in_array('departamento', $cols)) { $insertCols[] = 'departamento'; $insertVals[] = $destino; $placeholders[] = '?'; }
+
+        // Items
+        if (in_array('detalle_items', $cols)) { $insertCols[] = 'detalle_items'; $insertVals[] = $itemsJson; $placeholders[] = '?'; }
+        elseif (in_array('items', $cols)) { $insertCols[] = 'items'; $insertVals[] = $itemsJson; $placeholders[] = '?'; }
+
+        // Total items
+        if (in_array('total_items', $cols)) { $insertCols[] = 'total_items'; $insertVals[] = $total_items; $placeholders[] = '?'; }
+
+        // Estado
+        if (in_array('estado', $cols)) { $insertCols[] = 'estado'; $insertVals[] = $estado; $placeholders[] = '?'; }
+
+        // Notas
+        if (in_array('notas', $cols)) { $insertCols[] = 'notas'; $insertVals[] = $notas; $placeholders[] = '?'; }
+
+        // Creado en
+        if (in_array('creado_en', $cols)) { $insertCols[] = 'creado_en'; $insertVals[] = date('Y-m-d H:i:s'); $placeholders[] = '?'; }
+
+        $sql = "INSERT INTO cotizaciones (" . implode(', ', $insertCols) . ") VALUES (" . implode(', ', $placeholders) . ")";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            $codigo,
-            $usuario_id,
-            $tipo_comprobante,
-            $documento,
-            $nombre,
-            $telefono,
-            $destino,
-            json_encode($items, JSON_UNESCAPED_UNICODE),
-            $total_items,
-            $estado,
-            $notas
-        ]);
+        $stmt->execute($insertVals);
 
         $newId = $pdo->lastInsertId();
 
@@ -182,7 +222,8 @@ if ($method === 'POST') {
             'success'            => true,
             'message'            => 'Cotización formal generada.',
             'codigo_cotizacion'  => $codigoFallback,
-            'fecha'              => date('d/m/Y H:i:s')
+            'fecha'              => date('d/m/Y H:i:s'),
+            'debug_error'        => $e->getMessage()
         ], JSON_UNESCAPED_UNICODE);
         exit();
     }
@@ -201,33 +242,23 @@ if ($method === 'GET') {
     }
 
     try {
-        if ($codigo) {
-            $stmt = $pdo->prepare("SELECT * FROM cotizaciones WHERE codigo_cotizacion = ?");
-            $stmt->execute([$codigo]);
-            $res = $stmt->fetch();
-            if ($res && is_string($res['detalle_items'])) {
-                $res['detalle_items'] = json_decode($res['detalle_items'], true);
-            }
-            echo json_encode(['success' => true, 'data' => $res], JSON_UNESCAPED_UNICODE);
-            exit();
-        }
+        $cols = $pdo->query("SHOW COLUMNS FROM cotizaciones")->fetchAll(PDO::FETCH_COLUMN);
 
-        if ($doc) {
-            $stmt = $pdo->prepare("SELECT * FROM cotizaciones WHERE documento = ? ORDER BY id DESC");
-            $stmt->execute([$doc]);
-            $res = $stmt->fetchAll();
-            foreach ($res as &$r) {
-                if (is_string($r['detalle_items'])) {
-                    $r['detalle_items'] = json_decode($r['detalle_items'], true);
-                }
-            }
-            echo json_encode(['success' => true, 'count' => count($res), 'data' => $res], JSON_UNESCAPED_UNICODE);
-            exit();
-        }
+        $colNombre = in_array('nombre_cliente', $cols) ? 'nombre_cliente' : (in_array('cliente_nombre', $cols) ? 'cliente_nombre' : "'Cliente'");
+        $colDoc = in_array('documento', $cols) ? 'documento' : (in_array('cliente_doc', $cols) ? 'cliente_doc' : "''");
+        $colTel = in_array('telefono', $cols) ? 'telefono' : (in_array('cliente_telefono', $cols) ? 'cliente_telefono' : "''");
+        $colDest = in_array('destino', $cols) ? 'destino' : (in_array('departamento', $cols) ? 'departamento' : "'Lima'");
 
-        // Listado para Administrador con filtros
         $sql = "SELECT * FROM cotizaciones WHERE 1=1";
         $params = [];
+
+        if ($codigo) {
+            $sql .= " AND codigo_cotizacion = ?";
+            $params[] = $codigo;
+        } elseif ($doc) {
+            $sql .= " AND ({$colDoc} = ?)";
+            $params[] = $doc;
+        }
 
         if ($estado) {
             $sql .= " AND estado = ?";
@@ -235,7 +266,7 @@ if ($method === 'GET') {
         }
 
         if ($search) {
-            $sql .= " AND (codigo_cotizacion LIKE ? OR nombre_cliente LIKE ? OR documento LIKE ? OR telefono LIKE ?)";
+            $sql .= " AND (codigo_cotizacion LIKE ? OR {$colNombre} LIKE ? OR {$colDoc} LIKE ? OR {$colTel} LIKE ?)";
             $sw = "%$search%";
             $params[] = $sw;
             $params[] = $sw;
@@ -247,12 +278,22 @@ if ($method === 'GET') {
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
-        $res = $stmt->fetchAll();
+        $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Normalizar estructura de retorno
         foreach ($res as &$r) {
-            if (is_string($r['detalle_items'])) {
-                $r['detalle_items'] = json_decode($r['detalle_items'], true);
-            }
+            $rawItems = $r['detalle_items'] ?? $r['items'] ?? '[]';
+            $r['items'] = is_string($rawItems) ? json_decode($rawItems, true) : $rawItems;
+            $r['detalle_items'] = $r['items'];
+            $r['nombre_cliente'] = $r['nombre_cliente'] ?? $r['cliente_nombre'] ?? 'Cliente';
+            $r['cliente_nombre'] = $r['nombre_cliente'];
+            $r['documento'] = $r['documento'] ?? $r['cliente_doc'] ?? '—';
+            $r['cliente_doc'] = $r['documento'];
+            $r['telefono'] = $r['telefono'] ?? $r['cliente_telefono'] ?? '';
+            $r['cliente_telefono'] = $r['telefono'];
+            $r['destino'] = $r['destino'] ?? $r['departamento'] ?? 'Lima Metropolitana';
+            $r['departamento'] = $r['destino'];
+            $r['codigo'] = $r['codigo_cotizacion'] ?? ('COT-' . $r['id']);
             if (empty($r['estado'])) {
                 $r['estado'] = 'Pendiente';
             }
@@ -268,4 +309,3 @@ if ($method === 'GET') {
 
 http_response_code(405);
 echo json_encode(['success' => false, 'error' => 'Método no permitido'], JSON_UNESCAPED_UNICODE);
-

@@ -74,11 +74,14 @@ try {
 
     // Si el cliente ya tenía un punto de partida y hay cotizaciones más recientes
     if ($lastCotizId !== null && $lastCotizId >= 0 && $cotizData['max_id'] > $lastCotizId) {
+        $colsCotiz = $pdo->query("SHOW COLUMNS FROM cotizaciones")->fetchAll(PDO::FETCH_COLUMN);
+        $colNombre = in_array('nombre_cliente', $colsCotiz) ? 'nombre_cliente' : (in_array('cliente_nombre', $colsCotiz) ? 'cliente_nombre' : "'Cliente Corporativo'");
+
         $stmtNuevas = $pdo->prepare("
             SELECT 
                 id, 
                 codigo_cotizacion, 
-                COALESCE(NULLIF(nombre_cliente, ''), cliente_nombre, 'Cliente Corporativo') AS cliente, 
+                {$colNombre} AS cliente, 
                 creado_en 
             FROM cotizaciones 
             WHERE id > ? 

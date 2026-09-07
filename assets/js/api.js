@@ -1341,7 +1341,7 @@ const ApiService = {
         const res = await fetch(`${this.baseUrl}/cotizaciones.php?${queryParams.toString()}`);
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
-          return json.data;
+          return { success: true, count: json.data.length, data: json.data };
         }
       } catch (e) {
         console.warn('Fallo al obtener cotizaciones de MySQL, usando locales:', e);
@@ -1365,7 +1365,7 @@ const ApiService = {
         (item.telefono && item.telefono.toLowerCase().includes(q))
       );
     }
-    return quotes;
+    return { success: true, count: quotes.length, data: quotes };
   },
 
   async updateCotizacionStatus(id, estado, notas = '') {

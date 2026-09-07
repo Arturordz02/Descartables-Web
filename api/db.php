@@ -219,6 +219,14 @@ function ensureDatabaseInitialized($pdo) {
             INDEX idx_codigo (codigo_cotizacion)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+        // Auto-migraciones para tabla cotizaciones
+        try {
+            $colsCotiz = $pdo->query("SHOW COLUMNS FROM cotizaciones")->fetchAll(PDO::FETCH_COLUMN);
+            if (!in_array('estado', $colsCotiz)) $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN estado VARCHAR(30) DEFAULT 'Pendiente'");
+            if (!in_array('notas', $colsCotiz)) $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN notas TEXT NULL");
+            if (!in_array('total_items', $colsCotiz)) $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN total_items INT NOT NULL DEFAULT 0");
+        } catch (Exception $e) {}
+
         // 5. Tabla reclamaciones (Libro de Reclamaciones INDECOPI)
         $pdo->exec("CREATE TABLE IF NOT EXISTS reclamaciones (
             id INT AUTO_INCREMENT PRIMARY KEY,

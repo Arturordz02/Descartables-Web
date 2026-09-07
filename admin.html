@@ -4176,9 +4176,13 @@
       async loadCotizaciones() {
         try {
           const res = await ApiService.getCotizaciones();
-          if (res && res.success) {
-            this.cotizaciones = res.data || [];
+          if (res && res.success && Array.isArray(res.data)) {
+            this.cotizaciones = res.data;
             this.updateCotizacionesStats(res.stats);
+            this.renderCotizaciones(this.cotizaciones);
+          } else if (Array.isArray(res)) {
+            this.cotizaciones = res;
+            this.updateCotizacionesStats();
             this.renderCotizaciones(this.cotizaciones);
           } else {
             this.cotizaciones = [];
@@ -4258,12 +4262,12 @@
         // Render Desktop Table
         if (tbody) {
           tbody.innerHTML = list.map((c, index) => {
-            const code = c.codigo || ('COT-' + c.id);
-            const cliente = c.cliente_nombre || 'Cliente General';
-            const doc = c.cliente_doc || '—';
-            const tel = c.cliente_telefono || '';
+            const code = c.codigo_cotizacion || c.codigo || ('COT-' + c.id);
+            const cliente = c.cliente_nombre || c.nombre_cliente || 'Cliente General';
+            const doc = c.cliente_doc || c.documento || '—';
+            const tel = c.cliente_telefono || c.telefono || '';
             const cleanPhone = tel.replace(/[^0-9]/g, '');
-            const destino = (c.departamento || c.ciudad || 'Lima');
+            const destino = (c.destino || c.departamento || c.ciudad || 'Lima');
             const comprobante = c.tipo_comprobante || 'Factura';
             
             let itemsCount = 0;
@@ -4348,12 +4352,12 @@
         // Render Mobile Cards
         if (mobileContainer) {
           mobileContainer.innerHTML = list.map(c => {
-            const code = c.codigo || ('COT-' + c.id);
-            const cliente = c.cliente_nombre || 'Cliente General';
-            const doc = c.cliente_doc || '—';
-            const tel = c.cliente_telefono || '';
+            const code = c.codigo_cotizacion || c.codigo || ('COT-' + c.id);
+            const cliente = c.cliente_nombre || c.nombre_cliente || 'Cliente General';
+            const doc = c.cliente_doc || c.documento || '—';
+            const tel = c.cliente_telefono || c.telefono || '';
             const cleanPhone = tel.replace(/[^0-9]/g, '');
-            const destino = (c.departamento || c.ciudad || 'Lima');
+            const destino = (c.destino || c.departamento || c.ciudad || 'Lima');
             const comprobante = c.tipo_comprobante || 'Factura';
             
             let itemsCount = 0;
