@@ -206,6 +206,15 @@
         </div>
       </button>
 
+      <!-- Item: Categorías -->
+      <button id="tabBtnCategorias" onclick="Admin.switchTab('categorias')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 flex-shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+          <span>Gestión de Categorías</span>
+        </div>
+        <span id="badgeTotalCategorias" class="px-2 py-0.5 rounded-full admin-card-inner text-[10px] font-bold">0</span>
+      </button>
+
       <!-- Item: Usuarios -->
       <button id="tabBtnUsuarios" onclick="Admin.switchTab('usuarios')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
         <div class="flex items-center gap-3">
@@ -385,6 +394,67 @@
             <div class="py-10 text-center text-stone-400">
               <div class="inline-block w-6 h-6 border-2 border-brand-orange border-t-transparent rounded-full animate-spin mb-2"></div>
               <p class="text-xs">Cargando productos en vista móvil...</p>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB: CATEGORÍAS ==================== -->
+      <section id="tabCategorias" class="space-y-4 hidden animate-fade-in">
+        
+        <!-- Barra de Filtros y Búsqueda de Categorías -->
+        <div class="admin-card p-3 sm:p-4 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+          <div class="relative w-full md:w-80">
+            <input type="text" id="adminCatSearch" oninput="Admin.filterCategories()" placeholder="Buscar categoría o slug..." class="w-full admin-input rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none">
+            <svg class="w-4 h-4 text-stone-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+
+          <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto no-scrollbar">
+            <button type="button" onclick="Admin.openCategoryModal()" class="px-3 sm:px-4 py-2 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-xl text-xs font-bold shadow-md shadow-brand-orange/20 transition-all flex items-center gap-1.5 tap-target cursor-pointer flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Nueva Categoría</span>
+            </button>
+
+            <span id="adminCatCountBadge" class="text-xs font-bold px-3 py-2 rounded-xl admin-card-inner whitespace-nowrap flex-shrink-0">
+              0 categorías
+            </span>
+          </div>
+        </div>
+
+        <!-- Contenedor Híbrido de Categorías -->
+        <div class="admin-card rounded-2xl shadow-sm overflow-hidden">
+          
+          <!-- Vista Desktop -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="admin-card-inner font-bold border-b uppercase text-[10px] tracking-wider" style="border-color: var(--admin-border);">
+                  <th class="py-3.5 px-4">Categoría / Línea</th>
+                  <th class="py-3.5 px-3">Slug URL</th>
+                  <th class="py-3.5 px-3">Descripción</th>
+                  <th class="py-3.5 px-3 text-center">Ícono / Color</th>
+                  <th class="py-3.5 px-3 text-center">Total Productos</th>
+                  <th class="py-3.5 px-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="adminCategoriesTableBody" class="divide-y" style="border-color: var(--admin-border-subtle);">
+                <tr>
+                  <td colspan="6" class="py-12 text-center text-stone-400">
+                    <div class="inline-block w-6 h-6 border-2 border-brand-orange border-t-transparent rounded-full animate-spin mb-2"></div>
+                    <p>Cargando lista de categorías...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Vista Móvil -->
+          <div id="adminCategoriesMobileContainer" class="md:hidden p-3 space-y-3 divide-y" style="border-color: var(--admin-border-subtle);">
+            <div class="py-10 text-center text-stone-400">
+              <div class="inline-block w-6 h-6 border-2 border-brand-orange border-t-transparent rounded-full animate-spin mb-2"></div>
+              <p class="text-xs">Cargando categorías en vista móvil...</p>
             </div>
           </div>
 
@@ -825,6 +895,84 @@
 
   </div>
 
+  <!-- ==================== MODAL CREAR / EDITAR CATEGORÍA ==================== -->
+  <div id="modalCategoria" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto">
+    <div class="admin-card w-full max-w-xl rounded-3xl shadow-2xl p-5 sm:p-7 space-y-5 my-8">
+      
+      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--admin-border);">
+        <div>
+          <h2 id="modalCatTitle" class="font-heading font-extrabold text-lg sm:text-xl">Agregar Nueva Categoría</h2>
+          <p class="text-xs text-stone-400">Configure la línea o familia de productos del catálogo.</p>
+        </div>
+        <button onclick="Admin.closeCategoryModal()" class="p-2 rounded-xl text-stone-400 hover:text-white admin-card-inner transition-colors tap-target cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="formCategoria" onsubmit="Admin.saveCategory(event)" class="space-y-4">
+        <input type="hidden" id="catFormId" value="">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold mb-1">Nombre de la Categoría *</label>
+            <input type="text" id="catFormNombre" required oninput="Admin.handleCategoryNameInput(this.value)" placeholder="Ej: Vasos Térmicos y Polipapel" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1">Slug URL (Identificador) *</label>
+            <input type="text" id="catFormSlug" required placeholder="Ej: vasos-termicos" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold mb-1">Descripción de la Línea Comercial</label>
+          <textarea id="catFormDescripcion" rows="2" placeholder="Resumen de aplicaciones gastronómicas, materiales o usos industriales..." class="w-full admin-input rounded-xl p-3 text-xs leading-relaxed"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold mb-1">Ícono Visual Representativo</label>
+            <select id="catFormIcono" class="w-full admin-input rounded-xl px-3 py-2.5 text-xs font-semibold">
+              <option value="box">📦 Caja / Empaque General (box)</option>
+              <option value="coffee">☕ Café / Bebidas Calientes (coffee)</option>
+              <option value="shield-check">🛡️ Barrera / Protección (shield-check)</option>
+              <option value="utensils">🍴 Cubiertos / Mesa (utensils)</option>
+              <option value="file-text">📄 Papelería / Servilletas (file-text)</option>
+              <option value="sparkles">✨ Higiene / Limpieza (sparkles)</option>
+              <option value="leaf">🌿 Eco-Amigable / Bio (leaf)</option>
+              <option value="package">🎁 Paquetería / Envíos (package)</option>
+              <option value="tag">🏷️ Especial / Novedades (tag)</option>
+              <option value="shopping-bag">🛍️ Delivery / Bolsas (shopping-bag)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold mb-1">Paleta de Color de Fondo</label>
+            <select id="catFormColor" class="w-full admin-input rounded-xl px-3 py-2.5 text-xs font-semibold">
+              <option value="from-amber-600/20 to-orange-600/20">🟠 Ámbar / Naranja (Pamolsa)</option>
+              <option value="from-blue-600/20 to-cyan-600/20">🔵 Azul / Cian (Proplas / Barrera)</option>
+              <option value="from-stone-600/20 to-zinc-600/20">⚪ Piedra / Zinc (Cubiertos)</option>
+              <option value="from-emerald-600/20 to-teal-600/20">🟢 Esmeralda / Verde (Servilletas)</option>
+              <option value="from-purple-600/20 to-indigo-600/20">🟣 Púrpura / Índigo (Limpieza)</option>
+              <option value="from-lime-600/20 to-green-600/20">🌱 Lima / Verde Bio (Eco-Bio)</option>
+              <option value="from-rose-600/20 to-pink-600/20">🔴 Rosa / Carmesí (Novedades)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t flex items-center justify-end gap-3" style="border-color: var(--admin-border);">
+          <button type="button" onclick="Admin.closeCategoryModal()" class="px-5 py-2.5 rounded-xl border text-xs font-bold admin-card-inner hover:opacity-80 transition-colors tap-target cursor-pointer" style="border-color: var(--admin-border);">
+            Cancelar
+          </button>
+          <button type="submit" id="btnGuardarCategoria" class="px-6 py-2.5 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-xl text-xs font-bold shadow-md shadow-brand-orange/25 transition-all flex items-center gap-2 tap-target cursor-pointer">
+            <span>Guardar Categoría</span>
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
   <!-- ==================== MODAL CREAR / EDITAR PRODUCTO ==================== -->
   <div id="modalProducto" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto">
     <div class="admin-card w-full max-w-2xl rounded-3xl shadow-2xl p-5 sm:p-7 space-y-5 my-8">
@@ -1256,7 +1404,7 @@
         this.currentTab = tabName;
         AdminLayout.closeSidebar();
 
-        const tabs = ['productos', 'cotizaciones', 'usuarios', 'reclamaciones', 'metricas'];
+        const tabs = ['productos', 'categorias', 'cotizaciones', 'usuarios', 'reclamaciones', 'metricas'];
         tabs.forEach(tab => {
           const el = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
           const btn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
@@ -1273,7 +1421,21 @@
 
         const btnNuevo = document.getElementById('btnNuevoProductoContainer');
         if (btnNuevo) {
-          btnNuevo.style.display = (tabName === 'productos') ? 'block' : 'none';
+          btnNuevo.style.display = (tabName === 'productos' || tabName === 'categorias') ? 'block' : 'none';
+          const btnText = btnNuevo.querySelector('span.hidden');
+          if (btnText) {
+            btnText.textContent = (tabName === 'categorias') ? 'Nueva Categoría' : 'Nuevo Producto';
+          }
+          const btnAction = btnNuevo.querySelector('button');
+          if (btnAction) {
+            btnAction.onclick = () => {
+              if (this.currentTab === 'categorias') {
+                this.openCategoryModal();
+              } else {
+                this.openProductModal();
+              }
+            };
+          }
         }
       },
 
@@ -1284,6 +1446,12 @@
           if (searchInput) {
             searchInput.value = q;
             this.filterProducts();
+          }
+        } else if (this.currentTab === 'categorias') {
+          const searchInput = document.getElementById('adminCatSearch');
+          if (searchInput) {
+            searchInput.value = q;
+            this.filterCategories();
           }
         } else if (this.currentTab === 'usuarios') {
           const searchInput = document.getElementById('adminUserSearch');
@@ -1306,6 +1474,22 @@
         }
       },
 
+      getCategoryIconSvg(iconName) {
+        const icons = {
+          'box': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>',
+          'coffee': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>',
+          'shield-check': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>',
+          'utensils': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>',
+          'file-text': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
+          'sparkles': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>',
+          'leaf': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>',
+          'package': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>',
+          'tag': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>',
+          'shopping-bag': '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>'
+        };
+        return icons[iconName] || icons.box;
+      },
+
       // ================= CATEGORÍAS =================
       async loadCategories() {
         try {
@@ -1314,34 +1498,261 @@
             cats = typeof CATEGORIAS !== 'undefined' ? CATEGORIAS : [];
           }
 
-          const catMap = new Map();
-          cats.forEach(c => {
-            if (c && c.nombre) {
-              catMap.set(String(c.id || c.nombre), {
-                id: c.id || c.nombre,
-                nombre: c.nombre,
-                slug: c.slug || 'cat-' + (c.id || 'x')
-              });
-            }
-          });
-
+          // Calcular conteo dinámico de productos por categoría
+          const counts = {};
           if (Array.isArray(this.products)) {
             this.products.forEach(p => {
-              if (p.categoria_id && !catMap.has(String(p.categoria_id))) {
-                const nombreCat = p.categoria_nombre || ApiService.getCatalogCategoryName(p.categoria_id);
-                catMap.set(String(p.categoria_id), {
-                  id: p.categoria_id,
-                  nombre: nombreCat,
-                  slug: p.categoria_slug || 'cat-' + p.categoria_id
-                });
+              if (p.categoria_id) {
+                counts[p.categoria_id] = (counts[p.categoria_id] || 0) + 1;
               }
             });
           }
 
-          this.categories = Array.from(catMap.values());
+          this.categories = cats.map(c => ({
+            id: c.id,
+            nombre: c.nombre,
+            slug: c.slug || ('cat-' + c.id),
+            descripcion: c.descripcion || '',
+            icono: c.icono || 'box',
+            color: c.color || 'from-amber-600/20 to-orange-600/20',
+            total_productos: (c.total_productos !== undefined && c.total_productos !== null) 
+              ? parseInt(c.total_productos, 10) 
+              : (counts[c.id] || 0)
+          }));
+
+          this.renderCategories(this.categories);
           this.populateFilterCategories();
+          
+          const badgeSidebar = document.getElementById('badgeTotalCategorias');
+          if (badgeSidebar) badgeSidebar.textContent = this.categories.length;
         } catch (e) {
           console.warn('Error cargando categorías en Admin:', e);
+        }
+      },
+
+      renderCategories(list) {
+        const tbody = document.getElementById('adminCategoriesTableBody');
+        const mobileContainer = document.getElementById('adminCategoriesMobileContainer');
+        const countBadge = document.getElementById('adminCatCountBadge');
+        if (countBadge) countBadge.textContent = `${list.length} categorías`;
+
+        if (list.length === 0) {
+          if (tbody) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" class="py-10 text-center text-stone-400">
+                  No se encontraron categorías coincidentes.
+                </td>
+              </tr>
+            `;
+          }
+          if (mobileContainer) {
+            mobileContainer.innerHTML = `
+              <div class="py-10 text-center text-stone-400">
+                <p class="text-xs">No se encontraron categorías coincidentes.</p>
+              </div>
+            `;
+          }
+          return;
+        }
+
+        // Render Desktop Table
+        if (tbody) {
+          tbody.innerHTML = list.map(cat => `
+            <tr class="hover:bg-white/5 transition-colors">
+              <td class="py-3.5 px-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-gradient-to-br ${cat.color} border flex items-center justify-center flex-shrink-0 text-brand-orange shadow-xs" style="border-color: var(--admin-border);">
+                    ${this.getCategoryIconSvg(cat.icono)}
+                  </div>
+                  <div>
+                    <p class="font-bold text-xs leading-snug">${cat.nombre}</p>
+                    <span class="text-[10px] text-stone-400 font-mono">ID #${cat.id}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3.5 px-3 font-mono font-semibold text-stone-400 text-[11px]">
+                <code class="px-2 py-0.5 rounded admin-card-inner text-[10px]">${cat.slug}</code>
+              </td>
+              <td class="py-3.5 px-3 text-stone-400 text-xs max-w-[280px] truncate" title="${cat.descripcion}">
+                ${cat.descripcion || '—'}
+              </td>
+              <td class="py-3.5 px-3 text-center">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl admin-card-inner text-[10px] font-bold">
+                  <span class="w-2 h-2 rounded-full bg-brand-orange"></span>
+                  <code>${cat.icono}</code>
+                </span>
+              </td>
+              <td class="py-3.5 px-3 text-center">
+                <span class="px-2.5 py-1 rounded-full font-bold text-xs ${cat.total_productos > 0 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-stone-500/15 text-stone-400'}">
+                  ${cat.total_productos} prod.
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-right">
+                <div class="flex items-center justify-end gap-1.5">
+                  <button onclick="Admin.editCategory(${cat.id})" class="p-2 rounded-xl admin-card-inner hover:text-brand-orange transition-colors tap-target cursor-pointer" title="Editar Categoría">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button onclick="Admin.confirmDeleteCategory(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', ${cat.total_productos})" class="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors tap-target cursor-pointer" title="Eliminar Categoría">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `).join('');
+        }
+
+        // Render Mobile Cards
+        if (mobileContainer) {
+          mobileContainer.innerHTML = list.map(cat => `
+            <div class="pt-3 first:pt-0 space-y-2.5">
+              <div class="flex items-start gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${cat.color} border flex items-center justify-center flex-shrink-0 text-brand-orange shadow-xs" style="border-color: var(--admin-border);">
+                  ${this.getCategoryIconSvg(cat.icono)}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-1">
+                    <span class="font-mono font-bold text-stone-400 text-[10px] admin-card-inner px-1.5 py-0.5 rounded">${cat.slug}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${cat.total_productos > 0 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-stone-500/15 text-stone-400'}">
+                      ${cat.total_productos} productos
+                    </span>
+                  </div>
+                  <p class="font-bold text-xs mt-1 leading-snug">${cat.nombre}</p>
+                  <p class="text-[10px] text-stone-400 truncate mt-0.5">${cat.descripcion || 'Sin descripción'}</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="Admin.editCategory(${cat.id})" class="flex items-center justify-center gap-1.5 py-2 px-3 admin-card-inner hover:text-brand-orange rounded-xl text-xs font-bold transition-all tap-target cursor-pointer">
+                  <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  <span>Editar</span>
+                </button>
+                <button onclick="Admin.confirmDeleteCategory(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', ${cat.total_productos})" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all tap-target cursor-pointer">
+                  <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <span>Eliminar</span>
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+      },
+
+      filterCategories() {
+        const query = (document.getElementById('adminCatSearch')?.value || '').toLowerCase().trim();
+        const filtered = this.categories.filter(c => 
+          !query || 
+          c.nombre.toLowerCase().includes(query) || 
+          c.slug.toLowerCase().includes(query) || 
+          (c.descripcion || '').toLowerCase().includes(query)
+        );
+        this.renderCategories(filtered);
+      },
+
+      openCategoryModal() {
+        document.getElementById('modalCatTitle').textContent = 'Agregar Nueva Categoría';
+        document.getElementById('formCategoria').reset();
+        document.getElementById('catFormId').value = '';
+        document.getElementById('catFormIcono').value = 'box';
+        document.getElementById('catFormColor').value = 'from-amber-600/20 to-orange-600/20';
+        const modal = document.getElementById('modalCategoria');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      },
+
+      closeCategoryModal() {
+        const modal = document.getElementById('modalCategoria');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      },
+
+      handleCategoryNameInput(val) {
+        const id = document.getElementById('catFormId').value;
+        const slugInput = document.getElementById('catFormSlug');
+        if (!id && slugInput) {
+          slugInput.value = val.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        }
+      },
+
+      editCategory(id) {
+        const cat = this.categories.find(c => c.id == id);
+        if (!cat) return;
+
+        document.getElementById('modalCatTitle').textContent = 'Editar Categoría';
+        document.getElementById('catFormId').value = cat.id;
+        document.getElementById('catFormNombre').value = cat.nombre;
+        document.getElementById('catFormSlug').value = cat.slug;
+        document.getElementById('catFormDescripcion').value = cat.descripcion || '';
+        document.getElementById('catFormIcono').value = cat.icono || 'box';
+        document.getElementById('catFormColor').value = cat.color || 'from-amber-600/20 to-orange-600/20';
+
+        const modal = document.getElementById('modalCategoria');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      },
+
+      async saveCategory(e) {
+        e.preventDefault();
+        const id = document.getElementById('catFormId').value;
+        const nombre = document.getElementById('catFormNombre').value.trim();
+        const slug = document.getElementById('catFormSlug').value.trim();
+        const descripcion = document.getElementById('catFormDescripcion').value.trim();
+        const icono = document.getElementById('catFormIcono').value;
+        const color = document.getElementById('catFormColor').value;
+        const btn = document.getElementById('btnGuardarCategoria');
+
+        if (!nombre) {
+          Toast.error('El nombre de la categoría es obligatorio.');
+          return;
+        }
+
+        const payload = {
+          nombre,
+          slug,
+          descripcion,
+          icono,
+          color
+        };
+
+        btn.disabled = true;
+        btn.innerHTML = '<span>Guardando...</span>';
+
+        let res;
+        if (id) {
+          res = await ApiService.updateCategory(parseInt(id), payload);
+        } else {
+          res = await ApiService.createCategory(payload);
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<span>Guardar Categoría</span>';
+
+        if (res.success) {
+          Toast.success(id ? '¡Categoría actualizada con éxito!' : '¡Categoría creada correctamente!');
+          this.closeCategoryModal();
+          await this.loadCategories();
+          await this.loadProducts();
+          this.updateStats();
+        } else {
+          Toast.error(res.error || 'Ocurrió un error al guardar la categoría.');
+        }
+      },
+
+      async confirmDeleteCategory(id, nombre, totalProds) {
+        if (totalProds > 0) {
+          Toast.error(`No se puede eliminar "${nombre}" porque contiene ${totalProds} producto(s) asignado(s). Reasigna o elimina los productos primero.`);
+          return;
+        }
+
+        if (confirm(`¿Estás seguro de que deseas eliminar permanentemente la categoría "${nombre}"?`)) {
+          const res = await ApiService.deleteCategory(id);
+          if (res.success) {
+            Toast.success('Categoría eliminada correctamente.');
+            await this.loadCategories();
+            await this.loadProducts();
+            this.updateStats();
+          } else {
+            Toast.error(res.error || 'No se pudo eliminar la categoría.');
+          }
         }
       },
 
@@ -3118,6 +3529,12 @@
       updateStats() {
         const metricProd = document.getElementById('metricTotalProd');
         if (metricProd) metricProd.textContent = this.products.length;
+
+        const badgeCat = document.getElementById('badgeTotalCategorias');
+        if (badgeCat) badgeCat.textContent = this.categories.length;
+
+        const badgeCatTop = document.getElementById('adminCatCountBadge');
+        if (badgeCatTop) badgeCatTop.textContent = `${this.categories.length} categorías`;
 
         const metricUsers = document.getElementById('metricTotalUsers');
         if (metricUsers) metricUsers.textContent = this.users.length;

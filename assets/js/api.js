@@ -54,19 +54,29 @@ const ApiService = {
     return false;
   },
 
-  // Obtener categorías
+  // Obtener categorías (MySQL + Respaldo Local)
   async getCategories() {
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
-        const res = await fetch(`${this.baseUrl}/productos.php?tipo=categorias`);
+        let res = await fetch(`${this.baseUrl}/categorias.php?_t=${Date.now()}`);
+        if (!res.ok) {
+          res = await fetch(`${this.baseUrl}/productos.php?tipo=categorias&_t=${Date.now()}`);
+        }
         const json = await res.json();
-        if (json.success && json.data.length > 0) return json.data;
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          localStorage.setItem('dp_categorias_cache', JSON.stringify(json.data));
+          return json.data;
+        }
       } catch (e) {
         console.warn('Fallo en API remota de categorías, utilizando datos locales.');
       }
     }
-    return CATEGORIAS;
+
+    // Modo local
+    const cached = JSON.parse(localStorage.getItem('dp_categorias_cache') || 'null');
+    if (cached && Array.isArray(cached) && cached.length > 0) return cached;
+    return typeof CATEGORIAS !== 'undefined' ? CATEGORIAS : [];
   },
 
   _cachedProducts: null,
@@ -798,6 +808,114 @@ const ApiService = {
 
     this.invalidateProductsCache();
     return { success: true, message: 'Producto eliminado del almacenamiento local.' };
+  },
+
+  // ==================== GESTIÓN DE CATEGORÍAS ====================
+
+  // Crear categoría
+  async createCategory(catData) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/categorias.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(catData)
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          this.invalidateProductsCache();
+          return json;
+        } else {
+          return { success: false, error: json.error || 'Error al guardar la categoría.' };
+        }
+      } catch (e) {
+        console.error('Error al crear categoría en MySQL:', e);
+        return { success: false, error: 'Error de comunicación: ' + e.message };
+      }
+    }
+
+    // Modo Local
+    const cached = await this.getCategories();
+    const newCat = {
+      id: Date.now(),
+      nombre: catData.nombre,
+      slug: catData.slug || catData.nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      descripcion: catData.descripcion || '',
+      icono: catData.icono || 'box',
+      color: catData.color || 'from-amber-600/20 to-orange-600/20',
+      total_productos: 0
+    };
+    cached.push(newCat);
+    localStorage.setItem('dp_categorias_cache', JSON.stringify(cached));
+    this.invalidateProductsCache();
+    return { success: true, message: 'Categoría guardada localmente.', data: newCat };
+  },
+
+  // Actualizar categoría
+  async updateCategory(id, catData) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/categorias.php`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, ...catData })
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          this.invalidateProductsCache();
+          return json;
+        } else {
+          return { success: false, error: json.error || 'Error al actualizar la categoría.' };
+        }
+      } catch (e) {
+        console.error('Error al actualizar categoría en MySQL:', e);
+        return { success: false, error: 'Error de comunicación: ' + e.message };
+      }
+    }
+
+    // Modo Local
+    const cached = await this.getCategories();
+    const idx = cached.findIndex(c => c.id == id);
+    if (idx !== -1) {
+      cached[idx] = { ...cached[idx], ...catData };
+      localStorage.setItem('dp_categorias_cache', JSON.stringify(cached));
+      this.invalidateProductsCache();
+      return { success: true, message: 'Categoría actualizada localmente.', data: cached[idx] };
+    }
+    return { success: false, error: 'Categoría no encontrada.' };
+  },
+
+  // Eliminar categoría
+  async deleteCategory(id) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/categorias.php`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const json = await res.json();
+        if (json.success) {
+          this.invalidateProductsCache();
+          return json;
+        } else {
+          return { success: false, error: json.error || 'No se pudo eliminar la categoría.' };
+        }
+      } catch (e) {
+        console.error('Error al eliminar categoría en MySQL:', e);
+        return { success: false, error: 'Error de comunicación: ' + e.message };
+      }
+    }
+
+    // Modo Local
+    const cached = await this.getCategories();
+    const filtered = cached.filter(c => c.id != id);
+    localStorage.setItem('dp_categorias_cache', JSON.stringify(filtered));
+    this.invalidateProductsCache();
+    return { success: true, message: 'Categoría eliminada del almacenamiento local.' };
   },
 
   // Subir imagen de producto
