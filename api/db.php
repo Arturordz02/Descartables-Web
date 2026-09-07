@@ -232,6 +232,37 @@ function ensureDatabaseInitialized($pdo) {
             INDEX idx_hoja (codigo_hoja)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+        // 6. Tabla configuracion (Datos del Negocio, Contacto y Redes)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS configuracion (
+            clave VARCHAR(100) PRIMARY KEY,
+            valor TEXT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        // Seed inicial de configuracion si está vacía
+        $countConf = $pdo->query("SELECT COUNT(*) as c FROM configuracion")->fetch();
+        if ((int)($countConf['c'] ?? 0) === 0) {
+            $baseConfig = [
+                'enable_redirects' => 'false',
+                'razon_social' => 'DESCARTABLES PERUANOS S.A.C.',
+                'nombre_comercial' => 'Descartables Peruanos',
+                'ruc' => '20601234567',
+                'direccion' => 'Av. Alejandro Bertello 732-C, Cercado de Lima, Lima, Perú',
+                'horario' => 'Lunes a Viernes: 8:00 AM - 6:00 PM | Sábados: 8:30 AM - 1:00 PM',
+                'whatsapp_principal' => '+51 994 195 430',
+                'whatsapp_secundario' => '+51 994 009 692',
+                'telefono_central' => '(01) 564-1450',
+                'email_ventas' => 'ventas@descartablesperuanos.pe',
+                'email_cotizaciones' => 'cotizaciones@descartablesperuanos.pe',
+                'facebook_url' => 'https://facebook.com/descartablesperuanos',
+                'instagram_url' => 'https://instagram.com/descartablesperuanos'
+            ];
+            $stmtConf = $pdo->prepare("INSERT INTO configuracion (clave, valor) VALUES (?, ?)");
+            foreach ($baseConfig as $k => $v) {
+                $stmtConf->execute([$k, $v]);
+            }
+        }
+
     } catch (Exception $e) {
         // Continuar silenciosamente
     }

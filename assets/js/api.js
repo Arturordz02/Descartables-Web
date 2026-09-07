@@ -918,6 +918,122 @@ const ApiService = {
     return { success: true, message: 'Categoría eliminada del almacenamiento local.' };
   },
 
+  // ==================== CONFIGURACIÓN DE CONTACTO Y EMPRESA ====================
+
+  // Obtener Configuración Centralizada de la Empresa
+  async getCompanyConfig() {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/configuracion.php?_t=${Date.now()}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          if (typeof window !== 'undefined') {
+            window.COMPANY_CONTACT = json.data;
+          }
+          localStorage.setItem('dp_empresa_config', JSON.stringify(json.data));
+          return { success: true, data: json.data };
+        }
+      } catch (e) {
+        console.warn('Error al obtener configuración de MySQL:', e);
+      }
+    }
+
+    const localConfig = JSON.parse(localStorage.getItem('dp_empresa_config') || 'null');
+    if (localConfig) {
+      if (typeof window !== 'undefined') {
+        window.COMPANY_CONTACT = localConfig;
+      }
+      return { success: true, data: localConfig };
+    }
+
+    if (typeof COMPANY_CONTACT !== 'undefined') {
+      return { success: true, data: COMPANY_CONTACT };
+    }
+    return { success: false, error: 'No se pudo cargar la configuración' };
+  },
+
+  // Guardar Configuración Centralizada de la Empresa
+  async updateCompanyConfig(configData) {
+    const isAvailable = await this.checkBackendAvailability();
+    if (isAvailable) {
+      try {
+        const res = await fetch(`${this.baseUrl}/configuracion.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(configData)
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          if (typeof window !== 'undefined') {
+            window.COMPANY_CONTACT = json.data;
+          }
+          localStorage.setItem('dp_empresa_config', JSON.stringify(json.data));
+          return json;
+        }
+      } catch (e) {
+        console.warn('Error al actualizar configuración en MySQL:', e);
+      }
+    }
+
+    // Modo Local / Fallback Offline
+    const flat = configData.flat || configData;
+    const enableRedirects = (flat.enable_redirects === 'true' || flat.enable_redirects === true || flat.enable_redirects === '1' || flat.enable_redirects === 1);
+    const waPrincipal = flat.whatsapp_principal || '+51 994 195 430';
+    const waSecundario = flat.whatsapp_secundario || '+51 994 009 692';
+    const telCentral = flat.telefono_central || '(01) 564-1450';
+    let waPrinRaw = waPrincipal.replace(/[^0-9]/g, '');
+    if (waPrinRaw.length === 9) waPrinRaw = '51' + waPrinRaw;
+    let waSecRaw = waSecundario.replace(/[^0-9]/g, '');
+    if (waSecRaw.length === 9) waSecRaw = '51' + waSecRaw;
+    const telRaw = telCentral.replace(/[^0-9]/g, '');
+
+    const structured = {
+      ENABLE_REDIRECTS: enableRedirects,
+      empresa: {
+        razon_social: flat.razon_social || 'DESCARTABLES PERUANOS S.A.C.',
+        nombre_comercial: flat.nombre_comercial || 'Descartables Peruanos',
+        ruc: flat.ruc || '20601234567',
+        direccion: flat.direccion || 'Av. Alejandro Bertello 732-C, Cercado de Lima, Lima, Perú',
+        horario: flat.horario || 'Lunes a Viernes: 8:00 AM - 6:00 PM | Sábados: 8:30 AM - 1:00 PM'
+      },
+      whatsapp: {
+        principal: waPrincipal,
+        principal_raw: waPrinRaw,
+        url_principal: `https://wa.me/${waPrinRaw}`,
+        secundario: waSecundario,
+        secundario_raw: waSecRaw,
+        url_secundario: `https://wa.me/${waSecRaw}`
+      },
+      telefonos: {
+        central: telCentral,
+        central_raw: telRaw,
+        tel_link: `tel:+511${telRaw.replace(/^0/, '')}`
+      },
+      emails: {
+        ventas: flat.email_ventas || 'ventas@descartablesperuanos.pe',
+        cotizaciones: flat.email_cotizaciones || 'cotizaciones@descartablesperuanos.pe'
+      },
+      redes: {
+        facebook: flat.facebook_url || 'https://facebook.com/descartablesperuanos',
+        instagram: flat.instagram_url || 'https://instagram.com/descartablesperuanos'
+      },
+      flat: flat
+    };
+
+    localStorage.setItem('dp_empresa_config', JSON.stringify(structured));
+    if (typeof window !== 'undefined') {
+      window.COMPANY_CONTACT = structured;
+    }
+
+    return {
+      success: true,
+      message: 'Configuración guardada en almacenamiento local.',
+      data: structured
+    };
+  },
+
+
   // Subir imagen de producto
   async uploadProductImage(file) {
     const isAvailable = await this.checkBackendAvailability();

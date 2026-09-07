@@ -48,7 +48,21 @@ const COMPANY_CONTACT = {
   }
 };
 
+// Hidratación desde localStorage si ya fue configurada previamente en el Admin
+if (typeof localStorage !== 'undefined') {
+  try {
+    const saved = localStorage.getItem('dp_empresa_config');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object') {
+        Object.assign(COMPANY_CONTACT, parsed);
+      }
+    }
+  } catch (e) {}
+}
+
 if (typeof window !== 'undefined') {
   window.COMPANY_CONTACT = COMPANY_CONTACT;
 }
+
 
