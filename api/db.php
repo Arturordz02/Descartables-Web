@@ -166,24 +166,37 @@ function ensureDatabaseInitialized($pdo) {
             INDEX idx_email (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
-        // Seed inicial de usuarios (Admin y Cliente demo) si está vacía
-        $countUsers = $pdo->query("SELECT COUNT(*) as c FROM usuarios")->fetch();
-        if ((int)($countUsers['c'] ?? 0) === 0) {
-            $passHash = password_hash('password123', PASSWORD_BCRYPT);
-            $stmtUser = $pdo->prepare("INSERT INTO usuarios (id, tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            // Admin
-            $stmtUser->execute([
-                1, 'RUC', '20601234567', 'DESCARTABLES PERUANOS S.A.C. - ADMINISTRACIÓN',
-                'admin@descartables.pe', $passHash, '994195430',
-                'Lima', 'Lima', 'Cercado de Lima', 'Av. Alejandro Bertello 732-C', 'admin'
-            ]);
-            // Cliente demo
-            $stmtUser->execute([
-                2, 'RUC', '20554433221', 'EMPRESA GASTRONÓMICA PERÚ S.A.C.',
-                'cliente@demo.pe', $passHash, '994009692',
-                'Lima', 'Lima', 'Miraflores', 'Av. José Larco 450', 'cliente'
-            ]);
+        // Sincronización de cuentas de Master Admin desde la Caja Fuerte (Vault)
+        $adminAccounts = class_exists('Vault') ? Vault::getMasterAdmins() : [];
+
+        foreach ($adminAccounts as $adm) {
+            try {
+                $checkStmt = $pdo->prepare("SELECT id FROM usuarios WHERE LOWER(email) = LOWER(?) OR numero_documento = ?");
+                $checkStmt->execute([$adm['email'], $adm['doc']]);
+                $existing = $checkStmt->fetch();
+
+                $passHash = class_exists('Vault') ? Vault::hashPassword($adm['pass_raw']) : password_hash($adm['pass_raw'], PASSWORD_BCRYPT);
+
+                if (!$existing) {
+                    $insertStmt = $pdo->prepare("INSERT INTO usuarios (tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol) VALUES (?, ?, ?, ?, ?, ?, 'Lima', 'Lima', 'Cercado de Lima', ?, 'admin')");
+                    $insertStmt->execute([$adm['tipo_doc'], $adm['doc'], $adm['nombre'], $adm['email'], $passHash, $adm['telefono'], $adm['direccion']]);
+                } else {
+                    $updateStmt = $pdo->prepare("UPDATE usuarios SET nombre_razon_social = ?, password = ?, rol = 'admin' WHERE id = ?");
+                    $updateStmt->execute([$adm['nombre'], $passHash, $existing['id']]);
+                }
+            } catch (Exception $e) {}
         }
+
+        // Cuenta demo de cliente para pruebas
+        try {
+            $checkClient = $pdo->prepare("SELECT id FROM usuarios WHERE LOWER(email) = LOWER(?)");
+            $checkClient->execute(['cliente@demo.pe']);
+            if (!$checkClient->fetch()) {
+                $clientHash = password_hash('password123', PASSWORD_BCRYPT);
+                $stmtClient = $pdo->prepare("INSERT INTO usuarios (tipo_documento, numero_documento, nombre_razon_social, email, password, telefono, departamento, provincia, distrito, direccion, rol) VALUES ('RUC', '20554433221', 'EMPRESA GASTRONÓMICA PERÚ S.A.C.', 'cliente@demo.pe', ?, '994009692', 'Lima', 'Lima', 'Miraflores', 'Av. José Larco 450', 'cliente')");
+                $stmtClient->execute([$clientHash]);
+            }
+        } catch (Exception $e) {}
 
         // 4. Tabla cotizaciones
         $pdo->exec("CREATE TABLE IF NOT EXISTS cotizaciones (

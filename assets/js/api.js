@@ -497,26 +497,79 @@ const ApiService = {
       }
     }
 
-    // Fallback de usuarios locales
+    // Fallback de usuarios locales (Master Admins y Cliente demo)
     const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-    // Agregar usuario demo si está vacío
-    if (users.length === 0) {
-      users.push({
+    const adminSeeds = [
+      {
         id: 1,
+        tipo_documento: 'CE',
+        numero_documento: 'ADM-ARTURO',
+        nombre_razon_social: 'Arturo (Master Admin)',
+        email: 'arturo@admin.ad',
+        password: 'Arturo@Admin2026!',
+        telefono: '994195430',
+        departamento: 'Lima',
+        provincia: 'Lima',
+        distrito: 'Cercado de Lima',
+        direccion: 'Lima, Perú',
+        rol: 'admin'
+      },
+      {
+        id: 2,
+        tipo_documento: 'CE',
+        numero_documento: 'ADM-BRITNEY',
+        nombre_razon_social: 'Britney (Master Admin)',
+        email: 'britney@admin.ad',
+        password: 'Britney@Admin2026!',
+        telefono: '994009692',
+        departamento: 'Lima',
+        provincia: 'Lima',
+        distrito: 'Cercado de Lima',
+        direccion: 'Lima, Perú',
+        rol: 'admin'
+      },
+      {
+        id: 3,
+        tipo_documento: 'CE',
+        numero_documento: 'ADM-LENIN',
+        nombre_razon_social: 'Lenin (Master Admin)',
+        email: 'lenin@admin.ad',
+        password: 'Lenin@Admin2026!',
+        telefono: '994009692',
+        departamento: 'Lima',
+        provincia: 'Lima',
+        distrito: 'Cercado de Lima',
+        direccion: 'Lima, Perú',
+        rol: 'admin'
+      }
+    ];
+
+    adminSeeds.forEach(seed => {
+      const idx = users.findIndex(u => u.email.toLowerCase() === seed.email.toLowerCase());
+      if (idx === -1) {
+        users.push(seed);
+      } else {
+        users[idx] = { ...users[idx], ...seed };
+      }
+    });
+
+    if (!users.some(u => u.email === 'cliente@demo.pe')) {
+      users.push({
+        id: 4,
         tipo_documento: 'RUC',
-        numero_documento: '20601234567',
+        numero_documento: '20554433221',
         nombre_razon_social: 'EMPRESA GASTRONÓMICA PERÚ S.A.C.',
         email: 'cliente@demo.pe',
         password: 'password123',
         telefono: '994195430',
         departamento: 'Lima',
         provincia: 'Lima',
-        distrito: 'Cercado de Lima',
-        direccion: 'Av. Alejandro Bertello 732-C',
+        distrito: 'Miraflores',
+        direccion: 'Av. José Larco 450',
         rol: 'cliente'
       });
-      localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
     }
+    localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
 
     const user = users.find(u => 
       (u.email.toLowerCase() === identificador.toLowerCase() || u.numero_documento === identificador) && 

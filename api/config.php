@@ -18,34 +18,16 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS
     exit();
 }
 
-// Detección robusta de entorno: Local (XAMPP/localhost) vs Servidor Remoto (InfinityFree)
-$http_host = isset($_SERVER['HTTP_HOST']) ? strtolower($_SERVER['HTTP_HOST']) : '';
-$server_addr = isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '';
+require_once __DIR__ . '/vault.php';
 
-$is_local = (
-    empty($http_host) ||
-    strpos($http_host, 'localhost') !== false ||
-    strpos($http_host, '127.0.0.1') !== false ||
-    strpos($http_host, '::1') !== false ||
-    $server_addr === '127.0.0.1' ||
-    $server_addr === '::1'
-);
+// Obtención de credenciales seguras desde la Caja Fuerte (Vault)
+$dbConfig = Vault::getDbCredentials();
 
-if (!$is_local) {
-    // Entorno Nube: InfinityFree
-    define('DB_HOST', 'sql201.infinityfree.com');
-    define('DB_PORT', '3306');
-    define('DB_NAME', 'if0_42834426_descartables');
-    define('DB_USER', 'if0_42834426');
-    define('DB_PASS', 'Contra246World');
-} else {
-    // Entorno Local: XAMPP / MariaDB
-    define('DB_HOST', '127.0.0.1');
-    define('DB_PORT', '3306');
-    define('DB_NAME', 'descartables_db');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
-}
+define('DB_HOST', $dbConfig['host']);
+define('DB_PORT', $dbConfig['port']);
+define('DB_NAME', $dbConfig['name']);
+define('DB_USER', $dbConfig['user']);
+define('DB_PASS', $dbConfig['pass']);
 
 // Datos Oficiales de la Empresa en Perú (INDECOPI / SUNAT)
 define('EMPRESA_RAZON_SOCIAL', 'DESCARTABLES PERUANOS S.A.C.');
