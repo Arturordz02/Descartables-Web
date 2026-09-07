@@ -7,7 +7,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -17,33 +17,18 @@
         extend: {
           colors: {
             brand: {
-              orange: '#f2743e',
-              orangeDark: '#d95a25',
+              orange: '#ea580c',
+              orangeDark: '#c2410c',
               terracota: '#C85A32',
-              amber: '#D9822B',
+              amber: '#d97706',
               salvia: '#4A5D4E',
             },
-            dark: {
-              bg: '#0f1420',
-              sidebar: '#131826',
-              header: '#131826',
-              card: '#1a2238',
-              cardInner: '#151b2e',
-              border: '#263352',
-              borderLight: '#1f2a44',
-              text: '#f3f4f6',
-              muted: '#94a3b8',
-            },
-            light: {
-              bg: '#f8f9fa',
-              sidebar: '#ffffff',
-              header: '#ffffff',
-              card: '#ffffff',
-              cardInner: '#f3f4f6',
-              border: '#e5e7eb',
-              borderLight: '#f1f5f9',
-              text: '#111827',
-              muted: '#64748b',
+            admin: {
+              slateBg: '#090d16',
+              slateCard: '#0f172a',
+              slateInner: '#162032',
+              slateBorder: '#1e293b',
+              slateBorderSubtle: '#27354f',
             }
           },
           fontFamily: {
@@ -56,35 +41,47 @@
   </script>
 
   <style>
-    /* ================= SISTEMA DE VARIABLES DE TEMA (MODO CLARO / OSCURO) ================= */
+    /* ================= SISTEMA DE VARIABLES DE TEMA FORMAL ================= */
     :root {
-      --admin-bg: #f8f9fa;
+      --admin-bg: #f8fafc;
       --admin-sidebar-bg: #ffffff;
       --admin-header-bg: #ffffff;
       --admin-card-bg: #ffffff;
-      --admin-card-inner: #f4f5f7;
+      --admin-card-inner: #f8fafc;
       --admin-border: #e2e8f0;
-      --admin-border-subtle: #edf2f7;
+      --admin-border-subtle: #f1f5f9;
       --admin-text: #0f172a;
       --admin-text-muted: #64748b;
-      --admin-hover: rgba(0, 0, 0, 0.03);
-      --admin-accent: #f2743e;
-      --admin-accent-hover: #d95a25;
+      --admin-text-subtle: #94a3b8;
+      --admin-hover: #f1f5f9;
+      --admin-accent: #ea580c;
+      --admin-accent-hover: #c2410c;
+      --admin-accent-subtle: rgba(234, 88, 12, 0.08);
+      --admin-table-stripe: rgba(241, 245, 249, 0.6);
+      --admin-badge-cat-bg: #f1f5f9;
+      --admin-badge-cat-text: #334155;
+      --admin-badge-cat-border: #cbd5e1;
     }
 
     html.dark {
-      --admin-bg: #0d121f;
-      --admin-sidebar-bg: #121828;
-      --admin-header-bg: #121828;
-      --admin-card-bg: #182035;
-      --admin-card-inner: #111726;
-      --admin-border: #232f4c;
-      --admin-border-subtle: #1c263e;
+      --admin-bg: #090d16;
+      --admin-sidebar-bg: #0f172a;
+      --admin-header-bg: #0f172a;
+      --admin-card-bg: #131c2e;
+      --admin-card-inner: #0b1220;
+      --admin-border: #1e293b;
+      --admin-border-subtle: #192338;
       --admin-text: #f8fafc;
       --admin-text-muted: #94a3b8;
-      --admin-hover: rgba(255, 255, 255, 0.04);
-      --admin-accent: #f2743e;
-      --admin-accent-hover: #fa824c;
+      --admin-text-subtle: #64748b;
+      --admin-hover: rgba(255, 255, 255, 0.035);
+      --admin-accent: #f97316;
+      --admin-accent-hover: #ea580c;
+      --admin-accent-subtle: rgba(249, 115, 22, 0.12);
+      --admin-table-stripe: rgba(15, 23, 42, 0.45);
+      --admin-badge-cat-bg: #1e293b;
+      --admin-badge-cat-text: #cbd5e1;
+      --admin-badge-cat-border: #334155;
     }
 
     body {
@@ -109,16 +106,40 @@
       background-color: var(--admin-card-inner);
       border: 1px solid var(--admin-border);
       color: var(--admin-text);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     .admin-input:focus {
       border-color: var(--admin-accent);
       outline: none;
+      box-shadow: 0 0 0 2px var(--admin-accent-subtle);
+    }
+
+    /* Tablas formales con cebrado */
+    .admin-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    .admin-table th {
+      background-color: var(--admin-card-inner);
+      color: var(--admin-text-muted);
+      border-bottom: 1px solid var(--admin-border);
+    }
+    .admin-table tbody tr {
+      border-bottom: 1px solid var(--admin-border-subtle);
+      transition: background-color 0.15s ease;
+    }
+    .admin-table tbody tr:nth-child(even) {
+      background-color: var(--admin-table-stripe);
+    }
+    .admin-table tbody tr:hover {
+      background-color: var(--admin-hover);
     }
 
     /* Scrollbar estilizada */
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
     }
     ::-webkit-scrollbar-track {
       background: var(--admin-sidebar-bg);
@@ -140,16 +161,16 @@
     }
 
     .tap-target {
-      min-height: 40px;
-      min-width: 40px;
+      min-height: 38px;
+      min-width: 38px;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .animate-fade-in {
-      animation: fadeIn 0.2s ease-out forwards;
+      animation: fadeIn 0.18s ease-out forwards;
     }
   </style>
 
@@ -171,113 +192,132 @@
 
   <!-- ==================== SIDEBAR LATERAL (ESCRITORIO & MÓVIL) ==================== -->
   <!-- Backdrop Móvil -->
-  <div id="sidebarBackdrop" onclick="AdminLayout.closeSidebar()" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs hidden lg:hidden transition-opacity"></div>
+  <div id="sidebarBackdrop" onclick="AdminLayout.closeSidebar()" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-xs hidden lg:hidden transition-opacity"></div>
 
   <aside id="sidebarAdmin" class="fixed top-0 bottom-0 left-0 z-50 w-64 flex flex-col border-r transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0" style="background-color: var(--admin-sidebar-bg); border-color: var(--admin-border);">
     
     <!-- Header del Sidebar (Logo & Marca) -->
-    <div class="h-16 lg:h-20 px-5 flex items-center justify-between border-b flex-shrink-0" style="border-color: var(--admin-border);">
-      <a href="index.html" class="flex items-center gap-3 min-w-0">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-orange to-brand-amber flex items-center justify-center text-white shadow-md shadow-brand-orange/20 flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+    <div class="h-16 px-5 flex items-center justify-between border-b flex-shrink-0" style="border-color: var(--admin-border);">
+      <a href="index.html" class="flex items-center gap-3 min-w-0 group">
+        <div class="w-8 h-8 rounded-lg bg-brand-orange flex items-center justify-center text-white shadow-sm flex-shrink-0 group-hover:bg-brand-orangeDark transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
         </div>
         <div class="min-w-0">
-          <span class="font-heading font-black text-sm tracking-tight block leading-tight truncate">DESCARTABLES</span>
-          <span class="text-[10px] text-brand-orange font-extrabold uppercase tracking-widest block">ADMIN PANEL</span>
+          <span class="font-heading font-extrabold text-sm tracking-tight block leading-tight truncate">DESCARTABLES</span>
+          <span class="text-[10px] text-slate-400 font-semibold tracking-wider block">Panel de Control</span>
         </div>
       </a>
       <!-- Botón cerrar móvil -->
-      <button onclick="AdminLayout.closeSidebar()" class="lg:hidden p-1.5 rounded-lg text-stone-400 hover:text-white" title="Cerrar Menú">
+      <button onclick="AdminLayout.closeSidebar()" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition-colors" title="Cerrar Menú">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
 
-    <!-- Navegación Vertical -->
-    <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto no-scrollbar">
-      <div class="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-wider text-stone-400">
-        Menú Principal
+    <!-- Navegación Vertical por Categorías -->
+    <nav class="flex-1 px-3 py-4 space-y-4 overflow-y-auto no-scrollbar text-xs">
+      
+      <!-- SECCIÓN 1: GESTIÓN DE CATÁLOGO -->
+      <div class="space-y-1">
+        <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          Catálogo
+        </p>
+
+        <!-- Item: Productos -->
+        <button id="tabBtnProductos" onclick="Admin.switchTab('productos')" class="tab-btn w-full px-3 py-2 rounded-lg font-bold text-xs flex items-center justify-between transition-all tap-target cursor-pointer bg-slate-100 dark:bg-slate-800/80 text-brand-orange border-l-[3px] border-brand-orange">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <span>Productos</span>
+          </div>
+        </button>
+
+        <!-- Item: Categorías -->
+        <button id="tabBtnCategorias" onclick="Admin.switchTab('categorias')" class="tab-btn w-full px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-l-[3px] border-transparent">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+            <span>Categorías</span>
+          </div>
+          <span id="badgeTotalCategorias" class="px-2 py-0.5 rounded-md admin-card-inner text-[10px] font-bold text-slate-500 dark:text-slate-400">0</span>
+        </button>
       </div>
 
-      <!-- Item: Productos -->
-      <button id="tabBtnProductos" onclick="Admin.switchTab('productos')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-bold text-xs flex items-center justify-between transition-all tap-target cursor-pointer bg-brand-orange text-white shadow-md shadow-brand-orange/25">
-        <div class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-          <span>Gestión de Productos</span>
-        </div>
-      </button>
+      <!-- SECCIÓN 2: CLIENTES & VENTAS -->
+      <div class="space-y-1">
+        <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          Clientes y Ventas
+        </p>
 
-      <!-- Item: Categorías -->
-      <button id="tabBtnCategorias" onclick="Admin.switchTab('categorias')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
-        <div class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-          <span>Gestión de Categorías</span>
-        </div>
-        <span id="badgeTotalCategorias" class="px-2 py-0.5 rounded-full admin-card-inner text-[10px] font-bold">0</span>
-      </button>
+        <!-- Item: Usuarios -->
+        <button id="tabBtnUsuarios" onclick="Admin.switchTab('usuarios')" class="tab-btn w-full px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-l-[3px] border-transparent">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            <span>Directorio Clientes</span>
+          </div>
+        </button>
 
-      <!-- Item: Usuarios -->
-      <button id="tabBtnUsuarios" onclick="Admin.switchTab('usuarios')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
-        <div class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-          <span>Directorio de Usuarios</span>
-        </div>
-      </button>
+        <!-- Item: Cotizaciones B2B -->
+        <button id="tabBtnCotizaciones" onclick="Admin.switchTab('cotizaciones')" class="tab-btn w-full px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-l-[3px] border-transparent">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <span>Cotizaciones B2B</span>
+          </div>
+          <span id="badgeCotizPendientes" class="hidden px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">0</span>
+        </button>
 
-      <!-- Item: Cotizaciones B2B -->
-      <button id="tabBtnCotizaciones" onclick="Admin.switchTab('cotizaciones')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
-        <div class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-          <span>Cotizaciones B2B</span>
-        </div>
-        <span id="badgeCotizPendientes" class="hidden px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black">0</span>
-      </button>
+        <!-- Item: Libro de Reclamaciones -->
+        <button id="tabBtnReclamaciones" onclick="Admin.switchTab('reclamaciones')" class="tab-btn w-full px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-l-[3px] border-transparent">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Libro Reclamaciones</span>
+          </div>
+          <span id="badgeReclamosPendientes" class="hidden px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-bold border border-rose-500/30">0</span>
+        </button>
+      </div>
 
-      <!-- Item: Libro de Reclamaciones -->
-      <button id="tabBtnReclamaciones" onclick="Admin.switchTab('reclamaciones')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
-        <div class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <span>Libro Reclamaciones</span>
-        </div>
-        <span id="badgeReclamosPendientes" class="hidden px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black">0</span>
-      </button>
+      <!-- SECCIÓN 3: CONFIGURACIÓN & SISTEMA -->
+      <div class="space-y-1">
+        <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          Configuración
+        </p>
 
-      <!-- Item: Métricas & Resumen -->
-      <button id="tabBtnMetricas" onclick="Admin.switchTab('metricas')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
-        <div class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          <span>Resumen y Métricas</span>
-        </div>
-      </button>
+        <!-- Item: Métricas & Resumen -->
+        <button id="tabBtnMetricas" onclick="Admin.switchTab('metricas')" class="tab-btn w-full px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-l-[3px] border-transparent">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>Resumen y Métricas</span>
+          </div>
+        </button>
 
-      <!-- Item: Configuración de la Empresa -->
-      <button id="tabBtnConfiguracion" onclick="Admin.switchTab('configuracion')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
-        <div class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <span>Datos del Negocio</span>
-        </div>
-      </button>
+        <!-- Item: Configuración de la Empresa -->
+        <button id="tabBtnConfiguracion" onclick="Admin.switchTab('configuracion')" class="tab-btn w-full px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-l-[3px] border-transparent">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>Datos del Negocio</span>
+          </div>
+        </button>
 
-      <!-- Item: Banners y Avisos de Portada -->
-      <button id="tabBtnBanners" onclick="Admin.switchTab('banners')" class="tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300">
-        <div class="flex items-center gap-3">
-          <svg class="w-4 h-4 flex-shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
-          <span>Banners y Avisos</span>
-        </div>
-      </button>
+        <!-- Item: Banners y Avisos de Portada -->
+        <button id="tabBtnBanners" onclick="Admin.switchTab('banners')" class="tab-btn w-full px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-l-[3px] border-transparent">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+            <span>Banners y Avisos</span>
+          </div>
+        </button>
+      </div>
+
     </nav>
 
     <!-- Footer del Sidebar -->
-    <div class="p-3 border-t space-y-2 flex-shrink-0" style="border-color: var(--admin-border);">
-      <a href="catalogo.html" target="_blank" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors admin-card-inner hover:opacity-90">
+    <div class="p-3 border-t space-y-1.5 flex-shrink-0" style="border-color: var(--admin-border);">
+      <a href="catalogo.html" target="_blank" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors admin-card-inner text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-          <span>Ver Tienda Online</span>
+          <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Ver Tienda</span>
         </div>
-        <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       </a>
 
-      <button onclick="Auth.logout()" class="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-rose-500 bg-rose-500/10 hover:bg-rose-500/20 transition-colors tap-target cursor-pointer">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      <button onclick="Auth.logout()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         <span>Cerrar Sesión</span>
       </button>
     </div>
@@ -288,58 +328,78 @@
   <div class="lg:pl-64 flex flex-col flex-1 min-h-screen">
     
     <!-- HEADER SUPERIOR -->
-    <header class="sticky top-0 z-30 h-16 lg:h-20 px-3 sm:px-6 lg:px-8 border-b flex items-center justify-between gap-3 backdrop-blur-md" style="background-color: var(--admin-header-bg); border-color: var(--admin-border);">
+    <header class="sticky top-0 z-30 h-16 px-4 sm:px-6 lg:px-8 border-b flex items-center justify-between gap-4 backdrop-blur-md" style="background-color: var(--admin-header-bg); border-color: var(--admin-border);">
       
-      <!-- Lado Izquierdo: Botón Hamburguesa Móvil + Buscador Rápido -->
+      <!-- Lado Izquierdo: Botón Hamburguesa Móvil + Buscador Rápido Discreto -->
       <div class="flex items-center gap-3 flex-1 min-w-0">
-        <button onclick="AdminLayout.openSidebar()" class="lg:hidden p-2 rounded-xl admin-card-inner text-stone-400 hover:text-white tap-target" title="Abrir Menú">
+        <button onclick="AdminLayout.openSidebar()" class="lg:hidden p-2 rounded-lg admin-card-inner text-slate-400 hover:text-slate-200 tap-target" title="Abrir Menú">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
 
-        <div class="relative w-full max-w-md hidden sm:block">
-          <input type="text" id="globalAdminSearch" oninput="Admin.handleGlobalSearch(this.value)" placeholder="Buscar productos, clientes, cotizaciones..." class="w-full admin-input rounded-xl pl-9 pr-4 py-2 text-xs text-inherit focus:outline-none">
-          <svg class="w-4 h-4 text-stone-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <div class="relative w-full max-w-xs hidden sm:block">
+          <input type="text" id="globalAdminSearch" oninput="Admin.handleGlobalSearch(this.value)" placeholder="Buscar en la sección activa..." class="w-full admin-input rounded-lg pl-8 pr-3 py-1.5 text-xs text-inherit focus:outline-none">
+          <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </div>
       </div>
 
-      <!-- Lado Derecho: Toggle Modo Claro/Oscuro + Perfil Admin + Botón Nuevo -->
+      <!-- Lado Derecho: Toggle Tema + Botón Principal + Menú de Perfil Formal -->
       <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
         
-        <!-- Botón Toggle Modo Claro / Oscuro -->
-        <button onclick="ThemeManager.toggle()" id="themeToggleBtn" class="p-2 sm:px-3 sm:py-2 rounded-xl admin-card-inner text-stone-400 hover:text-brand-orange transition-colors flex items-center gap-2 tap-target cursor-pointer" title="Cambiar Tema Claro / Oscuro">
+        <!-- Botón Toggle Modo Claro / Oscuro Compacto -->
+        <button onclick="ThemeManager.toggle()" id="themeToggleBtn" class="p-2 rounded-lg admin-card-inner text-slate-400 hover:text-slate-200 transition-colors flex items-center justify-center tap-target cursor-pointer" title="Alternar Modo Claro / Oscuro" aria-label="Cambiar tema">
           <!-- Sol (Modo Claro) -->
           <svg id="themeIconSun" class="w-4 h-4 hidden text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
           <!-- Luna (Modo Oscuro) -->
-          <svg id="themeIconMoon" class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-          <span id="themeToggleText" class="text-xs font-bold hidden md:inline">Tema</span>
+          <svg id="themeIconMoon" class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <span id="themeToggleText" class="sr-only">Tema</span>
         </button>
 
-        <!-- Botón Crear Nuevo Producto Rápido -->
+        <!-- Botón Acción Principal (Nuevo Producto / Categoría) -->
         <div id="btnNuevoProductoContainer">
-          <button onclick="Admin.openProductModal()" class="px-3 sm:px-4 py-2 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-xl text-xs font-bold shadow-md shadow-brand-orange/20 transition-all flex items-center gap-1.5 tap-target cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <button onclick="Admin.openProductModal()" class="px-3 sm:px-4 py-1.5 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 tap-target cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span class="hidden sm:inline">Nuevo Producto</span>
             <span class="sm:hidden">Nuevo</span>
           </button>
         </div>
 
-        <!-- Botón Cambio de Contraseña / Seguridad -->
-        <button onclick="Admin.openPasswordModal()" class="px-2.5 sm:px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold transition-all flex items-center gap-1.5 tap-target cursor-pointer" title="Cambiar Contraseña de Administrador">
-          <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-          <span class="hidden sm:inline">Seguridad</span>
-        </button>
+        <!-- Menú Desplegable de Perfil / Administrador -->
+        <div class="relative">
+          <button type="button" id="adminProfileTrigger" onclick="AdminLayout.toggleProfileMenu()" class="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer text-left" title="Opciones de cuenta">
+            <div class="w-7 h-7 rounded-full bg-slate-800 text-brand-orange border border-slate-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
+              A
+            </div>
+            <div class="hidden md:block leading-none pr-1">
+              <p id="adminNombreHeader" class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[110px]">Admin</p>
+              <p id="adminDocHeader" class="text-[9px] text-slate-400 font-medium">Empresa</p>
+            </div>
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
 
-        <!-- Perfil Usuario Admin (Clic para cambiar clave) -->
-        <button type="button" onclick="Admin.openPasswordModal()" class="flex items-center gap-2 pl-2 border-l hover:opacity-80 transition-opacity cursor-pointer text-left" style="border-color: var(--admin-border);" title="Configurar acceso / Cambiar clave">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-orange to-rose-600 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-            A
+          <!-- Popover / Menú Desplegable -->
+          <div id="adminProfileDropdown" class="hidden absolute right-0 mt-2 w-56 admin-card rounded-xl shadow-xl py-1 z-50 animate-fade-in text-xs" style="border-color: var(--admin-border);">
+            <div class="px-3.5 py-2.5 border-b" style="border-color: var(--admin-border-subtle);">
+              <p class="font-bold text-slate-900 dark:text-slate-100">Descartables Peruanos</p>
+              <p class="text-[10px] text-slate-400 font-mono">RUC 20601234567</p>
+            </div>
+            <div class="py-1">
+              <button type="button" onclick="Admin.openPasswordModal(); AdminLayout.closeProfileMenu();" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800/60 flex items-center gap-2.5 text-slate-700 dark:text-slate-300 transition-colors">
+                <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <span>Cambiar Contraseña</span>
+              </button>
+              <button type="button" onclick="Admin.switchTab('configuracion'); AdminLayout.closeProfileMenu();" class="w-full text-left px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800/60 flex items-center gap-2.5 text-slate-700 dark:text-slate-300 transition-colors">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>Datos del Negocio</span>
+              </button>
+            </div>
+            <div class="border-t py-1" style="border-color: var(--admin-border-subtle);">
+              <button type="button" onclick="Auth.logout()" class="w-full text-left px-3.5 py-2 hover:bg-rose-500/10 text-rose-500 flex items-center gap-2.5 transition-colors font-medium">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
           </div>
-          <div class="text-left hidden md:block">
-            <p id="adminNombreHeader" class="text-xs font-bold leading-tight truncate max-w-[130px]">Administrador</p>
-            <p id="adminDocHeader" class="text-[10px] text-brand-orange font-bold">RUC 20601234567</p>
-          </div>
-        </button>
-
+        </div>
 
       </div>
 
@@ -1392,124 +1452,155 @@
   </div>
 
   <!-- ==================== MODAL CREAR / EDITAR PRODUCTO ==================== -->
-  <div id="modalProducto" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto">
-    <div class="admin-card w-full max-w-2xl rounded-3xl shadow-2xl p-5 sm:p-7 space-y-5 my-8">
+  <div id="modalProducto" class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 animate-fade-in overflow-y-auto">
+    <div class="admin-card w-full max-w-2xl rounded-2xl shadow-2xl p-5 sm:p-6 space-y-5 my-8 max-h-[92vh] overflow-y-auto no-scrollbar">
       
-      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--admin-border);">
+      <!-- Encabezado Modal -->
+      <div class="flex items-center justify-between border-b pb-3.5" style="border-color: var(--admin-border);">
         <div>
-          <h2 id="modalProductTitle" class="font-heading font-extrabold text-lg sm:text-xl">Agregar Nuevo Producto</h2>
-          <p class="text-xs text-stone-400">Complete los datos técnicos del empaque descartable.</p>
+          <h2 id="modalProductTitle" class="font-heading font-bold text-base sm:text-lg text-slate-900 dark:text-slate-100">Agregar Nuevo Producto</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Complete los datos de la ficha técnica y comercial.</p>
         </div>
-        <button onclick="Admin.closeProductModal()" class="p-2 rounded-xl text-stone-400 hover:text-white admin-card-inner transition-colors tap-target cursor-pointer">
+        <button onclick="Admin.closeProductModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 admin-card-inner transition-colors tap-target cursor-pointer" title="Cerrar">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <form id="formProducto" onsubmit="Admin.saveProduct(event)" class="space-y-4">
+      <form id="formProducto" onsubmit="Admin.saveProduct(event)" class="space-y-5">
         <input type="hidden" id="prodFormId" value="">
 
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div class="sm:col-span-2">
-            <label class="block text-xs font-bold mb-1">Nombre Comercial del Producto *</label>
-            <input type="text" id="prodFormNombre" required placeholder="Ej: Contenedor Térmico CT-4 Pamolsa" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs">
+        <!-- SECCIÓN 1: INFORMACIÓN GENERAL -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 pb-1 border-b" style="border-color: var(--admin-border-subtle);">
+            <svg class="w-4 h-4 text-brand-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">1. Información General</h3>
           </div>
-          <div>
-            <label class="block text-xs font-bold mb-1">Código SKU *</label>
-            <select id="prodFormSkuSelect" required onchange="Admin.handleSkuChange(this)" class="w-full admin-input rounded-xl px-3 py-2.5 text-xs font-mono font-bold uppercase">
-              <!-- Opciones dinámicas cargadas desde el catálogo/BD -->
-            </select>
-            
-            <!-- Campo adicional visible cuando se selecciona 'Otros' -->
-            <div id="prodFormNuevoSkuContainer" class="hidden mt-2 p-2.5 admin-card-inner rounded-xl border border-brand-orange/40 space-y-1">
-              <label class="block text-[11px] font-bold text-brand-orange">Nuevo Código SKU *</label>
-              <input type="text" id="prodFormSku" placeholder="Ej: PAM-CT4-BLA" class="w-full admin-input rounded-lg px-3 py-1.5 text-xs font-mono font-bold uppercase">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre Comercial del Producto *</label>
+              <input type="text" id="prodFormNombre" required placeholder="Ej: Contenedor Térmico CT-4 Pamolsa" class="w-full admin-input rounded-lg px-3.5 py-2 text-xs">
             </div>
-          </div>
-          <div>
-            <label class="block text-xs font-bold mb-1">Precio Referencial (S/)</label>
-            <input type="number" id="prodFormPrecio" step="0.01" min="0" placeholder="Ej: 24.50" class="w-full admin-input rounded-xl px-3 py-2.5 text-xs font-bold">
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Código SKU *</label>
+              <select id="prodFormSkuSelect" required onchange="Admin.handleSkuChange(this)" class="w-full admin-input rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase">
+                <!-- Opciones dinámicas cargadas desde el catálogo/BD -->
+              </select>
+              
+              <!-- Campo adicional visible cuando se selecciona 'Otros' -->
+              <div id="prodFormNuevoSkuContainer" class="hidden mt-2 p-2.5 admin-card-inner rounded-lg border border-brand-orange/40 space-y-1">
+                <label class="block text-[11px] font-bold text-brand-orange">Nuevo Código SKU *</label>
+                <input type="text" id="prodFormSku" placeholder="Ej: PAM-CT4-BLA" class="w-full admin-input rounded-md px-2.5 py-1.5 text-xs font-mono font-bold uppercase">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Categoría / Línea *</label>
+              <select id="prodFormCategoria" required onchange="Admin.handleCategoryChange(this)" class="w-full admin-input rounded-lg px-3 py-2 text-xs font-semibold">
+                <!-- Opciones dinámicas cargadas desde la BD/Catálogo -->
+              </select>
+              
+              <!-- Campo adicional visible cuando se selecciona 'Otros' -->
+              <div id="prodFormNuevaCategoriaContainer" class="hidden mt-2 p-2.5 admin-card-inner rounded-lg border border-brand-orange/40 space-y-1">
+                <label class="block text-[11px] font-bold text-brand-orange">Nombre de la nueva categoría *</label>
+                <input type="text" id="prodFormNuevaCategoria" placeholder="Ej: Bolsas Kraft y Papel" class="w-full admin-input rounded-md px-2.5 py-1.5 text-xs font-semibold">
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-xs font-bold mb-1">Categoría / Línea *</label>
-            <select id="prodFormCategoria" required onchange="Admin.handleCategoryChange(this)" class="w-full admin-input rounded-xl px-3 py-2.5 text-xs font-semibold">
-              <!-- Opciones dinámicas cargadas desde la BD/Catálogo -->
-            </select>
-            
-            <!-- Campo adicional visible cuando se selecciona 'Otros' -->
-            <div id="prodFormNuevaCategoriaContainer" class="hidden mt-2 p-2.5 admin-card-inner rounded-xl border border-brand-orange/40 space-y-1">
-              <label class="block text-[11px] font-bold text-brand-orange">Nombre de la nueva categoría *</label>
-              <input type="text" id="prodFormNuevaCategoria" placeholder="Ej: Bolsas Kraft y Papel" class="w-full admin-input rounded-lg px-3 py-1.5 text-xs font-semibold">
+        <!-- SECCIÓN 2: PRECIO Y DISPONIBILIDAD -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 pb-1 border-b" style="border-color: var(--admin-border-subtle);">
+            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">2. Precio y Disponibilidad</h3>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Precio Referencial (S/)</label>
+              <input type="number" id="prodFormPrecio" step="0.01" min="0" placeholder="Ej: 24.50" class="w-full admin-input rounded-lg px-3 py-2 text-xs font-mono font-semibold">
             </div>
-          </div>
-          <div>
-            <label class="block text-xs font-bold mb-1">Disponibilidad / Stock *</label>
-            <select id="prodFormStockEstado" required class="w-full admin-input rounded-xl px-3 py-2.5 text-xs font-semibold">
-              <option value="en_stock">🟢 En Stock (Inmediato)</option>
-              <option value="bajo_pedido">🟡 Bajo Pedido (B2B)</option>
-              <option value="agotado">🔴 Agotado (Temporal)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold mb-1">Presentación / Empaque *</label>
-            <input type="text" id="prodFormPresentacion" required placeholder="Ej: Caja x 200 und" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs">
-          </div>
-          <div>
-            <label class="block text-xs font-bold mb-1">Material de Fabricación *</label>
-            <input type="text" id="prodFormMaterial" required placeholder="Ej: Poliestireno Expandido" class="w-full admin-input rounded-xl px-4 py-2.5 text-xs">
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Estado de Stock *</label>
+              <select id="prodFormStockEstado" required class="w-full admin-input rounded-lg px-3 py-2 text-xs font-semibold">
+                <option value="en_stock">🟢 En Stock</option>
+                <option value="bajo_pedido">🟡 Bajo Pedido</option>
+                <option value="agotado">🔴 Agotado</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Presentación *</label>
+              <input type="text" id="prodFormPresentacion" required placeholder="Ej: Caja x 200 und" class="w-full admin-input rounded-lg px-3 py-2 text-xs">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Material *</label>
+              <input type="text" id="prodFormMaterial" required placeholder="Ej: Poliestireno" class="w-full admin-input rounded-lg px-3 py-2 text-xs">
+            </div>
           </div>
         </div>
 
-        <!-- FOTO DEL PRODUCTO (Subida de archivo desde PC) -->
-        <div class="p-4 admin-card-inner rounded-2xl border space-y-3" style="border-color: var(--admin-border);">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold">Fotografía del Producto (Subir desde tu computadora)</label>
-            <span id="prodFormImgStatus" class="text-[10px] font-bold text-stone-400">PNG, JPG o WebP (Máx 10 MB)</span>
+        <!-- SECCIÓN 3: FOTOGRAFÍA DEL PRODUCTO -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between pb-1 border-b" style="border-color: var(--admin-border-subtle);">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">3. Imagen del Producto</h3>
+            </div>
+            <span id="prodFormImgStatus" class="text-[10px] text-slate-400 font-medium">PNG, JPG o WebP</span>
           </div>
-          
-          <div id="prodImageDropzone" class="flex flex-col sm:flex-row items-center gap-4 p-3.5 rounded-2xl border-2 border-dashed transition-all" style="background-color: var(--admin-card-bg); border-color: var(--admin-border);">
-            <div class="relative w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 shadow-inner admin-card-inner flex items-center justify-center border" style="border-color: var(--admin-border);">
-              <img id="prodFormImgPreview" src="assets/images/productos/default.png" alt="Vista Previa" class="w-full h-full object-cover" onerror="this.src='assets/images/productos/default.png'">
-              <div id="prodFormImgSpinner" class="absolute inset-0 bg-black/60 hidden items-center justify-center text-white">
-                <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+
+          <div id="prodImageDropzone" class="p-3.5 rounded-xl border border-dashed flex flex-col sm:flex-row items-center gap-4 transition-colors" style="border-color: var(--admin-border); background-color: var(--admin-card-inner);">
+            <div class="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border flex items-center justify-center bg-white dark:bg-slate-900" style="border-color: var(--admin-border);">
+              <img id="prodFormImgPreview" src="assets/images/productos/default.png" alt="Vista Previa" class="w-full h-full object-contain p-1" onerror="this.src='assets/images/productos/default.png'">
+              <div id="prodFormImgSpinner" class="absolute inset-0 bg-slate-900/60 hidden items-center justify-center text-white">
+                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               </div>
             </div>
 
             <div class="flex-1 space-y-2 w-full">
               <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold">Seleccionar archivo de imagen</span>
-                <button type="button" onclick="Admin.clearProductImage()" class="text-[10px] text-rose-400 hover:underline font-bold">Limpiar foto</button>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Subir imagen desde el equipo</span>
+                <button type="button" onclick="Admin.clearProductImage()" class="text-[11px] text-rose-500 hover:text-rose-600 font-medium transition-colors">Limpiar imagen</button>
               </div>
-              <input type="file" id="prodFormFileInput" accept="image/*" onchange="Admin.handleImageUpload(this)" class="w-full text-xs text-stone-400 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-orange file:text-white hover:file:bg-brand-orangeDark cursor-pointer admin-input p-1 rounded-xl">
-              <p class="text-[10px] text-stone-400">Las imágenes se guardan automáticamente en <code class="px-1.5 py-0.5 rounded font-mono text-[10px] admin-card-inner font-bold">assets/images/productos/</code></p>
+              <input type="file" id="prodFormFileInput" accept="image/*" onchange="Admin.handleImageUpload(this)" class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 dark:file:bg-slate-800 file:text-slate-700 dark:file:text-slate-200 hover:file:bg-brand-orange hover:file:text-white cursor-pointer admin-input p-1 rounded-lg">
               <input type="hidden" id="prodFormImgUrl" value="">
             </div>
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold mb-1">Descripción Comercial y Usos Recomendados</label>
-          <textarea id="prodFormDescripcion" rows="3" placeholder="Detalles de resistencia térmica, compatibilidad con alimentos calientes o fríos..." class="w-full admin-input rounded-xl p-3 text-xs leading-relaxed"></textarea>
+        <!-- SECCIÓN 4: DESCRIPCIÓN Y ESPECIFICACIONES -->
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 pb-1 border-b" style="border-color: var(--admin-border-subtle);">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">4. Descripción Comercial</h3>
+          </div>
+          <textarea id="prodFormDescripcion" rows="2" placeholder="Detalles de resistencia térmica, compatibilidad con alimentos o recomendaciones de uso..." class="w-full admin-input rounded-lg p-3 text-xs leading-relaxed"></textarea>
         </div>
 
-        <div class="flex flex-wrap items-center gap-6 pt-1">
-          <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" id="prodFormBiodegradable" class="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 border-stone-600 bg-stone-800">
-            <span class="text-xs font-bold">Producto Eco-Amigable / Biodegradable</span>
+        <!-- SECCIÓN 5: ATRIBUTOS DESTACADOS -->
+        <div class="p-3 admin-card-inner rounded-xl border flex flex-wrap items-center gap-6" style="border-color: var(--admin-border-subtle);">
+          <label class="flex items-center gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="prodFormBiodegradable" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-400 dark:border-slate-600 bg-white dark:bg-slate-800">
+            <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">🌿 Producto Eco-Amigable / Biodegradable</span>
           </label>
-          <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" id="prodFormDestacado" class="w-4 h-4 rounded text-brand-orange focus:ring-brand-orange border-stone-600 bg-stone-800">
-            <span class="text-xs font-bold">Destacado en Portada</span>
+          <label class="flex items-center gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="prodFormDestacado" class="w-4 h-4 rounded text-brand-orange focus:ring-brand-orange border-slate-400 dark:border-slate-600 bg-white dark:bg-slate-800">
+            <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">⭐ Destacar en Portada</span>
           </label>
         </div>
 
+        <!-- ACCIONES MODAL -->
         <div class="pt-3 border-t flex items-center justify-end gap-3" style="border-color: var(--admin-border);">
-          <button type="button" onclick="Admin.closeProductModal()" class="px-5 py-2.5 rounded-xl border text-xs font-bold admin-card-inner hover:opacity-80 transition-colors tap-target cursor-pointer" style="border-color: var(--admin-border);">
+          <button type="button" onclick="Admin.closeProductModal()" class="px-4 py-2 rounded-lg border text-xs font-semibold text-slate-600 dark:text-slate-300 admin-card-inner hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" style="border-color: var(--admin-border);">
             Cancelar
           </button>
-          <button type="submit" id="btnGuardarProducto" class="px-6 py-2.5 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-xl text-xs font-bold shadow-md shadow-brand-orange/25 transition-all flex items-center gap-2 tap-target cursor-pointer">
+          <button type="submit" id="btnGuardarProducto" class="px-5 py-2 bg-brand-orange hover:bg-brand-orangeDark text-white rounded-lg text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 tap-target cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             <span>Guardar Producto</span>
           </button>
         </div>
@@ -1775,7 +1866,7 @@
       }
     };
 
-    // GESTOR DE LAYOUT (SIDEBAR MÓVIL)
+    // GESTOR DE LAYOUT (SIDEBAR MÓVIL & PERFIL DROPDOWN)
     const AdminLayout = {
       openSidebar() {
         const sidebar = document.getElementById('sidebarAdmin');
@@ -1788,8 +1879,27 @@
         const backdrop = document.getElementById('sidebarBackdrop');
         if (sidebar) sidebar.classList.add('-translate-x-full');
         if (backdrop) backdrop.classList.add('hidden');
+      },
+      toggleProfileMenu() {
+        const dropdown = document.getElementById('adminProfileDropdown');
+        if (dropdown) dropdown.classList.toggle('hidden');
+      },
+      closeProfileMenu() {
+        const dropdown = document.getElementById('adminProfileDropdown');
+        if (dropdown) dropdown.classList.add('hidden');
       }
     };
+
+    // Cerrar menú de perfil al hacer clic en cualquier otra parte
+    document.addEventListener('click', function(e) {
+      const trigger = document.getElementById('adminProfileTrigger');
+      const dropdown = document.getElementById('adminProfileDropdown');
+      if (dropdown && !dropdown.classList.contains('hidden')) {
+        if (!dropdown.contains(e.target) && !trigger?.contains(e.target)) {
+          dropdown.classList.add('hidden');
+        }
+      }
+    });
 
     // MÓDULO ADMINISTRATIVO PRINCIPAL
     const Admin = {
@@ -1830,14 +1940,12 @@
           const btn = document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
           if (!el || !btn) return;
 
-
-
           if (tab === tabName) {
             el.classList.remove('hidden');
-            btn.className = 'tab-btn w-full px-3.5 py-3 rounded-xl font-bold text-xs flex items-center justify-between transition-all tap-target cursor-pointer bg-brand-orange text-white shadow-md shadow-brand-orange/25';
+            btn.className = 'tab-btn w-full px-3 py-2 rounded-lg font-bold text-xs flex items-center justify-between transition-all tap-target cursor-pointer bg-slate-100 dark:bg-slate-800/80 text-brand-orange border-l-[3px] border-brand-orange';
           } else {
             el.classList.add('hidden');
-            btn.className = 'tab-btn w-full px-3.5 py-3 rounded-xl font-semibold text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-white/5 text-stone-300';
+            btn.className = 'tab-btn w-full px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-between transition-all tap-target cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-l-[3px] border-transparent';
           }
         });
 
@@ -1980,42 +2088,42 @@
 
         // Render Desktop Table
         if (tbody) {
-          tbody.innerHTML = list.map(cat => `
-            <tr class="hover:bg-white/5 transition-colors">
-              <td class="py-3.5 px-4">
+          tbody.innerHTML = list.map((cat, index) => `
+            <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
+              <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-xl bg-gradient-to-br ${cat.color} border flex items-center justify-center flex-shrink-0 text-brand-orange shadow-xs" style="border-color: var(--admin-border);">
+                  <div class="w-8 h-8 rounded-lg bg-gradient-to-br ${cat.color} border flex items-center justify-center flex-shrink-0 text-slate-700 dark:text-slate-200 shadow-xs" style="border-color: var(--admin-border);">
                     ${this.getCategoryIconSvg(cat.icono)}
                   </div>
                   <div>
-                    <p class="font-bold text-xs leading-snug">${cat.nombre}</p>
-                    <span class="text-[10px] text-stone-400 font-mono">ID #${cat.id}</span>
+                    <p class="font-bold text-xs text-slate-800 dark:text-slate-200 leading-snug">${cat.nombre}</p>
+                    <span class="text-[10px] text-slate-400 font-mono">ID #${cat.id}</span>
                   </div>
                 </div>
               </td>
-              <td class="py-3.5 px-3 font-mono font-semibold text-stone-400 text-[11px]">
-                <code class="px-2 py-0.5 rounded admin-card-inner text-[10px]">${cat.slug}</code>
+              <td class="py-3 px-3 font-mono font-medium text-slate-600 dark:text-slate-300 text-[11px]">
+                <code class="px-2 py-0.5 rounded text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">${cat.slug}</code>
               </td>
-              <td class="py-3.5 px-3 text-stone-400 text-xs max-w-[280px] truncate" title="${cat.descripcion}">
+              <td class="py-3 px-3 text-slate-500 dark:text-slate-400 text-xs max-w-[280px] truncate" title="${cat.descripcion}">
                 ${cat.descripcion || '—'}
               </td>
-              <td class="py-3.5 px-3 text-center">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl admin-card-inner text-[10px] font-bold">
-                  <span class="w-2 h-2 rounded-full bg-brand-orange"></span>
+              <td class="py-3 px-3 text-center">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
+                  <span class="w-1.5 h-1.5 rounded-full bg-brand-orange"></span>
                   <code>${cat.icono}</code>
                 </span>
               </td>
-              <td class="py-3.5 px-3 text-center">
-                <span class="px-2.5 py-1 rounded-full font-bold text-xs ${cat.total_productos > 0 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-stone-500/15 text-stone-400'}">
+              <td class="py-3 px-3 text-center">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${cat.total_productos > 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60'}">
                   ${cat.total_productos} prod.
                 </span>
               </td>
-              <td class="py-3.5 px-4 text-right">
-                <div class="flex items-center justify-end gap-1.5">
-                  <button onclick="Admin.editCategory(${cat.id})" class="p-2 rounded-xl admin-card-inner hover:text-brand-orange transition-colors tap-target cursor-pointer" title="Editar Categoría">
+              <td class="py-3 px-4 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <button onclick="Admin.editCategory(${cat.id})" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-orange hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" title="Editar Categoría" aria-label="Editar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
-                  <button onclick="Admin.confirmDeleteCategory(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', ${cat.total_productos})" class="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors tap-target cursor-pointer" title="Eliminar Categoría">
+                  <button onclick="Admin.confirmDeleteCategory(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', ${cat.total_productos})" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Categoría" aria-label="Eliminar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
@@ -2323,15 +2431,15 @@
           if (tbody) {
             tbody.innerHTML = `
               <tr>
-                <td colspan="10" class="py-10 text-center text-stone-400">
-                  No se encontraron productos coincidentes.
+                <td colspan="10" class="py-12 text-center text-slate-400">
+                  <p class="text-xs">No se encontraron productos coincidentes con los filtros.</p>
                 </td>
               </tr>
             `;
           }
           if (mobileContainer) {
             mobileContainer.innerHTML = `
-              <div class="py-10 text-center text-stone-400">
+              <div class="py-10 text-center text-slate-400">
                 <p class="text-xs">No se encontraron productos coincidentes.</p>
               </div>
             `;
@@ -2340,56 +2448,56 @@
         }
 
         const getStockBadge = (st) => {
-          if (st === 'agotado') return '<span class="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 text-[10px] font-bold whitespace-nowrap" title="Sin stock temporal">🔴 Agotado</span>';
-          if (st === 'bajo_pedido') return '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-bold whitespace-nowrap" title="Bajo pedido / Fabricación B2B">🟡 Bajo Pedido</span>';
-          return '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold whitespace-nowrap" title="Stock disponible para entrega inmediata">🟢 En Stock</span>';
+          if (st === 'agotado') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-500 dark:bg-rose-500/15 dark:text-rose-400 border border-rose-500/20" title="Sin stock temporal">🔴 Agotado</span>';
+          if (st === 'bajo_pedido') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/20" title="Bajo pedido / Fabricación B2B">🟡 Bajo Pedido</span>';
+          return '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-500/20" title="Disponible para entrega inmediata">🟢 En Stock</span>';
         };
 
         // Render Desktop Table
         if (tbody) {
-          tbody.innerHTML = list.map(prod => `
-            <tr class="hover:bg-white/5 transition-colors">
+          tbody.innerHTML = list.map((prod, index) => `
+            <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
               <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
-                  <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-10 h-10 rounded-xl object-cover border flex-shrink-0 admin-card-inner" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
+                  <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-9 h-9 rounded-lg object-contain p-0.5 border flex-shrink-0 bg-white dark:bg-slate-900" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
                   <div class="min-w-0">
-                    <p class="font-bold leading-tight truncate max-w-[220px]">${prod.nombre}</p>
-                    <p class="text-[10px] text-stone-400 truncate max-w-[200px]">${prod.descripcion || ''}</p>
+                    <p class="font-bold text-xs text-slate-800 dark:text-slate-200 leading-snug truncate max-w-[220px]">${prod.nombre}</p>
+                    <p class="text-[10px] text-slate-400 truncate max-w-[200px]">${prod.descripcion || ''}</p>
                   </div>
                 </div>
               </td>
-              <td class="py-3 px-3 font-mono font-bold text-brand-orange text-[11px]">${prod.sku}</td>
+              <td class="py-3 px-3 font-mono font-semibold text-slate-600 dark:text-slate-300 text-[11px]">${prod.sku}</td>
               <td class="py-3 px-3">
-                <span class="px-2.5 py-1 rounded-lg admin-card-inner font-medium text-[11px]">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
                   ${prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id)}
                 </span>
               </td>
-              <td class="py-3 px-3 font-mono font-bold text-[11px]">
+              <td class="py-3 px-3 font-mono font-semibold text-slate-900 dark:text-slate-100 text-[11px]">
                 ${prod.precio !== null && prod.precio !== undefined && prod.precio !== '' 
                   ? 'S/ ' + parseFloat(prod.precio).toFixed(2) 
-                  : '<span class="text-stone-400 font-normal">—</span>'}
+                  : '<span class="text-slate-400 font-normal">—</span>'}
               </td>
               <td class="py-3 px-3 text-center">
                 ${getStockBadge(prod.stock_estado)}
               </td>
-              <td class="py-3 px-3 text-stone-400">${prod.presentacion}</td>
-              <td class="py-3 px-3">${prod.material}</td>
+              <td class="py-3 px-3 text-slate-500 dark:text-slate-400">${prod.presentacion}</td>
+              <td class="py-3 px-3 text-slate-700 dark:text-slate-300">${prod.material}</td>
               <td class="py-3 px-3 text-center">
                 ${(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true') 
-                  ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold" title="Producto Biodegradable">🌿 Bio</span>' 
-                  : '<span class="text-stone-500 text-xs">—</span>'}
+                  ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40" title="Producto Eco-Biodegradable">🌿 Bio</span>' 
+                  : '<span class="text-slate-400 text-xs">—</span>'}
               </td>
               <td class="py-3 px-3 text-center">
                 ${(prod.destacado == 1 || prod.destacado === true || prod.destacado === '1' || prod.destacado === 'true') 
-                  ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-bold" title="Destacado en Portada">⭐ Sí</span>' 
-                  : '<span class="text-stone-500 text-xs">—</span>'}
+                  ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40" title="Producto Destacado en Portada">⭐ Sí</span>' 
+                  : '<span class="text-slate-400 text-xs">—</span>'}
               </td>
               <td class="py-3 px-4 text-right">
-                <div class="flex items-center justify-end gap-1.5">
-                  <button onclick="Admin.editProduct(${prod.id})" class="p-2 rounded-xl admin-card-inner hover:text-brand-orange transition-colors tap-target cursor-pointer" title="Editar Producto">
+                <div class="flex items-center justify-end gap-1">
+                  <button onclick="Admin.editProduct(${prod.id})" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-orange hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" title="Editar Producto" aria-label="Editar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
-                  <button onclick="Admin.confirmDeleteProduct(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}')" class="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors tap-target cursor-pointer" title="Eliminar Producto">
+                  <button onclick="Admin.confirmDeleteProduct(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Producto" aria-label="Eliminar">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
@@ -2403,33 +2511,33 @@
           mobileContainer.innerHTML = list.map(prod => `
             <div class="pt-3 first:pt-0 space-y-2.5">
               <div class="flex items-start gap-3">
-                <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-14 h-14 rounded-xl object-cover border flex-shrink-0 admin-card-inner" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
+                <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" class="w-12 h-12 rounded-lg object-contain p-0.5 border flex-shrink-0 bg-white dark:bg-slate-900" style="border-color: var(--admin-border);" onerror="this.src='assets/images/productos/default.png'">
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center justify-between gap-1">
-                    <span class="font-mono font-bold text-brand-orange text-[10px] admin-card-inner px-1.5 py-0.5 rounded">${prod.sku}</span>
+                    <span class="font-mono font-semibold text-slate-600 dark:text-slate-300 text-[10px] admin-card-inner px-1.5 py-0.5 rounded border" style="border-color: var(--admin-border-subtle);">${prod.sku}</span>
                     <span class="font-mono font-bold text-xs">
-                      ${prod.precio !== null && prod.precio !== undefined && prod.precio !== '' ? 'S/ ' + parseFloat(prod.precio).toFixed(2) : '<span class="text-stone-400 font-normal">S/ —</span>'}
+                      ${prod.precio !== null && prod.precio !== undefined && prod.precio !== '' ? 'S/ ' + parseFloat(prod.precio).toFixed(2) : '<span class="text-slate-400 font-normal">S/ —</span>'}
                     </span>
                   </div>
-                  <p class="font-bold text-xs mt-1 leading-snug line-clamp-2">${prod.nombre}</p>
-                  <p class="text-[10px] text-stone-400 truncate mt-0.5">${prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id)} • ${prod.presentacion || ''}</p>
+                  <p class="font-bold text-xs mt-1 leading-snug line-clamp-2 text-slate-900 dark:text-slate-100">${prod.nombre}</p>
+                  <p class="text-[10px] text-slate-400 truncate mt-0.5">${prod.categoria_nombre || ApiService.getCatalogCategoryName(prod.categoria_id)} • ${prod.presentacion || ''}</p>
                 </div>
               </div>
 
               <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
                 ${getStockBadge(prod.stock_estado)}
-                ${(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true') ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold">🌿 Bio</span>' : ''}
-                ${(prod.destacado == 1 || prod.destacado === true || prod.destacado === '1' || prod.destacado === 'true') ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-bold">⭐ En Portada</span>' : ''}
-                <span class="text-stone-400 text-[10px] ml-auto">${prod.material || ''}</span>
+                ${(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true') ? '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">🌿 Bio</span>' : ''}
+                ${(prod.destacado == 1 || prod.destacado === true || prod.destacado === '1' || prod.destacado === 'true') ? '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40">⭐ Portada</span>' : ''}
+                <span class="text-slate-400 text-[10px] ml-auto">${prod.material || ''}</span>
               </div>
 
               <div class="grid grid-cols-2 gap-2 pt-1">
-                <button onclick="Admin.editProduct(${prod.id})" class="flex items-center justify-center gap-1.5 py-2 px-3 admin-card-inner hover:text-brand-orange rounded-xl text-xs font-bold transition-all tap-target cursor-pointer">
-                  <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <button onclick="Admin.editProduct(${prod.id})" class="flex items-center justify-center gap-1.5 py-1.5 px-3 admin-card-inner hover:text-brand-orange text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border" style="border-color: var(--admin-border-subtle);">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   <span>Editar</span>
                 </button>
-                <button onclick="Admin.confirmDeleteProduct(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}')" class="flex items-center justify-center gap-1.5 py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all tap-target cursor-pointer">
-                  <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <button onclick="Admin.confirmDeleteProduct(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}')" class="flex items-center justify-center gap-1.5 py-1.5 px-3 text-rose-500 hover:bg-rose-500/10 rounded-lg text-xs font-semibold transition-all tap-target cursor-pointer border border-rose-500/20">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   <span>Eliminar</span>
                 </button>
               </div>
@@ -2716,58 +2824,58 @@
 
         // Render Desktop Table
         if (tbody) {
-          tbody.innerHTML = list.map(u => {
+          tbody.innerHTML = list.map((u, index) => {
             const cleanPhone = (u.telefono || '').replace(/[^0-9]/g, '');
             const waLink = cleanPhone.length >= 9 
               ? `https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + u.nombre_razon_social + ', le saludamos de Descartables Peruanos.')}` 
               : '#';
 
             return `
-              <tr class="hover:bg-white/5 transition-colors">
+              <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full ${u.rol === 'admin' ? 'bg-brand-orange' : 'bg-stone-700'} text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    <div class="w-8 h-8 rounded-full ${u.rol === 'admin' ? 'bg-brand-orange text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200'} flex items-center justify-center font-bold text-xs flex-shrink-0 border" style="border-color: var(--admin-border);">
                       ${(u.nombre_razon_social || 'C').charAt(0).toUpperCase()}
                     </div>
                     <div class="min-w-0">
-                      <p class="font-bold truncate max-w-[200px]">${u.nombre_razon_social}</p>
-                      <p class="text-[11px] text-stone-400 truncate max-w-[200px]">${u.email}</p>
+                      <p class="font-bold text-xs text-slate-800 dark:text-slate-200 truncate max-w-[200px]">${u.nombre_razon_social}</p>
+                      <p class="text-[11px] text-slate-400 truncate max-w-[200px]">${u.email}</p>
                     </div>
                   </div>
                 </td>
                 <td class="py-3 px-3">
-                  <span class="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold ${u.tipo_documento === 'RUC' ? 'bg-purple-500/15 text-purple-400' : 'bg-blue-500/15 text-blue-400'}">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold ${u.tipo_documento === 'RUC' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40'}">
                     ${u.tipo_documento}: ${u.numero_documento}
                   </span>
                 </td>
                 <td class="py-3 px-3">
                   <div class="flex items-center gap-2">
-                    <span class="font-mono text-stone-300">${u.telefono || '—'}</span>
+                    <span class="font-mono text-slate-700 dark:text-slate-300 text-xs">${u.telefono || '—'}</span>
                     ${cleanPhone.length >= 9 ? `
-                      <a href="${waLink}" target="_blank" class="p-1 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors" title="Abrir WhatsApp">
+                      <a href="${waLink}" target="_blank" class="p-1 rounded text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Abrir WhatsApp">
                         <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/></svg>
                       </a>
                     ` : ''}
                   </div>
                 </td>
-                <td class="py-3 px-3 text-stone-400">
-                  <p class="text-[11px] leading-tight text-inherit">${u.distrito || 'Lima'}, ${u.departamento || 'Lima'}</p>
-                  <p class="text-[10px] text-stone-500 truncate max-w-[130px]">${u.direccion || ''}</p>
+                <td class="py-3 px-3 text-slate-500 dark:text-slate-400">
+                  <p class="text-[11px] leading-tight text-slate-800 dark:text-slate-200">${u.distrito || 'Lima'}, ${u.departamento || 'Lima'}</p>
+                  <p class="text-[10px] text-slate-400 truncate max-w-[130px]">${u.direccion || ''}</p>
                 </td>
                 <td class="py-3 px-3 text-center">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${u.rol === 'admin' ? 'bg-rose-500/15 text-rose-400' : 'bg-emerald-500/15 text-emerald-400'}">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${u.rol === 'admin' ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800/40' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40'}">
                     ${u.rol}
                   </span>
                 </td>
-                <td class="py-3 px-3 text-stone-400 text-[11px] whitespace-nowrap">
+                <td class="py-3 px-3 text-slate-400 text-[11px] whitespace-nowrap font-mono">
                   ${(u.creado_en || '').slice(0, 10)}
                 </td>
                 <td class="py-3 px-4 text-right">
                   ${u.id !== 1 ? `
-                    <button onclick="Admin.confirmDeleteUser(${u.id}, '${u.nombre_razon_social.replace(/'/g, "\\'")}')" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors tap-target cursor-pointer" title="Eliminar Cliente">
+                    <button onclick="Admin.confirmDeleteUser(${u.id}, '${u.nombre_razon_social.replace(/'/g, "\\'")}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Cliente" aria-label="Eliminar">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
-                  ` : '<span class="text-[10px] text-stone-500 font-bold">Principal</span>'}
+                  ` : '<span class="text-[10px] text-slate-400 font-bold">Principal</span>'}
                 </td>
               </tr>
             `;
@@ -2936,19 +3044,19 @@
 
         // Render Desktop Table
         if (tbody) {
-          tbody.innerHTML = list.map(r => {
+          tbody.innerHTML = list.map((r, index) => {
             const code = r.codigo_hoja || r.codigo_seguimiento || `REC-${r.id}`;
             const tipoTexto = r.tipo_reclamacion || r.tipo_reclamo || 'Reclamo';
             const isReclamo = tipoTexto.toLowerCase().includes('reclamo');
             const tipoBadge = isReclamo 
-              ? '<span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-bold">Reclamo</span>' 
-              : '<span class="px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 text-[10px] font-bold">Queja</span>';
+              ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40">Reclamo</span>' 
+              : '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40">Queja</span>';
 
-            let estadoBadge = '<span class="px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-400 text-[10px] font-bold">Pendiente</span>';
+            let estadoBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800/40">Pendiente</span>';
             if (r.estado === 'En Proceso') {
-              estadoBadge = '<span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-bold">En Proceso</span>';
+              estadoBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40">En Proceso</span>';
             } else if (r.estado === 'Atendido') {
-              estadoBadge = '<span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold">Atendido</span>';
+              estadoBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">Atendido</span>';
             }
 
             const fechaStr = (r.creado_en || r.fecha || '').slice(0, 10);
@@ -2956,20 +3064,20 @@
             const nombreConsumidor = r.nombre_completo || r.nombre_consumidor || '—';
 
             return `
-              <tr class="hover:bg-white/5 transition-colors">
+              <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
                 <td class="py-3 px-4">
-                  <span class="font-mono font-bold text-brand-orange text-xs">${code}</span>
+                  <span class="font-mono font-bold text-slate-700 dark:text-slate-300 text-xs">${code}</span>
                 </td>
                 <td class="py-3 px-3">
                   <div>
-                    <p class="font-bold">${nombreConsumidor}</p>
-                    <p class="text-[10px] text-stone-400">${r.tipo_documento || 'DNI'}: ${r.numero_documento || '—'} • ${r.email || ''}</p>
+                    <p class="font-bold text-xs text-slate-800 dark:text-slate-200">${nombreConsumidor}</p>
+                    <p class="text-[10px] text-slate-400">${r.tipo_documento || 'DNI'}: ${r.numero_documento || '—'} • ${r.email || ''}</p>
                   </div>
                 </td>
                 <td class="py-3 px-3">
                   <div>
-                    <p class="font-medium capitalize">${r.tipo_bien || 'Producto'}</p>
-                    <p class="text-[10px] text-stone-400 truncate max-w-[170px]">${r.descripcion_bien || ('Monto: S/. ' + (r.monto_reclamado || '0.00'))}</p>
+                    <p class="font-medium text-xs text-slate-700 dark:text-slate-300 capitalize">${r.tipo_bien || 'Producto'}</p>
+                    <p class="text-[10px] text-slate-400 truncate max-w-[170px]">${r.descripcion_bien || ('Monto: S/. ' + (r.monto_reclamado || '0.00'))}</p>
                   </div>
                 </td>
                 <td class="py-3 px-3 text-center">
@@ -2978,11 +3086,11 @@
                 <td class="py-3 px-3 text-center">
                   ${estadoBadge}
                 </td>
-                <td class="py-3 px-3 text-stone-400 text-[11px] whitespace-nowrap">
+                <td class="py-3 px-3 text-slate-400 text-[11px] whitespace-nowrap font-mono">
                   ${fechaStr}
                 </td>
                 <td class="py-3 px-4 text-right">
-                  <button onclick="Admin.openReclamacionModal('${safeId}')" class="px-3 py-1.5 rounded-xl admin-card-inner hover:bg-brand-orange hover:text-white text-[11px] font-bold transition-all inline-flex items-center gap-1.5 tap-target cursor-pointer">
+                  <button onclick="Admin.openReclamacionModal('${safeId}')" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-orange/50 hover:text-brand-orange text-slate-600 dark:text-slate-300 text-xs font-semibold transition-all inline-flex items-center gap-1 tap-target cursor-pointer" title="Ver y responder reclamación">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     <span>Gestionar</span>
                   </button>
@@ -3331,7 +3439,7 @@
 
         // Render Desktop Table
         if (tbody) {
-          tbody.innerHTML = list.map(c => {
+          tbody.innerHTML = list.map((c, index) => {
             const code = c.codigo || ('COT-' + c.id);
             const cliente = c.cliente_nombre || 'Cliente General';
             const doc = c.cliente_doc || '—';
@@ -3350,49 +3458,49 @@
             }
 
             const estado = c.estado || 'Pendiente';
-            let estadoColor = 'bg-amber-500/15 text-amber-400 border-amber-500/30';
-            if (estado === 'En Contacto') estadoColor = 'bg-blue-500/15 text-blue-400 border-blue-500/30';
-            else if (estado === 'Cotizado') estadoColor = 'bg-purple-500/15 text-purple-400 border-purple-500/30';
-            else if (estado === 'Atendido' || estado === 'Despachado') estadoColor = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
-            else if (estado === 'Cancelado') estadoColor = 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+            let estadoColor = 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-800/40';
+            if (estado === 'En Contacto') estadoColor = 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200 dark:border-blue-800/40';
+            else if (estado === 'Cotizado') estadoColor = 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 border-purple-200 dark:border-purple-800/40';
+            else if (estado === 'Atendido' || estado === 'Despachado') estadoColor = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40';
+            else if (estado === 'Cancelado') estadoColor = 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border-rose-200 dark:border-rose-800/40';
 
             const fechaStr = (c.creado_en || '').slice(0, 10);
             const safeId = c.id;
 
             return `
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="py-3.5 px-4 font-mono font-bold text-brand-orange text-xs">
+              <tr class="transition-colors hover:bg-slate-100/60 dark:hover:bg-slate-800/40 ${index % 2 === 1 ? 'bg-slate-50/50 dark:bg-slate-900/30' : ''}">
+                <td class="py-3 px-4 font-mono font-bold text-slate-700 dark:text-slate-300 text-xs">
                   ${code}
                 </td>
-                <td class="py-3.5 px-4">
+                <td class="py-3 px-4">
                   <div>
-                    <p class="font-bold text-xs leading-tight">${cliente}</p>
+                    <p class="font-bold text-xs text-slate-800 dark:text-slate-200 leading-tight">${cliente}</p>
                     <div class="flex items-center gap-1.5 mt-0.5">
-                      <span class="text-[10px] text-stone-400">${tel || 'Sin teléfono'}</span>
+                      <span class="text-[10px] text-slate-400">${tel || 'Sin teléfono'}</span>
                       ${cleanPhone.length >= 9 ? `
-                        <a href="https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + cliente + ', respecto a su cotización ' + code + ' en Descartables Peruanos:')}" target="_blank" class="text-emerald-400 hover:text-emerald-300 p-0.5" title="WhatsApp">
+                        <a href="https://wa.me/51${cleanPhone.slice(-9)}?text=${encodeURIComponent('Hola ' + cliente + ', respecto a su cotización ' + code + ' en Descartables Peruanos:')}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 p-0.5" title="WhatsApp">
                           <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
                         </a>
                       ` : ''}
                     </div>
                   </div>
                 </td>
-                <td class="py-3.5 px-3 font-mono text-[11px] font-bold">
+                <td class="py-3 px-3 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300">
                   ${doc}
                 </td>
-                <td class="py-3.5 px-3">
-                  <span class="px-2 py-0.5 rounded-md admin-card-inner text-[10px] font-bold">
+                <td class="py-3 px-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
                     ${comprobante}
                   </span>
-                  <p class="text-[10px] text-stone-400 mt-0.5">${destino}</p>
+                  <p class="text-[10px] text-slate-400 mt-0.5">${destino}</p>
                 </td>
-                <td class="py-3.5 px-3 text-center">
-                  <span class="px-2 py-0.5 rounded-full admin-card-inner font-bold text-[11px]">
-                    ${itemsCount} und/cja
+                <td class="py-3 px-3 text-center">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60 font-mono">
+                    ${itemsCount} und
                   </span>
                 </td>
-                <td class="py-3.5 px-3 text-center">
-                  <select onchange="Admin.changeCotizacionStatus(${safeId}, this.value)" class="px-2 py-1 rounded-xl text-[10px] font-bold border ${estadoColor} admin-input focus:outline-none cursor-pointer">
+                <td class="py-3 px-3 text-center">
+                  <select onchange="Admin.changeCotizacionStatus(${safeId}, this.value)" class="px-2 py-0.5 rounded text-[10px] font-semibold border ${estadoColor} admin-input focus:outline-none cursor-pointer">
                     <option value="Pendiente" ${estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                     <option value="En Contacto" ${estado === 'En Contacto' ? 'selected' : ''}>En Contacto</option>
                     <option value="Cotizado" ${estado === 'Cotizado' ? 'selected' : ''}>Cotizado</option>
@@ -3401,15 +3509,15 @@
                     <option value="Cancelado" ${estado === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
                   </select>
                 </td>
-                <td class="py-3.5 px-3 text-stone-400 text-[11px] whitespace-nowrap">
+                <td class="py-3 px-3 text-slate-400 text-[11px] whitespace-nowrap font-mono">
                   ${fechaStr}
                 </td>
-                <td class="py-3.5 px-4 text-right">
-                  <div class="flex items-center justify-end gap-1.5">
-                    <button onclick="Admin.viewCotizacionDetail(${safeId})" class="p-1.5 rounded-xl admin-card-inner hover:text-brand-orange transition-colors tap-target cursor-pointer" title="Ver Detalle de Cotización">
+                <td class="py-3 px-4 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button onclick="Admin.viewCotizacionDetail(${safeId})" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-orange hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tap-target cursor-pointer" title="Ver Detalle de Cotización" aria-label="Ver detalle">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </button>
-                    <button onclick="Admin.confirmDeleteCotizacion(${safeId}, '${code}')" class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors tap-target cursor-pointer" title="Eliminar Cotización">
+                    <button onclick="Admin.confirmDeleteCotizacion(${safeId}, '${code}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors tap-target cursor-pointer" title="Eliminar Cotización" aria-label="Eliminar">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                   </div>
