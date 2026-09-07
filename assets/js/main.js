@@ -242,6 +242,7 @@ const IndexFeatured = {
               <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='assets/images/productos/default.png'">
               <div class="absolute top-2 left-2 flex flex-col gap-1">
                 <span class="px-2 py-0.5 rounded bg-espresso text-white font-mono text-[10px] font-bold">${prod.sku}</span>
+                ${prod.stock_estado === 'agotado' ? '<span class="px-2 py-0.5 rounded bg-rose-700 text-white text-[9px] font-bold shadow-xs">🔴 Agotado</span>' : (prod.stock_estado === 'bajo_pedido' ? '<span class="px-2 py-0.5 rounded bg-amber-700 text-white text-[9px] font-bold shadow-xs">🟡 Bajo Pedido</span>' : '')}
                 ${isBio ? '<span class="px-2 py-0.5 rounded bg-emerald-700 text-white text-[9px] font-bold shadow-xs">🌱 100% Bio</span>' : ''}
               </div>
             </div>

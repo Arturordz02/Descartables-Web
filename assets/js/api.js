@@ -290,6 +290,7 @@ const ApiService = {
     if (!p || typeof p !== 'object') return p;
     return {
       ...p,
+      stock_estado: p.stock_estado || 'en_stock',
       precio: p.precio !== undefined && p.precio !== null && p.precio !== '' ? parseFloat(p.precio) : null,
       biodegradable: Boolean(p.biodegradable == 1 || p.biodegradable === true || p.biodegradable === '1' || p.biodegradable === 'true'),
       destacado: Boolean(p.destacado == 1 || p.destacado === true || p.destacado === '1' || p.destacado === 'true'),

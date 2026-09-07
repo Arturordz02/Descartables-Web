@@ -154,6 +154,7 @@ if ($method === 'GET') {
             $prod['id'] = (int)$prod['id'];
             $prod['categoria_id'] = (int)$prod['categoria_id'];
             $prod['precio'] = ($prod['precio'] !== null && $prod['precio'] !== '') ? (float)$prod['precio'] : null;
+            $prod['stock_estado'] = !empty($prod['stock_estado']) ? $prod['stock_estado'] : 'en_stock';
             $prod['biodegradable'] = (bool)$prod['biodegradable'];
             $prod['destacado'] = (bool)$prod['destacado'];
         }
@@ -190,6 +191,10 @@ if ($method === 'POST') {
         $presentacion = trim($data['presentacion'] ?? 'Unidad');
         $material = trim($data['material'] ?? 'Polipropileno');
         $precio = (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
+        $stock_estado = trim($data['stock_estado'] ?? 'en_stock');
+        if (!in_array($stock_estado, ['en_stock', 'bajo_pedido', 'agotado'])) {
+            $stock_estado = 'en_stock';
+        }
         $biodegradable = (isset($data['biodegradable']) && ($data['biodegradable'] === true || $data['biodegradable'] === 1 || $data['biodegradable'] === '1' || $data['biodegradable'] === 'true')) ? 1 : 0;
         $destacado = (isset($data['destacado']) && ($data['destacado'] === true || $data['destacado'] === 1 || $data['destacado'] === '1' || $data['destacado'] === 'true')) ? 1 : 0;
         $imagen_url = trim($data['imagen_url'] ?? 'assets/images/productos/default.png');
@@ -209,8 +214,16 @@ if ($method === 'POST') {
             exit();
         }
 
-        $insertSql = "INSERT INTO productos (categoria_id, sku, nombre, descripcion, presentacion, material, precio, biodegradable, imagen_url, destacado) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Asegurar que la columna stock_estado exista en la tabla productos
+        try {
+            $colStock = $pdo->query("SHOW COLUMNS FROM productos LIKE 'stock_estado'")->fetch();
+            if (!$colStock) {
+                $pdo->exec("ALTER TABLE productos ADD COLUMN stock_estado VARCHAR(30) DEFAULT 'en_stock'");
+            }
+        } catch (Exception $ignored) {}
+
+        $insertSql = "INSERT INTO productos (categoria_id, sku, nombre, descripcion, presentacion, material, precio, stock_estado, biodegradable, imagen_url, destacado) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($insertSql);
         $stmt->execute([
             $categoria_id,
@@ -220,6 +233,7 @@ if ($method === 'POST') {
             $presentacion,
             $material,
             $precio,
+            $stock_estado,
             $biodegradable,
             $imagen_url,
             $destacado
@@ -235,6 +249,7 @@ if ($method === 'POST') {
         $created['id'] = (int)$created['id'];
         $created['categoria_id'] = (int)$created['categoria_id'];
         $created['precio'] = ($created['precio'] !== null && $created['precio'] !== '') ? (float)$created['precio'] : null;
+        $created['stock_estado'] = !empty($created['stock_estado']) ? $created['stock_estado'] : 'en_stock';
         $created['biodegradable'] = (bool)$created['biodegradable'];
         $created['destacado'] = (bool)$created['destacado'];
 
@@ -271,6 +286,10 @@ if ($method === 'PUT') {
         $presentacion = trim($data['presentacion'] ?? 'Unidad');
         $material = trim($data['material'] ?? 'Polipropileno');
         $precio = (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
+        $stock_estado = trim($data['stock_estado'] ?? 'en_stock');
+        if (!in_array($stock_estado, ['en_stock', 'bajo_pedido', 'agotado'])) {
+            $stock_estado = 'en_stock';
+        }
         $biodegradable = (isset($data['biodegradable']) && ($data['biodegradable'] === true || $data['biodegradable'] === 1 || $data['biodegradable'] === '1' || $data['biodegradable'] === 'true')) ? 1 : 0;
         $destacado = (isset($data['destacado']) && ($data['destacado'] === true || $data['destacado'] === 1 || $data['destacado'] === '1' || $data['destacado'] === 'true')) ? 1 : 0;
         $imagen_url = trim($data['imagen_url'] ?? '');
@@ -290,6 +309,14 @@ if ($method === 'PUT') {
             exit();
         }
 
+        // Asegurar que la columna stock_estado exista en la tabla productos
+        try {
+            $colStock = $pdo->query("SHOW COLUMNS FROM productos LIKE 'stock_estado'")->fetch();
+            if (!$colStock) {
+                $pdo->exec("ALTER TABLE productos ADD COLUMN stock_estado VARCHAR(30) DEFAULT 'en_stock'");
+            }
+        } catch (Exception $ignored) {}
+
         $updateSql = "UPDATE productos SET 
                         categoria_id = ?, 
                         sku = ?, 
@@ -298,6 +325,7 @@ if ($method === 'PUT') {
                         presentacion = ?, 
                         material = ?, 
                         precio = ?, 
+                        stock_estado = ?, 
                         biodegradable = ?, 
                         destacado = ?" . (!empty($imagen_url) ? ", imagen_url = ?" : "") . "
                       WHERE id = ?";
@@ -310,6 +338,7 @@ if ($method === 'PUT') {
             $presentacion,
             $material,
             $precio,
+            $stock_estado,
             $biodegradable,
             $destacado
         ];
@@ -330,6 +359,7 @@ if ($method === 'PUT') {
         $updated['id'] = (int)$updated['id'];
         $updated['categoria_id'] = (int)$updated['categoria_id'];
         $updated['precio'] = ($updated['precio'] !== null && $updated['precio'] !== '') ? (float)$updated['precio'] : null;
+        $updated['stock_estado'] = !empty($updated['stock_estado']) ? $updated['stock_estado'] : 'en_stock';
         $updated['biodegradable'] = (bool)$updated['biodegradable'];
         $updated['destacado'] = (bool)$updated['destacado'];
 

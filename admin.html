@@ -361,6 +361,7 @@
                   <th class="py-3.5 px-3">SKU</th>
                   <th class="py-3.5 px-3">Categoría</th>
                   <th class="py-3.5 px-3">Precio Ref.</th>
+                  <th class="py-3.5 px-3 text-center">Disponibilidad</th>
                   <th class="py-3.5 px-3">Presentación</th>
                   <th class="py-3.5 px-3">Material</th>
                   <th class="py-3.5 px-3 text-center">Eco-Bio</th>
@@ -370,7 +371,7 @@
               </thead>
               <tbody id="adminProductsTableBody" class="divide-y" style="border-color: var(--admin-border-subtle);">
                 <tr>
-                  <td colspan="9" class="py-12 text-center text-stone-400">
+                  <td colspan="10" class="py-12 text-center text-stone-400">
                     <div class="inline-block w-6 h-6 border-2 border-brand-orange border-t-transparent rounded-full animate-spin mb-2"></div>
                     <p>Cargando catálogo de productos...</p>
                   </td>
@@ -864,7 +865,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label class="block text-xs font-bold mb-1">Categoría / Línea *</label>
             <select id="prodFormCategoria" required onchange="Admin.handleCategoryChange(this)" class="w-full admin-input rounded-xl px-3 py-2.5 text-xs font-semibold">
@@ -876,6 +877,14 @@
               <label class="block text-[11px] font-bold text-brand-orange">Nombre de la nueva categoría *</label>
               <input type="text" id="prodFormNuevaCategoria" placeholder="Ej: Bolsas Kraft y Papel" class="w-full admin-input rounded-lg px-3 py-1.5 text-xs font-semibold">
             </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1">Disponibilidad / Stock *</label>
+            <select id="prodFormStockEstado" required class="w-full admin-input rounded-xl px-3 py-2.5 text-xs font-semibold">
+              <option value="en_stock">🟢 En Stock (Inmediato)</option>
+              <option value="bajo_pedido">🟡 Bajo Pedido (B2B)</option>
+              <option value="agotado">🔴 Agotado (Temporal)</option>
+            </select>
           </div>
           <div>
             <label class="block text-xs font-bold mb-1">Presentación / Empaque *</label>
@@ -1481,7 +1490,7 @@
           if (tbody) {
             tbody.innerHTML = `
               <tr>
-                <td colspan="9" class="py-10 text-center text-stone-400">
+                <td colspan="10" class="py-10 text-center text-stone-400">
                   No se encontraron productos coincidentes.
                 </td>
               </tr>
@@ -1496,6 +1505,12 @@
           }
           return;
         }
+
+        const getStockBadge = (st) => {
+          if (st === 'agotado') return '<span class="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 text-[10px] font-bold whitespace-nowrap" title="Sin stock temporal">🔴 Agotado</span>';
+          if (st === 'bajo_pedido') return '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-bold whitespace-nowrap" title="Bajo pedido / Fabricación B2B">🟡 Bajo Pedido</span>';
+          return '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold whitespace-nowrap" title="Stock disponible para entrega inmediata">🟢 En Stock</span>';
+        };
 
         // Render Desktop Table
         if (tbody) {
@@ -1520,6 +1535,9 @@
                 ${prod.precio !== null && prod.precio !== undefined && prod.precio !== '' 
                   ? 'S/ ' + parseFloat(prod.precio).toFixed(2) 
                   : '<span class="text-stone-400 font-normal">—</span>'}
+              </td>
+              <td class="py-3 px-3 text-center">
+                ${getStockBadge(prod.stock_estado)}
               </td>
               <td class="py-3 px-3 text-stone-400">${prod.presentacion}</td>
               <td class="py-3 px-3">${prod.material}</td>
@@ -1566,7 +1584,8 @@
               </div>
 
               <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
-                ${(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true') ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold">🌿 Eco-Biodegradable</span>' : ''}
+                ${getStockBadge(prod.stock_estado)}
+                ${(prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true') ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold">🌿 Bio</span>' : ''}
                 ${(prod.destacado == 1 || prod.destacado === true || prod.destacado === '1' || prod.destacado === 'true') ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-bold">⭐ En Portada</span>' : ''}
                 <span class="text-stone-400 text-[10px] ml-auto">${prod.material || ''}</span>
               </div>
@@ -1607,6 +1626,7 @@
         document.getElementById('formProducto').reset();
         document.getElementById('prodFormId').value = '';
         document.getElementById('prodFormPrecio').value = '';
+        document.getElementById('prodFormStockEstado').value = 'en_stock';
         document.getElementById('prodFormImgUrl').value = '';
         document.getElementById('prodFormBiodegradable').checked = false;
         document.getElementById('prodFormDestacado').checked = false;
@@ -1645,6 +1665,7 @@
         document.getElementById('prodFormId').value = prod.id;
         document.getElementById('prodFormNombre').value = prod.nombre;
         document.getElementById('prodFormPrecio').value = (prod.precio !== null && prod.precio !== undefined) ? prod.precio : '';
+        document.getElementById('prodFormStockEstado').value = prod.stock_estado || 'en_stock';
         document.getElementById('prodFormPresentacion').value = prod.presentacion;
         document.getElementById('prodFormMaterial').value = prod.material;
         document.getElementById('prodFormDescripcion').value = prod.descripcion || '';
@@ -1774,6 +1795,7 @@
           categoria_nueva: isOtraCat ? nuevaCatVal : '',
           categoria_nombre: catNombre,
           precio: precioVal !== '' ? parseFloat(precioVal) : null,
+          stock_estado: document.getElementById('prodFormStockEstado').value || 'en_stock',
           presentacion: document.getElementById('prodFormPresentacion').value.trim(),
           material: document.getElementById('prodFormMaterial').value.trim(),
           descripcion: document.getElementById('prodFormDescripcion').value.trim(),
@@ -2982,13 +3004,14 @@
           return;
         }
 
-        const headers = ['ID', 'SKU', 'Nombre del Producto', 'Categoría', 'Precio Ref. S/', 'Presentación', 'Material', 'Biodegradable', 'Destacado', 'URL Imagen'];
+        const headers = ['ID', 'SKU', 'Nombre del Producto', 'Categoría', 'Precio Ref. S/', 'Disponibilidad', 'Presentación', 'Material', 'Biodegradable', 'Destacado', 'URL Imagen'];
         const rows = this.products.map(p => [
           p.id,
           p.sku || '',
           p.nombre || '',
           p.categoria_nombre || ApiService.getCatalogCategoryName(p.categoria_id) || '',
           p.precio !== null && p.precio !== undefined ? parseFloat(p.precio).toFixed(2) : '',
+          p.stock_estado === 'agotado' ? 'AGOTADO' : (p.stock_estado === 'bajo_pedido' ? 'BAJO PEDIDO' : 'EN STOCK'),
           p.presentacion || '',
           p.material || '',
           p.biodegradable ? 'SÍ' : 'NO',

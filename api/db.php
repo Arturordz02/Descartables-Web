@@ -73,6 +73,7 @@ function ensureDatabaseInitialized($pdo) {
             presentacion VARCHAR(150) DEFAULT 'Unidad',
             material VARCHAR(150) DEFAULT 'Polipropileno',
             precio DECIMAL(10,2) NULL DEFAULT NULL,
+            stock_estado VARCHAR(30) DEFAULT 'en_stock',
             biodegradable TINYINT(1) DEFAULT 0,
             imagen_url VARCHAR(500) DEFAULT 'assets/images/productos/default.png',
             destacado TINYINT(1) DEFAULT 0,
@@ -86,6 +87,13 @@ function ensureDatabaseInitialized($pdo) {
             $colPrecio = $pdo->query("SHOW COLUMNS FROM productos LIKE 'precio'")->fetch();
             if (!$colPrecio) {
                 $pdo->exec("ALTER TABLE productos ADD COLUMN precio DECIMAL(10,2) NULL DEFAULT NULL AFTER material");
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $colStock = $pdo->query("SHOW COLUMNS FROM productos LIKE 'stock_estado'")->fetch();
+            if (!$colStock) {
+                $pdo->exec("ALTER TABLE productos ADD COLUMN stock_estado VARCHAR(30) DEFAULT 'en_stock' AFTER precio");
             }
         } catch (Exception $e) {}
 

@@ -111,6 +111,15 @@ const Catalogo = {
             <span class="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md text-white font-mono text-[10px] font-bold tracking-wider">
               ${prod.sku}
             </span>
+            ${prod.stock_estado === 'agotado' ? `
+              <span class="px-2.5 py-0.5 rounded-lg bg-rose-600/90 backdrop-blur-md text-white text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                🔴 Agotado
+              </span>
+            ` : (prod.stock_estado === 'bajo_pedido' ? `
+              <span class="px-2.5 py-0.5 rounded-lg bg-amber-600/90 backdrop-blur-md text-white text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                🟡 Bajo Pedido
+              </span>
+            ` : '')}
             ${prod.biodegradable ? `
               <span class="px-2.5 py-0.5 rounded-lg bg-emerald-600/90 backdrop-blur-md text-white text-[10px] font-bold flex items-center gap-1 shadow-sm">
                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clip-rule="evenodd"/></svg>
@@ -349,6 +358,12 @@ const Catalogo = {
           <p class="text-xs text-[#574B46]">${prod.descripcion}</p>
           
           <div class="space-y-2 bg-[#FDFBF7] p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-[#EAE3DA] text-xs">
+            <div class="flex justify-between">
+              <span class="text-[#574B46]">Disponibilidad:</span>
+              <span class="font-bold ${prod.stock_estado === 'agotado' ? 'text-rose-700' : (prod.stock_estado === 'bajo_pedido' ? 'text-amber-700' : 'text-emerald-700')}">
+                ${prod.stock_estado === 'agotado' ? '🔴 Agotado Temporalmente' : (prod.stock_estado === 'bajo_pedido' ? '🟡 Bajo Pedido (B2B)' : '🟢 En Stock (Entrega Inmediata)')}
+              </span>
+            </div>
             <div class="flex justify-between">
               <span class="text-[#574B46]">Categoría:</span>
               <span class="font-semibold text-[#1F1815]">${prod.categoria_nombre}</span>
