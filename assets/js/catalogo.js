@@ -100,16 +100,28 @@ const Catalogo = {
       return;
     }
 
-    grid.innerHTML = this.products.map(prod => `
+    const esc = window.escapeHtml || (s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+    const sanUrl = window.sanitizeUrl || (u => (window.ApiService && typeof window.ApiService.sanitizeUrl === 'function') ? window.ApiService.sanitizeUrl(u) : String(u || 'assets/images/productos/default.png'));
+
+    grid.innerHTML = this.products.map(prod => {
+      const safeSku = esc(prod.sku || '');
+      const safeNombre = esc(prod.nombre || '');
+      const safeDesc = esc(prod.descripcion || '');
+      const safeCat = esc(prod.categoria_nombre || 'Descartables');
+      const safeMat = esc((prod.material || '').split('/')[0]);
+      const safePres = esc(prod.presentacion || '-');
+      const safeImg = sanUrl(prod.imagen_url || 'assets/images/productos/default.png');
+
+      return `
       <div class="product-card bg-white rounded-2xl border border-[#EAE3DA] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group">
         
         <!-- Contenedor Imagen & Badges -->
         <div class="relative h-48 sm:h-52 bg-[#F4EFEA] overflow-hidden">
-          <img src="${prod.imagen_url}" alt="${prod.nombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <img src="${safeImg}" alt="${safeNombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='assets/images/productos/default.png'">
           
           <div class="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
             <span class="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md text-white font-mono text-[10px] font-bold tracking-wider">
-              ${prod.sku}
+              ${safeSku}
             </span>
             ${prod.stock_estado === 'agotado' ? `
               <span class="px-2.5 py-0.5 rounded-lg bg-rose-600/90 backdrop-blur-md text-white text-[10px] font-bold flex items-center gap-1 shadow-sm">
@@ -130,10 +142,10 @@ const Catalogo = {
 
           <!-- Botones de Acción Rápida (Ficha PDF + QuickView) -->
           <div class="absolute bottom-3 right-3 flex items-center gap-1.5">
-            <button type="button" onclick="Catalogo.descargarFichaPDF('${prod.sku}')" class="p-2 rounded-xl bg-white/90 backdrop-blur text-[#C85A32] hover:bg-white shadow-md transition-colors cursor-pointer tap-target" title="Descargar Ficha Técnica PDF">
+            <button type="button" onclick="Catalogo.descargarFichaPDF('${safeSku}')" class="p-2 rounded-xl bg-white/90 backdrop-blur text-[#C85A32] hover:bg-white shadow-md transition-colors cursor-pointer tap-target" title="Descargar Ficha Técnica PDF">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </button>
-            <button type="button" onclick="Catalogo.openQuickView('${prod.sku}')" class="p-2 rounded-xl bg-white/90 backdrop-blur text-[#1F1815] hover:bg-white shadow-md transition-colors cursor-pointer tap-target" title="Ver especificaciones técnicas">
+            <button type="button" onclick="Catalogo.openQuickView('${safeSku}')" class="p-2 rounded-xl bg-white/90 backdrop-blur text-[#1F1815] hover:bg-white shadow-md transition-colors cursor-pointer tap-target" title="Ver especificaciones técnicas">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -146,23 +158,23 @@ const Catalogo = {
         <div class="p-5 flex-1 flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between text-[11px] text-[#574B46] mb-1">
-              <span class="font-semibold text-[#C85A32]">${prod.categoria_nombre || 'Descartables'}</span>
-              <span class="truncate max-w-[120px] bg-[#F4EFEA] px-2 py-0.5 rounded text-[10px]">${prod.material.split('/')[0]}</span>
+              <span class="font-semibold text-[#C85A32]">${safeCat}</span>
+              <span class="truncate max-w-[120px] bg-[#F4EFEA] px-2 py-0.5 rounded text-[10px]">${safeMat}</span>
             </div>
             
-            <h3 class="font-bold text-sm text-[#1F1815] mb-1.5 leading-snug line-clamp-2" title="${prod.nombre}">
-              ${prod.nombre}
+            <h3 class="font-bold text-sm text-[#1F1815] mb-1.5 leading-snug line-clamp-2" title="${safeNombre}">
+              ${safeNombre}
             </h3>
             
             <p class="text-xs text-[#574B46] line-clamp-2 mb-3">
-              ${prod.descripcion}
+              ${safeDesc}
             </p>
           </div>
 
           <div>
             <div class="pt-3 border-t border-[#EAE3DA] flex items-center justify-between mb-3 text-xs">
               <span class="text-[#574B46]">Presentación:</span>
-              <span class="font-bold text-[#1F1815] bg-[#FDFBF7] px-2 py-0.5 rounded border border-[#EAE3DA]">${prod.presentacion}</span>
+              <span class="font-bold text-[#1F1815] bg-[#FDFBF7] px-2 py-0.5 rounded border border-[#EAE3DA]">${safePres}</span>
             </div>
 
             <!-- Selector de Cantidad y Botón Cotizar -->
@@ -173,7 +185,7 @@ const Catalogo = {
                 <button type="button" onclick="Catalogo.stepQty(this, 1)" class="w-7 h-9 text-xs font-bold text-[#574B46] hover:bg-stone-200 transition-colors cursor-pointer">+</button>
               </div>
 
-              <button type="button" data-sku="${prod.sku}" class="btn-add-quote flex-1 py-2.5 px-3 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm hover:shadow transition-all cursor-pointer tap-target">
+              <button type="button" data-sku="${safeSku}" class="btn-add-quote flex-1 py-2.5 px-3 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm hover:shadow transition-all cursor-pointer tap-target">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -182,7 +194,7 @@ const Catalogo = {
             </div>
 
             <!-- Botón Comparador Técnico -->
-            <button type="button" data-compare-sku="${prod.sku}" onclick="Comparador.toggle('${prod.sku}')" class="w-full py-2 px-3 rounded-xl border border-[#EAE3DA] bg-white text-[#574B46] hover:bg-[#F4EFEA] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer tap-target">
+            <button type="button" data-compare-sku="${safeSku}" onclick="Comparador.toggle('${safeSku}')" class="w-full py-2 px-3 rounded-xl border border-[#EAE3DA] bg-white text-[#574B46] hover:bg-[#F4EFEA] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer tap-target">
               <svg class="w-3.5 h-3.5 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               <span>Comparar</span>
             </button>
@@ -191,7 +203,8 @@ const Catalogo = {
         </div>
 
       </div>
-    `).join('');
+      `;
+    }).join('');
 
     if (window.Comparador) {
       window.Comparador.syncCardButtons();
@@ -340,22 +353,32 @@ const Catalogo = {
     const container = document.getElementById('quickViewContent');
     if (!modal || !container) return;
 
+    const esc = window.escapeHtml || (s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+    const sanUrl = window.sanitizeUrl || (u => (window.ApiService && typeof window.ApiService.sanitizeUrl === 'function') ? window.ApiService.sanitizeUrl(u) : String(u || 'assets/images/productos/default.png'));
+
+    const safeSku = esc(prod.sku || '');
+    const safeNombre = esc(prod.nombre || '');
+    const safeDesc = esc(prod.descripcion || '');
+    const safeCat = esc(prod.categoria_nombre || 'Descartables');
+    const safeMat = esc(prod.material || '-');
+    const safePres = esc(prod.presentacion || '-');
+    const safeImg = sanUrl(prod.imagen_url || 'assets/images/productos/default.png');
     const specs = prod.especificaciones || {};
 
     container.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-center">
         <div class="rounded-2xl overflow-hidden bg-[#F4EFEA] aspect-video sm:aspect-square max-h-64 md:max-h-none">
-          <img src="${prod.imagen_url}" alt="${prod.nombre}" class="w-full h-full object-cover">
+          <img src="${safeImg}" alt="${safeNombre}" class="w-full h-full object-cover" onerror="this.src='assets/images/productos/default.png'">
         </div>
         <div class="space-y-2">
           <div class="flex items-center gap-2">
             <span class="inline-block px-2.5 py-1 rounded-lg bg-[#C85A32]/10 text-[#C85A32] font-mono text-[11px] sm:text-xs font-bold">
-              ${prod.sku}
+              ${safeSku}
             </span>
             ${prod.biodegradable ? '<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">100% Bio</span>' : ''}
           </div>
-          <h3 class="font-bold text-lg sm:text-xl text-[#1F1815] leading-tight">${prod.nombre}</h3>
-          <p class="text-xs text-[#574B46]">${prod.descripcion}</p>
+          <h3 class="font-bold text-lg sm:text-xl text-[#1F1815] leading-tight">${safeNombre}</h3>
+          <p class="text-xs text-[#574B46]">${safeDesc}</p>
           
           <div class="space-y-2 bg-[#FDFBF7] p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-[#EAE3DA] text-xs">
             <div class="flex justify-between">
@@ -366,15 +389,15 @@ const Catalogo = {
             </div>
             <div class="flex justify-between">
               <span class="text-[#574B46]">Categoría:</span>
-              <span class="font-semibold text-[#1F1815]">${prod.categoria_nombre}</span>
+              <span class="font-semibold text-[#1F1815]">${safeCat}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-[#574B46]">Presentación:</span>
-              <span class="font-semibold text-[#1F1815]">${prod.presentacion}</span>
+              <span class="font-semibold text-[#1F1815]">${safePres}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-[#574B46]">Material:</span>
-              <span class="font-semibold text-[#1F1815]">${prod.material}</span>
+              <span class="font-semibold text-[#1F1815]">${safeMat}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-[#574B46]">Impacto Ecológico:</span>
@@ -392,19 +415,19 @@ const Catalogo = {
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-xs">
           ${Object.entries(specs).map(([k, v]) => `
             <div class="p-2.5 sm:p-3 bg-[#F4EFEA] rounded-xl">
-              <p class="text-[9px] sm:text-[10px] text-[#574B46] uppercase font-semibold">${k.replace(/_/g, ' ')}</p>
-              <p class="font-bold text-[#1F1815] text-[11px] sm:text-xs mt-0.5 break-words">${v}</p>
+              <p class="text-[9px] sm:text-[10px] text-[#574B46] uppercase font-semibold">${esc(String(k).replace(/_/g, ' '))}</p>
+              <p class="font-bold text-[#1F1815] text-[11px] sm:text-xs mt-0.5 break-words">${esc(v)}</p>
             </div>
           `).join('')}
         </div>
       </div>
 
       <div class="pt-2 flex flex-col sm:flex-row gap-2 sm:gap-3">
-        <button onclick="Carrito.addItemBySku('${prod.sku}', 1); Catalogo.closeQuickView();" class="flex-1 py-3 px-4 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2 tap-target cursor-pointer">
+        <button onclick="Carrito.addItemBySku('${safeSku}', 1); Catalogo.closeQuickView();" class="flex-1 py-3 px-4 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2 tap-target cursor-pointer">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
           <span>Agregar a Cotización</span>
         </button>
-        <button onclick="Catalogo.descargarFichaPDF('${prod.sku}')" class="py-3 px-4 bg-warm-sand hover:bg-stone-200 text-espresso rounded-xl text-xs font-bold border border-warm-border flex items-center justify-center gap-2 tap-target cursor-pointer" title="Descargar Ficha Técnica en PDF">
+        <button onclick="Catalogo.descargarFichaPDF('${safeSku}')" class="py-3 px-4 bg-warm-sand hover:bg-stone-200 text-espresso rounded-xl text-xs font-bold border border-warm-border flex items-center justify-center gap-2 tap-target cursor-pointer" title="Descargar Ficha Técnica en PDF">
           <svg class="w-4 h-4 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           <span>Ficha Técnica PDF</span>
         </button>
@@ -432,6 +455,17 @@ const Catalogo = {
       return;
     }
 
+    const esc = window.escapeHtml || (s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+    const sanUrl = window.sanitizeUrl || (u => (window.ApiService && typeof window.ApiService.sanitizeUrl === 'function') ? window.ApiService.sanitizeUrl(u) : String(u || 'assets/images/productos/default.png'));
+
+    const safeSku = esc(prod.sku || '');
+    const safeNombre = esc(prod.nombre || '');
+    const safeDesc = esc(prod.descripcion || 'Empaque descartable de alto rendimiento para el sector gastronómico, retail y delivery corporativo.');
+    const safeCat = esc(prod.categoria_nombre || 'Envases Descartables');
+    const safePres = esc(prod.presentacion || 'Caja mayorista');
+    const safeMat = esc(prod.material || 'Polímero Grado Alimentario');
+    const safeImg = sanUrl(prod.imagen_url || 'assets/images/productos/default.png');
+
     const specs = prod.especificaciones || {
       "temperatura_operativa": "-10°C a +100°C",
       "apto_microondas": (prod.material || '').includes('Polipropileno') || (prod.material || '').includes('Caña') ? 'Sí (Hasta 100°C)' : 'No (Solo alimentos tibios o fríos)',
@@ -446,7 +480,7 @@ const Catalogo = {
       <html lang="es">
       <head>
         <meta charset="UTF-8">
-        <title>Ficha Técnica - ${prod.sku} - DESCARTABLES PERUANOS S.A.C.</title>
+        <title>Ficha Técnica - ${safeSku} - DESCARTABLES PERUANOS S.A.C.</title>
         <style>
           @page { size: A4 portrait; margin: 15mm; }
           body { font-family: 'Calibri', Arial, sans-serif; color: #1F1815; margin: 0; padding: 25px; font-size: 13px; line-height: 1.4; }
@@ -492,13 +526,13 @@ const Catalogo = {
         </div>
 
         <div class="prod-hero">
-          <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" class="prod-img" onerror="this.src='https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=300&q=80'">
+          <img src="${safeImg}" class="prod-img" onerror="this.src='assets/images/productos/default.png'">
           <div class="prod-info">
-            <span class="prod-sku">SKU: ${prod.sku}</span>
-            <h2 class="prod-name">${prod.nombre}</h2>
-            <p class="prod-desc">${prod.descripcion || 'Empaque descartable de alto rendimiento para el sector gastronómico, retail y delivery corporativo.'}</p>
-            <p style="margin:4px 0;"><strong>Categoría:</strong> ${prod.categoria_nombre || 'Envases Descartables'}</p>
-            <p style="margin:4px 0;"><strong>Presentación / Empaque:</strong> ${prod.presentacion || 'Caja mayorista'}</p>
+            <span class="prod-sku">SKU: ${safeSku}</span>
+            <h2 class="prod-name">${safeNombre}</h2>
+            <p class="prod-desc">${safeDesc}</p>
+            <p style="margin:4px 0;"><strong>Categoría:</strong> ${safeCat}</p>
+            <p style="margin:4px 0;"><strong>Presentación / Empaque:</strong> ${safePres}</p>
             <p style="margin:4px 0;"><strong>Clasificación Ambiental:</strong> ${prod.biodegradable ? '<span style="color:#059669; font-weight:bold;">🌿 100% Eco-Biodegradable / Compostable</span>' : '100% Reciclable Mecánicamente'}</p>
           </div>
         </div>
@@ -507,12 +541,12 @@ const Catalogo = {
         <table class="data-table">
           <tr>
             <th>Material de Fabricación</th>
-            <td>${prod.material || 'Polímero Grado Alimentario'}</td>
+            <td>${safeMat}</td>
           </tr>
           ${Object.entries(specs).map(([k, v]) => `
             <tr>
-              <th>${k.replace(/_/g, ' ').toUpperCase()}</th>
-              <td>${v}</td>
+              <th>${esc(String(k).replace(/_/g, ' ').toUpperCase())}</th>
+              <td>${esc(v)}</td>
             </tr>
           `).join('')}
         </table>

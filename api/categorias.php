@@ -5,18 +5,14 @@
  */
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/validator.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = getDbConnection();
 
-// Asegurar que las columnas icono y color existan
-try {
-    $colCheck = $pdo->query("SHOW COLUMNS FROM categorias LIKE 'color'")->fetch();
-    if (!$colCheck) {
-        $pdo->exec("ALTER TABLE categorias ADD COLUMN icono VARCHAR(50) DEFAULT 'box'");
-        $pdo->exec("ALTER TABLE categorias ADD COLUMN color VARCHAR(100) DEFAULT 'from-amber-600/20 to-orange-600/20'");
-    }
-} catch (Exception $ignored) {}
+if (!$pdo) {
+    ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
+}
 
 // 1. LISTAR CATEGORÍAS (GET)
 if ($method === 'GET') {
@@ -32,14 +28,11 @@ if ($method === 'GET') {
             $stmt->execute([$id]);
             $cat = $stmt->fetch();
             if (!$cat) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'error' => 'Categoría no encontrada.'], JSON_UNESCAPED_UNICODE);
-                exit();
+                ApiResponse::error('Categoría no encontrada.', 'CATEGORY_NOT_FOUND', 404);
             }
             $cat['id'] = (int)$cat['id'];
             $cat['total_productos'] = (int)($cat['total_productos'] ?? 0);
-            echo json_encode(['success' => true, 'data' => $cat], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::success($cat);
         }
 
         $stmt = $pdo->query("SELECT c.*, COUNT(p.id) as total_productos 
@@ -56,16 +49,11 @@ if ($method === 'GET') {
             $c['color'] = !empty($c['color']) ? $c['color'] : 'from-amber-600/20 to-orange-600/20';
         }
 
-        echo json_encode([
-            'success' => true,
-            'count'   => count($categorias),
-            'data'    => $categorias
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Error al listar categorías: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::success($categorias, [
+            'count' => count($categorias)
+        ]);
+    } catch (Throwable $e) {
+        ApiResponse::error('Error al listar categorías.', 'SERVER_ERROR', 500, $e);
     }
 }
 
@@ -74,34 +62,35 @@ if (class_exists('Vault')) {
     Vault::requireAdmin();
 }
 
-$rawInput = file_get_contents('php://input');
-$data = json_decode($rawInput, true);
-if (!$data || !is_array($data)) {
-    $data = $_POST;
-}
+$data = Validator::parseJsonInput(1048576);
 
 // 2. CREAR CATEGORÍA (POST)
 if ($method === 'POST') {
     try {
-        $nombre = trim($data['nombre'] ?? '');
-        $descripcion = trim($data['descripcion'] ?? '');
-        $icono = trim($data['icono'] ?? 'box');
-        $color = trim($data['color'] ?? 'from-amber-600/20 to-orange-600/20');
-        $slug = trim($data['slug'] ?? '');
-
-        if (empty($nombre)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'El nombre de la categoría es obligatorio.'], JSON_UNESCAPED_UNICODE);
-            exit();
+        $nombre = Validator::validateText($data['nombre'] ?? '', 2, 100);
+        if (!$nombre) {
+            ApiResponse::error('El nombre de la categoría debe tener entre 2 y 100 caracteres.', 'VALIDATION_ERROR', 400);
         }
 
-        // Generar slug si no se proporcionó
-        if (empty($slug)) {
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $nombre), '-'));
+        $slugRaw = trim((string)($data['slug'] ?? ''));
+        if (!empty($slugRaw)) {
+            $slug = Validator::validateSlug($slugRaw);
+            if (!$slug) {
+                ApiResponse::error('El slug debe contener solo letras minúsculas, números y guiones (2-100 caracteres).', 'VALIDATION_ERROR', 400);
+            }
         } else {
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $slug), '-'));
+            $slug = Validator::validateSlug(strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $nombre), '-')));
+            if (!$slug) $slug = 'cat-' . time();
         }
-        if (empty($slug)) $slug = 'cat-' . time();
+
+        $colorRaw = trim((string)($data['color'] ?? 'from-amber-600/20 to-orange-600/20'));
+        $color = Validator::validateSafeColor($colorRaw);
+        if (!$color) {
+            ApiResponse::error('La clase de color contiene caracteres no permitidos.', 'VALIDATION_ERROR', 400);
+        }
+
+        $descripcion = Validator::validateText($data['descripcion'] ?? '', 0, 1000, true) ?: "Línea especializada: {$nombre}";
+        $icono = Validator::validateText($data['icono'] ?? 'box', 1, 50) ?: 'box';
 
         // Verificar unicidad de slug
         $checkSlug = $pdo->prepare("SELECT id FROM categorias WHERE slug = ? LIMIT 1");
@@ -114,18 +103,16 @@ if ($method === 'POST') {
         $checkName = $pdo->prepare("SELECT id FROM categorias WHERE LOWER(nombre) = LOWER(?) LIMIT 1");
         $checkName->execute([$nombre]);
         if ($checkName->fetch()) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => "Ya existe una categoría con el nombre '$nombre'."], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error("Ya existe una categoría con el nombre '$nombre'.", 'CATEGORY_EXISTS', 400);
         }
 
         $stmt = $pdo->prepare("INSERT INTO categorias (nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([
             $nombre,
             $slug,
-            !empty($descripcion) ? $descripcion : "Línea especializada: {$nombre}",
-            !empty($icono) ? $icono : 'box',
-            !empty($color) ? $color : 'from-amber-600/20 to-orange-600/20'
+            $descripcion,
+            $icono,
+            $color
         ]);
 
         $newId = (int)$pdo->lastInsertId();
@@ -136,16 +123,9 @@ if ($method === 'POST') {
         $created['id'] = (int)$created['id'];
         $created['total_productos'] = 0;
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'Categoría creada exitosamente.',
-            'data'    => $created
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Error al crear categoría: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::success($created, ['message' => 'Categoría creada exitosamente.']);
+    } catch (Throwable $e) {
+        ApiResponse::error('Error al crear categoría.', 'SERVER_ERROR', 500, $e);
     }
 }
 
@@ -154,30 +134,33 @@ if ($method === 'PUT') {
     try {
         $id = (int)($data['id'] ?? ($_GET['id'] ?? 0));
         if ($id <= 0) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'ID de categoría no válido.'], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error('ID de categoría no válido.', 'VALIDATION_ERROR', 400);
         }
 
-        $nombre = trim($data['nombre'] ?? '');
-        $descripcion = trim($data['descripcion'] ?? '');
-        $icono = trim($data['icono'] ?? 'box');
-        $color = trim($data['color'] ?? 'from-amber-600/20 to-orange-600/20');
-        $slug = trim($data['slug'] ?? '');
-
-        if (empty($nombre)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'El nombre de la categoría es obligatorio.'], JSON_UNESCAPED_UNICODE);
-            exit();
+        $nombre = Validator::validateText($data['nombre'] ?? '', 2, 100);
+        if (!$nombre) {
+            ApiResponse::error('El nombre de la categoría debe tener entre 2 y 100 caracteres.', 'VALIDATION_ERROR', 400);
         }
 
-        // Generar o limpiar slug
-        if (empty($slug)) {
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $nombre), '-'));
+        $slugRaw = trim((string)($data['slug'] ?? ''));
+        if (!empty($slugRaw)) {
+            $slug = Validator::validateSlug($slugRaw);
+            if (!$slug) {
+                ApiResponse::error('El slug debe contener solo letras minúsculas, números y guiones (2-100 caracteres).', 'VALIDATION_ERROR', 400);
+            }
         } else {
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $slug), '-'));
+            $slug = Validator::validateSlug(strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $nombre), '-')));
+            if (!$slug) $slug = 'cat-' . $id;
         }
-        if (empty($slug)) $slug = 'cat-' . $id;
+
+        $colorRaw = trim((string)($data['color'] ?? 'from-amber-600/20 to-orange-600/20'));
+        $color = Validator::validateSafeColor($colorRaw);
+        if (!$color) {
+            ApiResponse::error('La clase de color contiene caracteres no permitidos.', 'VALIDATION_ERROR', 400);
+        }
+
+        $descripcion = Validator::validateText($data['descripcion'] ?? '', 0, 1000, true) ?: "Línea especializada: {$nombre}";
+        $icono = Validator::validateText($data['icono'] ?? 'box', 1, 50) ?: 'box';
 
         // Verificar si el slug ya pertenece a otra categoría
         $checkSlug = $pdo->prepare("SELECT id FROM categorias WHERE slug = ? AND id != ? LIMIT 1");
@@ -190,9 +173,7 @@ if ($method === 'PUT') {
         $checkName = $pdo->prepare("SELECT id FROM categorias WHERE LOWER(nombre) = LOWER(?) AND id != ? LIMIT 1");
         $checkName->execute([$nombre, $id]);
         if ($checkName->fetch()) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => "Ya existe otra categoría con el nombre '$nombre'."], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error("Ya existe otra categoría con el nombre '$nombre'.", 'CATEGORY_EXISTS', 400);
         }
 
         $stmt = $pdo->prepare("UPDATE categorias SET nombre = ?, slug = ?, descripcion = ?, icono = ?, color = ? WHERE id = ?");
@@ -215,16 +196,9 @@ if ($method === 'PUT') {
         $updated['id'] = (int)$updated['id'];
         $updated['total_productos'] = (int)($updated['total_productos'] ?? 0);
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'Categoría actualizada correctamente.',
-            'data'    => $updated
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Error al actualizar categoría: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::success($updated, ['message' => 'Categoría actualizada correctamente.']);
+    } catch (Throwable $e) {
+        ApiResponse::error('Error al actualizar categoría.', 'SERVER_ERROR', 500, $e);
     }
 }
 
@@ -233,9 +207,7 @@ if ($method === 'DELETE') {
     try {
         $id = (int)($data['id'] ?? ($_GET['id'] ?? 0));
         if ($id <= 0) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'ID de categoría no válido.'], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error('ID de categoría no válido.', 'VALIDATION_ERROR', 400);
         }
 
         // Verificar si tiene productos asociados
@@ -244,29 +216,17 @@ if ($method === 'DELETE') {
         $prodCount = (int)($checkProds->fetch()['c'] ?? 0);
 
         if ($prodCount > 0) {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false, 
-                'error' => "No se puede eliminar la categoría porque contiene {$prodCount} producto(s) asignado(s). Reasigna o elimina los productos antes de borrar la categoría."
-            ], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error("No se puede eliminar la categoría porque contiene {$prodCount} producto(s) asignado(s). Reasigna o elimina los productos antes de borrar la categoría.", 'CATEGORY_HAS_PRODUCTS', 400);
         }
 
         $stmt = $pdo->prepare("DELETE FROM categorias WHERE id = ?");
         $stmt->execute([$id]);
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'Categoría eliminada exitosamente.'
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Error al eliminar categoría: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::success(null, ['message' => 'Categoría eliminada exitosamente.']);
+    } catch (Throwable $e) {
+        ApiResponse::error('Error al eliminar categoría.', 'SERVER_ERROR', 500, $e);
     }
 }
 
-http_response_code(405);
-echo json_encode(['success' => false, 'error' => 'Método no permitido.'], JSON_UNESCAPED_UNICODE);
+ApiResponse::error('Método no permitido.', 'METHOD_NOT_ALLOWED', 405);
 

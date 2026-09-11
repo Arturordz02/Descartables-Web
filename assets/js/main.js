@@ -25,7 +25,9 @@ window.showToast = function(message, type = 'info') {
   };
 
   toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-2xl text-xs font-semibold flex items-center gap-2.5 border backdrop-blur-md transition-all duration-300 transform translate-y-4 opacity-0 ${bgStyles[type] || bgStyles.info}`;
-  toast.innerHTML = `<span>${message}</span>`;
+  const span = document.createElement('span');
+  span.textContent = String(message ?? '');
+  toast.appendChild(span);
 
   container.appendChild(toast);
 
@@ -63,8 +65,7 @@ function injectMobileBottomBar() {
 
   let user = null;
   try {
-    const raw = localStorage.getItem('dp_usuario_activo');
-    user = raw ? JSON.parse(raw) : null;
+    user = typeof Auth !== 'undefined' && Auth.getCurrentUser ? Auth.getCurrentUser() : (typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_usuario_activo', null) : null);
   } catch(e) {}
   const isAdmin = user && user.rol === 'admin';
 
@@ -230,39 +231,49 @@ const IndexFeatured = {
 
     // Mostrar hasta 8 productos destacados
     const items = this.products.slice(0, 8);
+    const esc = window.escapeHtml || (s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+    const sanUrl = window.sanitizeUrl || (u => (window.ApiService && typeof window.ApiService.sanitizeUrl === 'function') ? window.ApiService.sanitizeUrl(u) : String(u || 'assets/images/productos/default.png'));
+
     grid.innerHTML = items.map(prod => {
       const isBio = (prod.biodegradable == 1 || prod.biodegradable === true || prod.biodegradable === '1' || prod.biodegradable === 'true');
       const hasPrice = prod.precio !== null && prod.precio !== undefined && prod.precio !== '';
       const priceHtml = hasPrice ? `S/ ${parseFloat(prod.precio).toFixed(2)}` : '';
 
+      const safeSku = esc(prod.sku || '');
+      const safeNombre = esc(prod.nombre || '');
+      const safeDesc = esc(prod.descripcion || '');
+      const safeCat = esc(prod.categoria_nombre || 'Descartables');
+      const safePres = esc(prod.presentacion || '');
+      const safeImg = sanUrl(prod.imagen_url || 'assets/images/productos/default.png');
+
       return `
         <div class="product-card bg-white rounded-2xl border border-warm-border p-4 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
           <div>
             <div class="relative h-44 rounded-xl overflow-hidden bg-warm-sand mb-3">
-              <img src="${prod.imagen_url || 'assets/images/productos/default.png'}" alt="${prod.nombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='assets/images/productos/default.png'">
+              <img src="${safeImg}" alt="${safeNombre}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='assets/images/productos/default.png'">
               <div class="absolute top-2 left-2 flex flex-col gap-1">
-                <span class="px-2 py-0.5 rounded bg-espresso text-white font-mono text-[10px] font-bold">${prod.sku}</span>
+                <span class="px-2 py-0.5 rounded bg-espresso text-white font-mono text-[10px] font-bold">${safeSku}</span>
                 ${prod.stock_estado === 'agotado' ? '<span class="px-2 py-0.5 rounded bg-rose-700 text-white text-[9px] font-bold shadow-xs">🔴 Agotado</span>' : (prod.stock_estado === 'bajo_pedido' ? '<span class="px-2 py-0.5 rounded bg-amber-700 text-white text-[9px] font-bold shadow-xs">🟡 Bajo Pedido</span>' : '')}
                 ${isBio ? '<span class="px-2 py-0.5 rounded bg-emerald-700 text-white text-[9px] font-bold shadow-xs">🌱 100% Bio</span>' : ''}
               </div>
             </div>
             <div class="flex items-center justify-between gap-1">
-              <span class="text-[10px] font-semibold text-terracota uppercase truncate">${prod.categoria_nombre || 'Descartables'}</span>
+              <span class="text-[10px] font-semibold text-terracota uppercase truncate">${safeCat}</span>
               ${priceHtml ? `<span class="font-mono font-bold text-espresso text-xs flex-shrink-0">${priceHtml}</span>` : ''}
             </div>
-            <h3 class="font-bold text-sm text-espresso mt-0.5 leading-snug line-clamp-2" title="${prod.nombre}">${prod.nombre}</h3>
-            <p class="text-xs text-espresso-muted line-clamp-2 my-1">${prod.descripcion || ''}</p>
-            <p class="text-xs font-semibold text-stone-700 bg-warm-sand px-2 py-1 rounded inline-block my-1">${prod.presentacion || ''}</p>
+            <h3 class="font-bold text-sm text-espresso mt-0.5 leading-snug line-clamp-2" title="${safeNombre}">${safeNombre}</h3>
+            <p class="text-xs text-espresso-muted line-clamp-2 my-1">${safeDesc}</p>
+            ${safePres ? `<p class="text-xs font-semibold text-stone-700 bg-warm-sand px-2 py-1 rounded inline-block my-1">${safePres}</p>` : ''}
           </div>
           <div class="space-y-2 mt-2 pt-3 border-t border-warm-border">
             <div class="flex items-center gap-2">
               <input type="number" min="1" value="1" class="input-qty-selector w-12 py-1.5 text-center text-xs border border-warm-border rounded-lg bg-warm-cream">
-              <button type="button" data-sku="${prod.sku}" class="btn-add-quote flex-1 py-2 bg-terracota hover:bg-terracota-hover text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer tap-target">
+              <button type="button" data-sku="${safeSku}" class="btn-add-quote flex-1 py-2 bg-terracota hover:bg-terracota-hover text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer tap-target">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span>Cotizar</span>
               </button>
             </div>
-            <button type="button" data-compare-sku="${prod.sku}" onclick="Comparador.toggle('${prod.sku}')" class="w-full py-1.5 px-2 rounded-lg border border-[#EAE3DA] bg-white text-[#574B46] hover:bg-[#F4EFEA] text-[11px] font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer tap-target">
+            <button type="button" data-compare-sku="${safeSku}" onclick="Comparador.toggle('${safeSku}')" class="w-full py-1.5 px-2 rounded-lg border border-[#EAE3DA] bg-white text-[#574B46] hover:bg-[#F4EFEA] text-[11px] font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer tap-target">
               <svg class="w-3 h-3 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               <span>Comparar</span>
             </button>
@@ -422,10 +433,15 @@ const HeaderSearch = {
     }
 
     const itemsToShow = products.slice(0, 5);
+    const sanUrl = window.sanitizeUrl || (u => (window.ApiService && typeof window.ApiService.sanitizeUrl === 'function') ? window.ApiService.sanitizeUrl(u) : String(u || 'assets/images/productos/default.png'));
+
     const highlight = (text) => {
       if (!text) return '';
-      const regex = new RegExp(`(${this.escapeRegExp(query)})`, 'gi');
-      return text.replace(regex, '<mark class="bg-amber-200 text-[#C85A32] font-bold px-0.5 rounded">$1</mark>');
+      const safeText = this.escapeHtml(String(text));
+      const safeQuery = this.escapeRegExp(this.escapeHtml(query));
+      if (!safeQuery) return safeText;
+      const regex = new RegExp(`(${safeQuery})`, 'gi');
+      return safeText.replace(regex, '<mark class="bg-amber-200 text-[#C85A32] font-bold px-0.5 rounded">$1</mark>');
     };
 
     dropdown.innerHTML = `
@@ -434,28 +450,37 @@ const HeaderSearch = {
         <span class="text-[10px] text-[#574B46] font-bold bg-white px-2 py-0.5 rounded-full border border-[#EAE3DA]">${products.length} producto${products.length !== 1 ? 's' : ''}</span>
       </div>
       <div class="max-h-72 overflow-y-auto divide-y divide-[#EAE3DA]/60" id="searchResultList">
-        ${itemsToShow.map((p, idx) => `
-          <div data-index="${idx}" data-sku="${p.sku}" class="search-item group p-2.5 hover:bg-[#FDFBF7] transition-colors flex items-center justify-between gap-3 cursor-pointer">
-            <div class="flex items-center gap-2.5 min-w-0 flex-1" onclick="HeaderSearch.selectItem('${p.sku}')">
-              <img src="${p.imagen_url || 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=100&q=80'}" alt="${p.nombre}" class="w-11 h-11 rounded-lg object-cover bg-white border border-[#EAE3DA] flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=100&q=80'">
+        ${itemsToShow.map((p, idx) => {
+          const safeSku = this.escapeHtml(p.sku || '');
+          const safeNombre = this.escapeHtml(p.nombre || '');
+          const safeCat = this.escapeHtml(p.categoria_nombre || 'Descartables');
+          const safePres = this.escapeHtml(p.presentacion || '');
+          const safeMat = this.escapeHtml(p.material || '');
+          const safeImg = sanUrl(p.imagen_url || 'assets/images/productos/default.png');
+
+          return `
+          <div data-index="${idx}" data-sku="${safeSku}" class="search-item group p-2.5 hover:bg-[#FDFBF7] transition-colors flex items-center justify-between gap-3 cursor-pointer">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1" onclick="HeaderSearch.selectItem('${safeSku}')">
+              <img src="${safeImg}" alt="${safeNombre}" class="w-11 h-11 rounded-lg object-cover bg-white border border-[#EAE3DA] flex-shrink-0" onerror="this.src='assets/images/productos/default.png'">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="px-1.5 py-0.2 rounded bg-[#1F1815] text-white font-mono text-[9px] font-bold">${highlight(p.sku)}</span>
                   ${p.biodegradable ? '<span class="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[9px] font-bold">100% Bio</span>' : ''}
-                  <span class="text-[10px] font-semibold text-[#C85A32]">${p.categoria_nombre || 'Descartables'}</span>
+                  <span class="text-[10px] font-semibold text-[#C85A32]">${safeCat}</span>
                 </div>
-                <h4 class="text-xs font-bold text-[#1F1815] leading-snug truncate mt-0.5" title="${p.nombre}">${highlight(p.nombre)}</h4>
-                <p class="text-[10px] text-[#574B46] truncate">${p.presentacion || ''} • ${p.material || ''}</p>
+                <h4 class="text-xs font-bold text-[#1F1815] leading-snug truncate mt-0.5" title="${safeNombre}">${highlight(p.nombre)}</h4>
+                <p class="text-[10px] text-[#574B46] truncate">${safePres}${safePres && safeMat ? ' • ' : ''}${safeMat}</p>
               </div>
             </div>
             <div class="flex items-center gap-1">
-              <button type="button" onclick="HeaderSearch.quickQuote('${p.sku}', event)" class="p-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#C85A32] hover:bg-[#B84A22] text-white text-[10px] font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer tap-target" title="Agregar a cotización">
+              <button type="button" onclick="HeaderSearch.quickQuote('${safeSku}', event)" class="p-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#C85A32] hover:bg-[#B84A22] text-white text-[10px] font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer tap-target" title="Agregar a cotización">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span class="hidden sm:inline">Cotizar</span>
               </button>
             </div>
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
       <div class="p-2.5 bg-white border-t border-[#EAE3DA] text-center">
         <a href="catalogo.html?q=${encodeURIComponent(query)}" class="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-[#C85A32] hover:text-[#B84A22] transition-colors w-full py-1">
@@ -625,30 +650,32 @@ function hydrateFrontendCompanyContact() {
   const conf = window.COMPANY_CONTACT;
   if (!conf) return;
 
+  const esc = (s) => (typeof window.escapeHtml === 'function' ? window.escapeHtml(s) : String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+
   const cardDir = document.getElementById('contactoCardDireccion');
   if (cardDir && conf.empresa?.direccion) {
-    cardDir.innerHTML = conf.empresa.direccion.replace(/, /g, '<br>');
+    cardDir.innerHTML = esc(conf.empresa.direccion).replace(/, /g, '<br>');
   }
 
   const cardTel = document.getElementById('contactoCardTelefonos');
   if (cardTel) {
     cardTel.innerHTML = `
-      Central: ${conf.telefonos?.central || '(01) 000-0000'}<br>
-      WhatsApp: ${conf.whatsapp?.principal || '+51 900 000 000'}<br>
-      WhatsApp: ${conf.whatsapp?.secundario || '+51 900 000 002'}
+      Central: ${esc(conf.telefonos?.central || '(01) 000-0000')}<br>
+      WhatsApp: ${esc(conf.whatsapp?.principal || '+51 900 000 000')}<br>
+      WhatsApp: ${esc(conf.whatsapp?.secundario || '+51 900 000 002')}
     `.trim();
   }
 
   const cardHorario = document.getElementById('contactoCardHorario');
   if (cardHorario && conf.empresa?.horario) {
-    cardHorario.innerHTML = conf.empresa.horario.replace(/ \| /g, '<br>');
+    cardHorario.innerHTML = esc(conf.empresa.horario).replace(/ \| /g, '<br>');
   }
 
   const cardEmails = document.getElementById('contactoCardEmails');
   if (cardEmails && conf.emails) {
     cardEmails.innerHTML = `
-      ${conf.emails.ventas || 'ventas@descartablesperuanos.pe'}<br>
-      ${conf.emails.cotizaciones || 'cotizaciones@descartablesperuanos.pe'}
+      ${esc(conf.emails.ventas || 'ventas@descartablesperuanos.pe')}<br>
+      ${esc(conf.emails.cotizaciones || 'cotizaciones@descartablesperuanos.pe')}
     `.trim();
   }
 }
@@ -677,10 +704,10 @@ function hydrateFrontendBanners() {
   if (heroBadgeText && b.hero?.badge) heroBadgeText.textContent = b.hero.badge;
 
   const heroTitle = document.getElementById('heroMainTitle');
-  if (heroTitle && b.hero?.titulo) heroTitle.innerHTML = b.hero.titulo;
+  if (heroTitle && b.hero?.titulo) heroTitle.textContent = b.hero.titulo;
 
   const heroSub = document.getElementById('heroSubTitle');
-  if (heroSub && b.hero?.subtitulo) heroSub.innerHTML = b.hero.subtitulo;
+  if (heroSub && b.hero?.subtitulo) heroSub.textContent = b.hero.subtitulo;
 
   const heroBtnPri = document.getElementById('heroBtnPrimary');
   const heroBtnPriTxt = document.getElementById('heroBtnPrimaryText');

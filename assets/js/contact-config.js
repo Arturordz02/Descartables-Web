@@ -85,7 +85,9 @@ if (typeof localStorage !== 'undefined') {
         Object.assign(COMPANY_CONTACT, parsed);
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    try { localStorage.removeItem('dp_empresa_config'); } catch (_) {}
+  }
 }
 
 if (typeof window !== 'undefined') {

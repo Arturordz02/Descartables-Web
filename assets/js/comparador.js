@@ -56,7 +56,7 @@ const Comparador = {
       if (found) return found;
     }
     try {
-      const customProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+      const customProds = typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_productos_custom', []) : (function() { try { return JSON.parse(localStorage.getItem('dp_productos_custom') || '[]'); } catch(_) { return []; } })();
       const found = customProds.find(p => p.sku && p.sku.toUpperCase() === sku);
       if (found) return window.ApiService ? window.ApiService.cleanProduct(found) : found;
     } catch(e) {}
@@ -220,6 +220,28 @@ const Comparador = {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
   },
 
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  sanitizeUrl(url) {
+    if (window.ApiService && typeof window.ApiService.sanitizeUrl === 'function') {
+      return window.ApiService.sanitizeUrl(url);
+    }
+    if (!url || typeof url !== 'string') return 'assets/images/productos/default.png';
+    const trimmed = url.trim();
+    if (/^(?:javascript|data|vbscript):/i.test(trimmed)) {
+      return 'assets/images/productos/default.png';
+    }
+    return trimmed;
+  },
+
   renderBar() {
     const bar = document.getElementById('barComparador');
     const thumbsContainer = document.getElementById('barComparadorThumbs');
@@ -239,11 +261,13 @@ const Comparador = {
     if (thumbsContainer) {
       thumbsContainer.innerHTML = this.items.map(sku => {
         const prod = this.getProduct(sku);
-        const imgUrl = prod ? (prod.imagen_url || 'assets/images/productos/default.png') : '';
+        const imgUrl = prod ? (prod.imagen_url || 'assets/images/productos/default.png') : 'assets/images/productos/default.png';
         const name = prod ? prod.nombre : sku;
+        const safeImg = this.sanitizeUrl(imgUrl);
+        const safeName = this.escapeHtml(name);
         return `
-          <div class="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-[#1F1815] overflow-hidden bg-white shadow-sm flex-shrink-0" title="${name}">
-            <img src="${imgUrl}" alt="${name}" class="w-full h-full object-cover">
+          <div class="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-[#1F1815] overflow-hidden bg-white shadow-sm flex-shrink-0" title="${safeName}">
+            <img src="${safeImg}" alt="${safeName}" class="w-full h-full object-cover" onerror="this.src='assets/images/productos/default.png'">
           </div>
         `;
       }).join('');
@@ -354,32 +378,39 @@ const Comparador = {
           <div class="font-heading font-black text-sm text-[#1F1815] flex items-center">
             Producto / Empaque
           </div>
-          ${prods.map(p => `
+          ${prods.map(p => {
+            const safeSku = this.escapeHtml(p.sku || '');
+            const safeNombre = this.escapeHtml(p.nombre || '');
+            const safeCat = this.escapeHtml(p.categoria_nombre || 'Descartables');
+            const safeImg = this.sanitizeUrl(p.imagen_url || 'assets/images/productos/default.png');
+
+            return `
             <div class="bg-[#FDFBF7] p-3 rounded-2xl border border-[#EAE3DA] flex flex-col justify-between relative group">
-              <button onclick="Comparador.remove('${p.sku}')" class="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 text-stone-400 hover:text-rose-600 hover:bg-white shadow-xs transition-colors cursor-pointer tap-target" title="Quitar de comparador">
+              <button onclick="Comparador.remove('${safeSku}')" class="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 text-stone-400 hover:text-rose-600 hover:bg-white shadow-xs transition-colors cursor-pointer tap-target" title="Quitar de comparador">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
 
               <div class="flex items-center gap-3">
-                <img src="${p.imagen_url || 'assets/images/productos/default.png'}" alt="${p.nombre}" class="w-14 h-14 rounded-xl object-cover border border-[#EAE3DA] bg-white flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&w=150&q=80'">
+                <img src="${safeImg}" alt="${safeNombre}" class="w-14 h-14 rounded-xl object-cover border border-[#EAE3DA] bg-white flex-shrink-0" onerror="this.src='assets/images/productos/default.png'">
                 <div class="min-w-0 pr-4">
-                  <span class="font-mono text-[10px] font-bold text-[#C85A32]">${p.sku}</span>
-                  <h4 class="font-bold text-xs text-[#1F1815] leading-snug truncate" title="${p.nombre}">${p.nombre}</h4>
-                  <span class="text-[10px] text-[#574B46] block truncate">${p.categoria_nombre || 'Descartables'}</span>
+                  <span class="font-mono text-[10px] font-bold text-[#C85A32]">${safeSku}</span>
+                  <h4 class="font-bold text-xs text-[#1F1815] leading-snug truncate" title="${safeNombre}">${safeNombre}</h4>
+                  <span class="text-[10px] text-[#574B46] block truncate">${safeCat}</span>
                 </div>
               </div>
 
               <div class="mt-3 pt-2 border-t border-[#EAE3DA] flex items-center gap-1.5">
-                <button type="button" onclick="Carrito.addItem((Catalogo.products && Catalogo.products.find(x=>x.sku==='${p.sku}')) || PRODUCTOS.find(x=>x.sku==='${p.sku}'), 1)" class="flex-1 py-1.5 px-2 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-lg text-[11px] font-bold shadow-xs flex items-center justify-center gap-1 transition-all cursor-pointer tap-target">
+                <button type="button" onclick="Carrito.addItemBySku('${safeSku}', 1)" class="flex-1 py-1.5 px-2 bg-[#C85A32] hover:bg-[#B84A22] text-white rounded-lg text-[11px] font-bold shadow-xs flex items-center justify-center gap-1 transition-all cursor-pointer tap-target">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                   <span>Cotizar</span>
                 </button>
-                <button type="button" onclick="Catalogo.descargarFichaPDF('${p.sku}')" class="p-1.5 bg-white hover:bg-stone-100 text-[#1F1815] rounded-lg border border-[#EAE3DA] transition-colors cursor-pointer tap-target" title="Descargar Ficha Técnica PDF">
+                <button type="button" onclick="Catalogo.descargarFichaPDF('${safeSku}')" class="p-1.5 bg-white hover:bg-stone-100 text-[#1F1815] rounded-lg border border-[#EAE3DA] transition-colors cursor-pointer tap-target" title="Descargar Ficha Técnica PDF">
                   <svg class="w-4 h-4 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </button>
               </div>
             </div>
-          `).join('')}
+            `;
+          }).join('')}
           ${prods.length < 3 ? `
             <div class="border-2 border-dashed border-[#EAE3DA] rounded-2xl flex flex-col items-center justify-center p-4 text-center text-stone-400">
               <svg class="w-8 h-8 text-stone-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
@@ -397,7 +428,7 @@ const Comparador = {
             <div class="font-bold text-[#1F1815]">Material de Fabricación</div>
             ${prods.map(p => `
               <div class="font-semibold text-[#1F1815]">
-                <span class="px-2.5 py-1 rounded-lg bg-[#F4EFEA] inline-block text-[11px]">${p.material || 'Polímero'}</span>
+                <span class="px-2.5 py-1 rounded-lg bg-[#F4EFEA] inline-block text-[11px]">${this.escapeHtml(p.material || 'Polímero')}</span>
               </div>
             `).join('')}
           </div>
@@ -409,7 +440,7 @@ const Comparador = {
               const tech = this.getTechnicalAnalysis(p);
               return `
                 <div class="font-mono font-bold text-[#1F1815] text-[11px]">
-                  ${tech.temp}
+                  ${this.escapeHtml(tech.temp)}
                 </div>
               `;
             }).join('')}
@@ -438,7 +469,7 @@ const Comparador = {
               return `
                 <div class="text-[11px] text-[#1F1815] font-medium flex items-center gap-1">
                   <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                  <span>${tech.freezerDetalle}</span>
+                  <span>${this.escapeHtml(tech.freezerDetalle)}</span>
                 </div>
               `;
             }).join('')}
@@ -451,7 +482,7 @@ const Comparador = {
               const tech = this.getTechnicalAnalysis(p);
               return `
                 <div class="text-[11px] text-[#1F1815]">
-                  ${tech.cierre}
+                  ${this.escapeHtml(tech.cierre)}
                 </div>
               `;
             }).join('')}
@@ -464,7 +495,7 @@ const Comparador = {
               const tech = this.getTechnicalAnalysis(p);
               return `
                 <div class="text-[11px] text-[#1F1815] font-medium">
-                  ${tech.grasas}
+                  ${this.escapeHtml(tech.grasas)}
                 </div>
               `;
             }).join('')}
@@ -478,9 +509,9 @@ const Comparador = {
               return `
                 <div>
                   <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold block leading-tight ${tech.ambiental.isBio ? 'bg-emerald-100 text-emerald-800' : 'bg-[#F4EFEA] text-[#1F1815]'}">
-                    ${tech.ambiental.label}
+                    ${this.escapeHtml(tech.ambiental.label)}
                   </span>
-                  <span class="text-[9px] text-[#574B46] block mt-0.5">${tech.ambiental.norma}</span>
+                  <span class="text-[9px] text-[#574B46] block mt-0.5">${this.escapeHtml(tech.ambiental.norma)}</span>
                 </div>
               `;
             }).join('')}
@@ -491,7 +522,7 @@ const Comparador = {
             <div class="font-bold text-[#1F1815]">Presentación Mayorista</div>
             ${prods.map(p => `
               <div class="font-bold text-[#C85A32] font-mono text-[11px]">
-                ${p.presentacion || 'Caja mayorista'}
+                ${this.escapeHtml(p.presentacion || 'Caja mayorista')}
               </div>
             `).join('')}
           </div>

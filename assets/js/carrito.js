@@ -6,6 +6,7 @@
 const Carrito = {
   items: [],
   whatsappNumber: '51900000000',
+  currentQuoteIdempotencyKey: null,
 
   init() {
     this.loadFromStorage();
@@ -16,7 +17,7 @@ const Carrito = {
 
   getStorageKey() {
     try {
-      const activeUser = typeof Auth !== 'undefined' && Auth.getCurrentUser ? Auth.getCurrentUser() : JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null');
+      const activeUser = typeof Auth !== 'undefined' && Auth.getCurrentUser ? Auth.getCurrentUser() : (typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_usuario_activo', null) : (function() { try { return JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null'); } catch(_) { return null; } })());
       if (activeUser && (activeUser.id || activeUser.numero_documento)) {
         return 'dp_carrito_cotizacion_' + (activeUser.id || activeUser.numero_documento);
       }
@@ -34,8 +35,7 @@ const Carrito = {
   loadFromStorage() {
     try {
       const key = this.getStorageKey();
-      const stored = localStorage.getItem(key);
-      this.items = stored ? JSON.parse(stored) : [];
+      this.items = typeof StorageHelper !== 'undefined' ? StorageHelper.get(key, []) : (function() { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(_) { return []; } })();
     } catch (e) {
       this.items = [];
     }
@@ -273,7 +273,7 @@ const Carrito = {
 
   prefillCustomerData() {
     try {
-      const activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null');
+      const activeUser = typeof Auth !== 'undefined' && Auth.getCurrentUser ? Auth.getCurrentUser() : (typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_usuario_activo', null) : null);
       if (activeUser) {
         const docInput = document.getElementById('cotizacionDoc');
         const nameInput = document.getElementById('cotizacionNombre');
@@ -316,32 +316,43 @@ const Carrito = {
     if (customerCard) customerCard.classList.remove('hidden');
     if (footerArea) footerArea.classList.remove('opacity-50', 'pointer-events-none');
 
-    listContainer.innerHTML = this.items.map(item => `
-      <div class="bg-white p-3.5 rounded-2xl border border-[#EAE3DA] flex gap-3 shadow-sm hover:shadow-md transition-shadow">
-        <img src="${item.imagen_url || 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=200&q=80'}" alt="${item.nombre}" class="w-16 h-16 rounded-xl object-cover border border-stone-100 flex-shrink-0">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-start justify-between gap-1">
-            <span class="text-[10px] font-bold text-[#C85A32] uppercase tracking-wider">${item.sku}</span>
-            <button onclick="Carrito.removeItem('${item.sku}')" class="text-stone-400 hover:text-rose-600 p-0.5" title="Eliminar">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          </div>
-          <h4 class="font-semibold text-xs text-[#1F1815] truncate" title="${item.nombre}">${item.nombre}</h4>
-          <p class="text-[11px] text-[#574B46] mb-2">${item.presentacion}</p>
-          
-          <div class="flex items-center justify-between">
-            <div class="flex items-center border border-[#EAE3DA] rounded-lg overflow-hidden bg-[#FDFBF7]">
-              <button onclick="Carrito.updateQuantity('${item.sku}', ${item.cantidad - 1})" class="px-2 py-0.5 text-xs text-[#574B46] hover:bg-stone-200 transition-colors font-bold">-</button>
-              <span class="px-2.5 py-0.5 text-xs font-semibold text-[#1F1815]">${item.cantidad}</span>
-              <button onclick="Carrito.updateQuantity('${item.sku}', ${item.cantidad + 1})" class="px-2 py-0.5 text-xs text-[#574B46] hover:bg-stone-200 transition-colors font-bold">+</button>
+    const esc = (s) => (typeof escapeHtml === 'function' ? escapeHtml(s) : String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+    const safeUrl = (u) => (typeof sanitizeUrl === 'function' ? sanitizeUrl(u) : String(u || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+
+    listContainer.innerHTML = this.items.map(item => {
+      const safeSku = esc(item.sku);
+      const safeNombre = esc(item.nombre);
+      const safePres = esc(item.presentacion);
+      const safeImg = safeUrl(item.imagen_url || 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=200&q=80');
+      const safeCant = parseInt(item.cantidad, 10) || 1;
+
+      return `
+        <div class="bg-white p-3.5 rounded-2xl border border-[#EAE3DA] flex gap-3 shadow-sm hover:shadow-md transition-shadow">
+          <img src="${safeImg}" alt="${safeNombre}" class="w-16 h-16 rounded-xl object-cover border border-stone-100 flex-shrink-0">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-1">
+              <span class="text-[10px] font-bold text-[#C85A32] uppercase tracking-wider">${safeSku}</span>
+              <button onclick="Carrito.removeItem('${safeSku}')" class="text-stone-400 hover:text-rose-600 p-0.5" title="Eliminar">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
             </div>
-            ${item.biodegradable ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">Eco</span>' : ''}
+            <h4 class="font-semibold text-xs text-[#1F1815] truncate" title="${safeNombre}">${safeNombre}</h4>
+            <p class="text-[11px] text-[#574B46] mb-2">${safePres}</p>
+            
+            <div class="flex items-center justify-between">
+              <div class="flex items-center border border-[#EAE3DA] rounded-lg overflow-hidden bg-[#FDFBF7]">
+                <button onclick="Carrito.updateQuantity('${safeSku}', ${safeCant - 1})" class="px-2 py-0.5 text-xs text-[#574B46] hover:bg-stone-200 transition-colors font-bold">-</button>
+                <span class="px-2.5 py-0.5 text-xs font-semibold text-[#1F1815]">${safeCant}</span>
+                <button onclick="Carrito.updateQuantity('${safeSku}', ${safeCant + 1})" class="px-2 py-0.5 text-xs text-[#574B46] hover:bg-stone-200 transition-colors font-bold">+</button>
+              </div>
+              ${item.biodegradable ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">Eco</span>' : ''}
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   },
 
   lastQuoteCode: null,
@@ -349,7 +360,7 @@ const Carrito = {
   // Determina si el cliente actual es de tipo Empresa / Negocio (RUC)
   isBusinessClient() {
     try {
-      const activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null');
+      const activeUser = typeof Auth !== 'undefined' && Auth.getCurrentUser ? Auth.getCurrentUser() : (typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_usuario_activo', null) : null);
       if (activeUser && activeUser.tipo_documento === 'RUC') {
         return true;
       }
@@ -445,11 +456,16 @@ const Carrito = {
 
     let quoteCode = '';
     try {
-      let activeUser = null;
-      try { activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null'); } catch (e) {}
+      const activeUser = typeof Auth !== 'undefined' && Auth.getCurrentUser ? Auth.getCurrentUser() : (typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_usuario_activo', null) : null);
 
       const api = (typeof ApiService !== 'undefined' ? ApiService : window.ApiService) || null;
       if (api && typeof api.saveCotizacion === 'function') {
+        if (!this.currentQuoteIdempotencyKey) {
+          this.currentQuoteIdempotencyKey = (typeof api.generateIdempotencyKey === 'function')
+            ? api.generateIdempotencyKey('cot')
+            : ('cot_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10));
+        }
+
         const res = await api.saveCotizacion({
           usuario_id: activeUser?.id || null,
           documento: doc,
@@ -464,11 +480,12 @@ const Carrito = {
           destino: destino,
           departamento: destino,
           items: this.items
-        });
+        }, this.currentQuoteIdempotencyKey);
 
         if (res && res.success && res.codigo_cotizacion) {
           quoteCode = res.codigo_cotizacion;
           this.lastQuoteCode = quoteCode;
+          this.currentQuoteIdempotencyKey = null; // Reiniciar clave solo tras confirmación exitosa
 
           // Limpiar carrito tras cotización exitosa
           this.items = [];
@@ -487,7 +504,10 @@ const Carrito = {
           }
           return;
         } else if (res && !res.success) {
-          const errMsg = res.error || 'Error al procesar la cotización en el servidor.';
+          let errMsg = res.error || 'Error al procesar la cotización en el servidor.';
+          if (res.status === 429 && res.retry_after) {
+            errMsg += ` Espere ${res.retry_after} segundos.`;
+          }
           console.error('Fallo en cotización:', errMsg);
           if (window.Toast) {
             Toast.error('Error al registrar: ' + errMsg);
@@ -576,8 +596,13 @@ const Carrito = {
     if (!quoteCode) {
       if (window.ApiService && typeof ApiService.saveCotizacion === 'function') {
         try {
-          let activeUser = null;
-          try { activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || 'null'); } catch (e) {}
+          const activeUser = typeof Auth !== 'undefined' && Auth.getCurrentUser ? Auth.getCurrentUser() : (typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_usuario_activo', null) : null);
+
+          if (!this.currentQuoteIdempotencyKey) {
+            this.currentQuoteIdempotencyKey = (typeof ApiService.generateIdempotencyKey === 'function')
+              ? ApiService.generateIdempotencyKey('cot')
+              : ('cot_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10));
+          }
 
           const res = await ApiService.saveCotizacion({
             usuario_id: activeUser?.id || null,
@@ -593,17 +618,18 @@ const Carrito = {
             destino: destino,
             departamento: destino,
             items: this.items
-          });
+          }, this.currentQuoteIdempotencyKey);
           if (res && res.codigo_cotizacion) {
             quoteCode = res.codigo_cotizacion;
             this.lastQuoteCode = quoteCode;
+            this.currentQuoteIdempotencyKey = null;
           }
         } catch (e) {
           console.warn('Error registrando cotización formal en backend:', e);
         }
       }
       if (!quoteCode) {
-        quoteCode = 'COT-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+        quoteCode = 'PROFORMA-BORRADOR-' + Math.floor(10000 + Math.random() * 90000);
       }
     }
 
@@ -630,6 +656,16 @@ const Carrito = {
 
     const isEmpresa = this.isBusinessClient();
 
+    const esc = (s) => (typeof escapeHtml === 'function' ? escapeHtml(s) : String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+
+    const safeQuoteCode = esc(quoteCode);
+    const safeNombre = esc(nombre);
+    const safeDoc = esc(doc);
+    const safeTipoComp = esc(tipoComp);
+    const safeDestino = esc(destino);
+    const safeFechaHoy = esc(fechaHoy);
+    const safeFechaVence = esc(fechaVence);
+
     modal.innerHTML = `
       <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[96vh] overflow-y-auto shadow-2xl border border-stone-200 relative my-4 sm:my-8 touch-scroll">
         
@@ -637,7 +673,7 @@ const Carrito = {
         <div class="no-print sticky top-0 z-20 bg-[#FDFBF7] px-4 sm:px-6 py-3.5 border-b border-[#EAE3DA] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="font-heading font-extrabold text-xs sm:text-sm text-[#1F1815]">Proforma Oficial B2B Generada (${quoteCode})</span>
+            <span class="font-heading font-extrabold text-xs sm:text-sm text-[#1F1815]">Proforma Oficial B2B Generada (${safeQuoteCode})</span>
           </div>
 
           <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -684,21 +720,21 @@ const Carrito = {
               <span class="block py-1.5 my-1 text-sm font-black bg-[#1F1815] text-white uppercase tracking-wider rounded-lg">
                 COTIZACIÓN
               </span>
-              <span class="block font-mono text-sm font-black text-[#C85A32] tracking-tight">${quoteCode}</span>
+              <span class="block font-mono text-sm font-black text-[#C85A32] tracking-tight">${safeQuoteCode}</span>
             </div>
           </div>
 
           <!-- Cuadrícula de Datos del Cliente y Emisión -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-[#FDFBF7] p-4 rounded-2xl border border-[#EAE3DA]">
             <div class="space-y-1">
-              <p><strong>Cliente / Razón Social:</strong> <span class="text-[#1F1815] font-semibold">${nombre}</span></p>
-              <p><strong>N° RUC / DNI:</strong> <span class="font-mono font-bold">${doc}</span></p>
-              <p><strong>Comprobante Solicitado:</strong> <span class="font-semibold text-[#C85A32]">${tipoComp} Electrónica</span></p>
-              <p><strong>Destino de Entrega:</strong> <span>${destino}</span></p>
+              <p><strong>Cliente / Razón Social:</strong> <span class="text-[#1F1815] font-semibold">${safeNombre}</span></p>
+              <p><strong>N° RUC / DNI:</strong> <span class="font-mono font-bold">${safeDoc}</span></p>
+              <p><strong>Comprobante Solicitado:</strong> <span class="font-semibold text-[#C85A32]">${safeTipoComp} Electrónica</span></p>
+              <p><strong>Destino de Entrega:</strong> <span>${safeDestino}</span></p>
             </div>
             <div class="space-y-1 sm:text-right">
-              <p><strong>Fecha de Emisión:</strong> <span>${fechaHoy}</span></p>
-              <p><strong>Válido Hasta:</strong> <span class="text-rose-700 font-semibold">${fechaVence} (7 días)</span></p>
+              <p><strong>Fecha de Emisión:</strong> <span>${safeFechaHoy}</span></p>
+              <p><strong>Válido Hasta:</strong> <span class="text-rose-700 font-semibold">${safeFechaVence} (7 días)</span></p>
               <p><strong>Moneda Comercial:</strong> <strong>Soles Peruanos (PEN - S/.)</strong></p>
               <p><strong>Atendido por:</strong> <span>Dpto. de Ventas Corporativas</span></p>
             </div>
@@ -722,13 +758,13 @@ const Carrito = {
                 ${itemsWithPrices.map((item, idx) => `
                   <tr class="hover:bg-[#FDFBF7] transition-colors">
                     <td class="py-2.5 px-3 text-center font-mono font-semibold text-stone-500">${idx + 1}</td>
-                    <td class="py-2.5 px-3 font-mono font-bold text-[#C85A32]">${item.sku}</td>
+                    <td class="py-2.5 px-3 font-mono font-bold text-[#C85A32]">${esc(item.sku)}</td>
                     <td class="py-2.5 px-4">
-                      <span class="font-bold text-[#1F1815] block">${item.nombre}</span>
-                      <span class="text-[10px] text-[#574B46] block">${item.material} ${item.biodegradable ? '• 🌿 Eco-Biodegradable' : ''}</span>
+                      <span class="font-bold text-[#1F1815] block">${esc(item.nombre)}</span>
+                      <span class="text-[10px] text-[#574B46] block">${esc(item.material)} ${item.biodegradable ? '• 🌿 Eco-Biodegradable' : ''}</span>
                     </td>
-                    <td class="py-2.5 px-3 text-[11px]">${item.presentacion}</td>
-                    <td class="py-2.5 px-3 text-center font-bold text-sm text-[#1F1815]">${item.cantidad}</td>
+                    <td class="py-2.5 px-3 text-[11px]">${esc(item.presentacion)}</td>
+                    <td class="py-2.5 px-3 text-center font-bold text-sm text-[#1F1815]">${parseInt(item.cantidad, 10) || 1}</td>
                     <td class="py-2.5 px-3 text-right font-mono">S/. ${item.pUnit.toFixed(2)}</td>
                     <td class="py-2.5 px-4 text-right font-mono font-bold text-[#1F1815]">S/. ${item.sub.toFixed(2)}</td>
                   </tr>

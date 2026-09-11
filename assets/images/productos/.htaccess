@@ -1,0 +1,42 @@
+# ====================================================================
+# PROTECCIÓN ESTRICTA DE DIRECTORIO DE SUBIDA (UPLOADS / ASSETS)
+# Plataforma Descartables Peruanos - F12
+# ====================================================================
+
+# 1. Deshabilitar listado de directorios y ejecución de CGI/scripts
+Options -Indexes -ExecCGI
+
+# 2. Deshabilitar motor PHP si mod_php está cargado (evita error 500 en PHP-FPM)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# 3. Remover manejadores y tipos MIME de ejecución para extensiones de script
+<IfModule mod_mime.c>
+    RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .sh .bash .exe .bat .cmd
+    RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .sh .bash .exe .bat .cmd
+</IfModule>
+
+# 4. Denegar terminantemente el acceso a cualquier archivo que no sea imagen estática permitida
+# Bloquea extensiones ejecutables, scripts web y SVG (prevención XSS por XML)
+<FilesMatch "(?i)\.(php[0-9]?|phtml|phps|cgi|pl|py|sh|bash|exe|bat|cmd|js|html|htm|shtml|svg|asp|aspx|jsp)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 5. Cabecera nosniff para impedir que el navegador interprete imágenes como scripts
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
+

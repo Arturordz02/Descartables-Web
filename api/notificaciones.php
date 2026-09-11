@@ -26,24 +26,7 @@ if (class_exists('Vault')) {
 $pdo = getDbConnection();
 
 if (!$pdo) {
-    echo json_encode([
-        'success' => true,
-        'mode' => 'local_fallback',
-        'server_time' => time(),
-        'cotizaciones' => [
-            'max_id' => 0,
-            'nuevas_count' => 0,
-            'pendientes' => 0,
-            'nuevas' => []
-        ],
-        'reclamaciones' => [
-            'max_id' => 0,
-            'nuevas_count' => 0,
-            'pendientes' => 0,
-            'nuevos' => []
-        ]
-    ], JSON_UNESCAPED_UNICODE);
-    exit();
+    ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
 }
 
 // Obtener IDs enviados por el frontend
@@ -57,7 +40,8 @@ try {
     if (!$tableExists) {
         $recTable = 'reclamaciones';
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
+    Logger::warning('Notificaciones: Error al verificar tabla libro_reclamaciones', ['error' => $e->getMessage()]);
     $recTable = 'reclamaciones';
 }
 
@@ -98,8 +82,8 @@ try {
         $cotizData['nuevas'] = $stmtNuevas->fetchAll(PDO::FETCH_ASSOC);
         $cotizData['nuevas_count'] = count($cotizData['nuevas']);
     }
-} catch (Exception $e) {
-    // Si la tabla aún no existe o hay error de estructura, retornar seguro
+} catch (Throwable $e) {
+    Logger::warning('Notificaciones: Error al consultar cotizaciones', ['error' => $e->getMessage()]);
 }
 
 // ------------------------------------------------------------------
@@ -137,17 +121,20 @@ try {
         $recData['nuevos'] = $stmtNuevosRec->fetchAll(PDO::FETCH_ASSOC);
         $recData['nuevas_count'] = count($recData['nuevos']);
     }
-} catch (Exception $e) {
-    // Fallback silencioso
+} catch (Throwable $e) {
+    Logger::warning('Notificaciones: Error al consultar libro_reclamaciones', ['error' => $e->getMessage()]);
 }
 
 // ------------------------------------------------------------------
 // RESPUESTA JSON CONSOLIDADA
 // ------------------------------------------------------------------
-echo json_encode([
-    'success'       => true,
+ApiResponse::success([
     'server_time'   => time(),
     'cotizaciones'  => $cotizData,
     'reclamaciones' => $recData
-], JSON_UNESCAPED_UNICODE);
+], [
+    'server_time'   => time(),
+    'cotizaciones'  => $cotizData,
+    'reclamaciones' => $recData
+]);
 

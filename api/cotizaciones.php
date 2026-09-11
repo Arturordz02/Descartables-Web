@@ -4,45 +4,20 @@
  * Plataforma Descartables Peruanos
  */
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/concurrency.php';
+require_once __DIR__ . '/validator.php';
+require_once __DIR__ . '/ratelimit.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+Vault::handleCors();
 
 $pdo = getDbConnection();
-
-// Auto-migración silenciosa y segura de columnas de cotizaciones
-if ($pdo) {
-    try {
-        $cols = $pdo->query("SHOW COLUMNS FROM cotizaciones")->fetchAll(PDO::FETCH_COLUMN);
-        
-        if (!in_array('estado', $cols)) {
-            $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN estado VARCHAR(30) DEFAULT 'Pendiente'");
-        }
-        if (!in_array('notas', $cols)) {
-            $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN notas TEXT NULL");
-        }
-        if (!in_array('total_items', $cols)) {
-            $pdo->exec("ALTER TABLE cotizaciones ADD COLUMN total_items INT NOT NULL DEFAULT 0");
-        }
-    } catch (Exception $ignored) {}
-}
-
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Helper para parsear input JSON o POST
-$rawInput = file_get_contents('php://input');
-$data = json_decode($rawInput, true);
-if (!$data || !is_array($data)) {
-    $data = $_POST;
-}
+// Parseo seguro de payload con control de tamaño y sintaxis JSON
+$data = Validator::parseJsonInput(1048576);
 
 // 1. ACTUALIZAR ESTADO / NOTAS (PUT o POST con action=update_status)
 if ($method === 'PUT' || ($method === 'POST' && isset($data['action']) && $data['action'] === 'update_status')) {
@@ -51,31 +26,32 @@ if ($method === 'PUT' || ($method === 'POST' && isset($data['action']) && $data[
     }
 
     if (!$pdo) {
-        echo json_encode(['success' => false, 'error' => 'Base de datos no disponible'], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
     }
 
     $id = isset($data['id']) ? (int)$data['id'] : null;
-    $codigo = isset($data['codigo']) ? trim($data['codigo']) : null;
-    $estado = isset($data['estado']) ? trim($data['estado']) : 'Pendiente';
-    $notas = isset($data['notas']) ? trim($data['notas']) : null;
+    $codigo = isset($data['codigo']) ? trim((string)$data['codigo']) : null;
+    $notas = isset($data['notas']) ? Validator::validateText((string)$data['notas'], 0, 1000, true) : null;
 
     $validEstados = ['Pendiente', 'En Contacto', 'Cotizado', 'Atendido', 'Despachado', 'Cancelado'];
-    if (!in_array($estado, $validEstados)) {
+    if (isset($data['estado'])) {
+        $estado = Validator::validateAllowlist((string)$data['estado'], $validEstados);
+        if (!$estado) {
+            ApiResponse::error("Estado de cotización no válido. Los estados permitidos son: " . implode(', ', $validEstados), 'VALIDATION_ERROR', 400);
+        }
+    } else {
         $estado = 'Pendiente';
     }
 
     try {
-        if ($id) {
+        if ($id && $id > 0) {
             $stmt = $pdo->prepare("UPDATE cotizaciones SET estado = ?, notas = ? WHERE id = ?");
             $stmt->execute([$estado, $notas, $id]);
         } elseif ($codigo) {
             $stmt = $pdo->prepare("UPDATE cotizaciones SET estado = ?, notas = ? WHERE codigo_cotizacion = ?");
             $stmt->execute([$estado, $notas, $codigo]);
         } else {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Se requiere ID o Código de cotización'], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error('Se requiere ID o Código de cotización.', 'VALIDATION_ERROR', 400);
         }
 
         echo json_encode([
@@ -86,8 +62,7 @@ if ($method === 'PUT' || ($method === 'POST' && isset($data['action']) && $data[
         ], JSON_UNESCAPED_UNICODE);
         exit();
     } catch (Throwable $e) {
-        echo json_encode(['success' => false, 'error' => 'Error al actualizar cotización: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Error al actualizar cotización.', 'UPDATE_ERROR', 500, $e);
     }
 }
 
@@ -98,19 +73,17 @@ if ($method === 'DELETE' || ($method === 'POST' && isset($data['action']) && $da
     }
 
     if (!$pdo) {
-        echo json_encode(['success' => false, 'error' => 'Base de datos no disponible'], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
     }
 
     $id = isset($data['id']) ? (int)$data['id'] : (isset($_GET['id']) ? (int)$_GET['id'] : null);
     $ids = !empty($data['ids']) && is_array($data['ids']) ? array_filter(array_map('intval', $data['ids'])) : [];
-    if ($id && !in_array($id, $ids)) {
+    if ($id && !in_array($id, $ids, true)) {
         $ids[] = $id;
     }
 
     if (empty($ids)) {
-        echo json_encode(['success' => false, 'error' => 'No se especificaron cotizaciones a eliminar.'], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('No se especificaron cotizaciones a eliminar.', 'VALIDATION_ERROR', 400);
     }
 
     try {
@@ -126,293 +99,379 @@ if ($method === 'DELETE' || ($method === 'POST' && isset($data['action']) && $da
         ], JSON_UNESCAPED_UNICODE);
         exit();
     } catch (Throwable $e) {
-        echo json_encode(['success' => false, 'error' => 'Error al eliminar: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Error al eliminar cotizaciones.', 'DELETE_ERROR', 500, $e);
     }
 }
 
 // 3. REGISTRAR NUEVA COTIZACIÓN (POST)
 if ($method === 'POST') {
-    $items = !empty($data['items']) ? $data['items'] : (!empty($data['detalle_items']) ? $data['detalle_items'] : []);
-    $documento = trim($data['documento'] ?? $data['cliente_doc'] ?? '');
-    $nombre = trim($data['nombre_cliente'] ?? $data['cliente_nombre'] ?? '');
+    // Asignación segura del usuario propietario derivada de la sesión
+    $usuario_id = null;
+    if (class_exists('Vault')) {
+        $token = Vault::extractTokenFromRequest();
+        $session = $token ? Vault::validateToken($token) : null;
+        if ($session && !empty($session['uid'])) {
+            $usuario_id = (int)$session['uid'];
+        }
+    }
 
-    if (empty($items)) {
+    $documentoRaw = trim((string)($data['documento'] ?? $data['cliente_doc'] ?? ''));
+    $nombreRaw = trim((string)($data['nombre_cliente'] ?? $data['cliente_nombre'] ?? ''));
+
+    // Validar nombre del cliente (mínimo 2, máximo 150 caracteres)
+    $nombre = Validator::validateText($nombreRaw ?: 'Cliente Web', 2, 150);
+    if (!$nombre) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'error'   => 'Faltan productos/items para registrar la cotización.'
+            'error'   => 'El nombre del cliente debe tener entre 2 y 150 caracteres.'
         ], JSON_UNESCAPED_UNICODE);
         exit();
     }
 
-    if (empty($documento)) $documento = 'No especificado';
-    if (empty($nombre)) $nombre = 'Cliente Web';
+    // Validar documento si se proporciona
+    if (!empty($documentoRaw) && $documentoRaw !== 'No especificado') {
+        $docResult = Validator::validateDocument($documentoRaw);
+        if (!$docResult) {
+            ApiResponse::error('El documento ingresado no tiene un formato válido (DNI 8 dígitos, RUC 11 dígitos o CE alfanumérico).', 'VALIDATION_ERROR', 400);
+        }
+        $documento = $docResult['documento'];
+    } else {
+        $documento = 'No especificado';
+    }
+
+    // Validar correo si se proporciona
+    $emailRaw = trim((string)($data['email'] ?? $data['cliente_email'] ?? ''));
+    if (!empty($emailRaw)) {
+        $email = Validator::validateEmail($emailRaw);
+        if (!$email) {
+            ApiResponse::error('El correo electrónico ingresado no tiene un formato válido.', 'VALIDATION_ERROR', 400);
+        }
+    } else {
+        $email = 'ventas@descartablesperuanos.pe';
+    }
+
+    // Validar teléfono si se proporciona
+    $telefonoRaw = trim((string)($data['telefono'] ?? $data['cliente_telefono'] ?? ''));
+    if (!empty($telefonoRaw) && $telefonoRaw !== 'No especificado') {
+        $telefono = Validator::validatePhone($telefonoRaw);
+        if (!$telefono) {
+            ApiResponse::error('El número telefónico no tiene un formato válido.', 'VALIDATION_ERROR', 400);
+        }
+    } else {
+        $telefono = 'No especificado';
+    }
+
+    // Validar tipo de comprobante y destino
+    $tipo_comprobante = Validator::validateAllowlist($data['tipo_comprobante'] ?? 'Factura', ['Boleta', 'Factura'], true);
+    if ($tipo_comprobante === null) {
+        ApiResponse::error('Tipo de comprobante no válido. Opciones permitidas: Boleta, Factura.', 'VALIDATION_ERROR', 400);
+    }
+    $destino = Validator::validateText($data['destino'] ?? $data['departamento'] ?? 'Lima Metropolitana', 2, 100) ?: 'Lima Metropolitana';
+    $notas = isset($data['notas']) ? (Validator::validateText((string)$data['notas'], 0, 500, true) ?: '') : '';
+
+    $items = !empty($data['items']) ? $data['items'] : (!empty($data['detalle_items']) ? $data['detalle_items'] : []);
+    if (!is_array($items) || count($items) === 0) {
+        ApiResponse::error('Debe incluir al menos un producto para registrar la cotización.', 'VALIDATION_ERROR', 400);
+    }
+
+    if (count($items) > 50) {
+        ApiResponse::error('La cotización supera el límite máximo de 50 productos por solicitud.', 'VALIDATION_ERROR', 400);
+    }
 
     if (!$pdo) {
-        // Modo local de respaldo sin base de datos activa
-        $codigo = 'COT-' . date('Y') . '-' . str_pad(rand(1, 9999), 5, '0', STR_PAD_LEFT);
-        echo json_encode([
-            'success'            => true,
-            'message'            => 'Cotización formal generada en modo local.',
-            'codigo_cotizacion'  => $codigo,
-            'fecha'              => date('d/m/Y H:i:s')
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
     }
 
+    // =========================================================================
+    // VERIFICACIÓN DE IDEMPOTENCIA (ANTES DEL RATE LIMIT)
+    // Permite que reintentos idénticos por timeout reciban 200 OK sin consumir quota
+    // =========================================================================
+    $idempotencyKey = ConcurrencyEngine::extractIdempotencyKey($data);
+    $scope = 'cotizacion:create';
+    $requestHash = ConcurrencyEngine::normalizePayloadForFingerprint($data);
+
+    if ($idempotencyKey) {
+        $checkPre = ConcurrencyEngine::checkIdempotency($pdo, $scope, $idempotencyKey, $requestHash, $usuario_id, $documento);
+        if ($checkPre['status'] === 'conflict') {
+            ApiResponse::error(
+                $checkPre['error'],
+                $checkPre['code'] ?? 'IDEMPOTENCY_CONFLICT',
+                $checkPre['http_code'] ?? 409
+            );
+        }
+        if ($checkPre['status'] === 'replay') {
+            header('X-Idempotent-Replay: true');
+            http_response_code(200);
+            $replayPayload = $checkPre['response'];
+            $replayPayload['idempotent_replay'] = true;
+            echo json_encode($replayPayload, JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+    }
+
+    // Control de abuso: Máximo 15 solicitudes de cotización nuevas por hora por IP / usuario
+    RateLimiter::enforce($pdo, 'cotizacion:create', 15, 3600, 3600, $usuario_id);
+
+    // =========================================================================
+    // VALIDACIÓN DE PRODUCTOS Y RECÁLCULO OFICIAL DE PRECIOS EN SERVIDOR
+    // El servidor es la única autoridad de precios, nombres y existencias
+    // =========================================================================
+    $validatedItems = [];
+    $total_items = 0;
+    $total_monto = 0.0;
+
+    foreach ($items as $idx => $item) {
+        if (!is_array($item)) {
+            ApiResponse::error("El item en posición #{$idx} no tiene un formato válido.", 'VALIDATION_ERROR', 400);
+        }
+
+        $cantidad = Validator::validatePositiveInt($item['cantidad'] ?? 1, 1, 100000);
+        if ($cantidad === null) {
+            ApiResponse::error("La cantidad para el producto #{$idx} debe ser un número entero positivo mayor a 0 (máx 100,000).", 'VALIDATION_ERROR', 400);
+        }
+
+        $prodId = isset($item['id']) ? (int)$item['id'] : null;
+        $prodSku = isset($item['sku']) ? strtoupper(trim((string)$item['sku'])) : null;
+
+        $dbProduct = null;
+        if ($prodId && $prodId > 0) {
+            $stmtP = $pdo->prepare("SELECT * FROM productos WHERE id = ? LIMIT 1");
+            $stmtP->execute([$prodId]);
+            $dbProduct = $stmtP->fetch(PDO::FETCH_ASSOC);
+        } elseif ($prodSku !== null && $prodSku !== '') {
+            $stmtP = $pdo->prepare("SELECT * FROM productos WHERE UPPER(sku) = ? LIMIT 1");
+            $stmtP->execute([$prodSku]);
+            $dbProduct = $stmtP->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if ($dbProduct) {
+            if ($dbProduct['stock_estado'] === 'agotado') {
+                ApiResponse::error("El producto '{$dbProduct['nombre']}' (SKU {$dbProduct['sku']}) está agotado y no puede ser cotizado.", 'PRODUCT_OUT_OF_STOCK', 400);
+            }
+
+            // Recalcular precios desde BD oficial (ignorar datos manipulados por el cliente)
+            $precioOficial = $dbProduct['precio'] !== null ? (float)$dbProduct['precio'] : 0.0;
+            $subtotalOficial = round($precioOficial * $cantidad, 2);
+
+            $validatedItems[] = [
+                'id'           => (int)$dbProduct['id'],
+                'sku'          => $dbProduct['sku'],
+                'nombre'       => $dbProduct['nombre'],
+                'presentacion' => $dbProduct['presentacion'],
+                'material'     => $dbProduct['material'],
+                'categoria_id' => (int)$dbProduct['categoria_id'],
+                'precio'       => $precioOficial,
+                'cantidad'     => $cantidad,
+                'subtotal'     => $subtotalOficial
+            ];
+            $total_items += $cantidad;
+            $total_monto += $subtotalOficial;
+        } else {
+            // Producto no encontrado en catálogo oficial
+            $itemRef = $prodSku ?: ($prodId ? "ID {$prodId}" : "#{$idx}");
+            ApiResponse::error("El producto solicitado ({$itemRef}) no existe en el catálogo activo.", 'PRODUCT_NOT_FOUND', 400);
+        }
+    }
+
+    $pdo->beginTransaction();
+
     try {
-        $anio = date('Y');
-        // Obtener el mayor correlativo existente para no chocar con claves únicas
-        $stmtMax = $pdo->query("SELECT MAX(CAST(SUBSTRING_INDEX(codigo_cotizacion, '-', -1) AS UNSIGNED)) as max_num FROM cotizaciones WHERE codigo_cotizacion LIKE 'COT-{$anio}-%'");
-        $maxRow = $stmtMax->fetch(PDO::FETCH_ASSOC);
-        $nextNumber = (!empty($maxRow['max_num']) ? (int)$maxRow['max_num'] : 0) + 1;
-        $codigo = sprintf('COT-%s-%05d', $anio, $nextNumber);
-
-        // Verificación con cursor cerrado para evitar colisiones
-        $chkCode = $pdo->prepare("SELECT COUNT(*) FROM cotizaciones WHERE codigo_cotizacion = ?");
-        do {
-            $chkCode->execute([$codigo]);
-            $exists = (int)$chkCode->fetchColumn();
-            $chkCode->closeCursor();
-            if ($exists > 0) {
-                $nextNumber++;
-                $codigo = sprintf('COT-%s-%05d', $anio, $nextNumber);
+        // Verificación de idempotencia bajo bloqueo transaccional
+        if ($idempotencyKey) {
+            $checkLocked = ConcurrencyEngine::checkIdempotency($pdo, $scope, $idempotencyKey, $requestHash, $usuario_id, $documento);
+            if ($checkLocked['status'] === 'conflict') {
+                $pdo->rollBack();
+                ApiResponse::error(
+                    $checkLocked['error'],
+                    $checkLocked['code'] ?? 'IDEMPOTENCY_CONFLICT',
+                    $checkLocked['http_code'] ?? 409
+                );
             }
-        } while ($exists > 0);
-
-        $usuario_id = !empty($data['usuario_id']) ? (int)$data['usuario_id'] : null;
-        if ($usuario_id) {
-            try {
-                $stmtCheckUser = $pdo->prepare("SELECT id FROM usuarios WHERE id = ? LIMIT 1");
-                $stmtCheckUser->execute([$usuario_id]);
-                $userExists = $stmtCheckUser->fetchColumn();
-                $stmtCheckUser->closeCursor();
-                if (!$userExists) {
-                    $usuario_id = null; // Evitar fallo de llave foránea si el ID no existe en la BD
-                }
-            } catch (Exception $e) {
-                $usuario_id = null;
+            if ($checkLocked['status'] === 'replay') {
+                $pdo->rollBack();
+                header('X-Idempotent-Replay: true');
+                http_response_code(200);
+                $replayPayload = $checkLocked['response'];
+                $replayPayload['idempotent_replay'] = true;
+                echo json_encode($replayPayload, JSON_UNESCAPED_UNICODE);
+                exit();
             }
         }
 
-        $tipo_comprobante = in_array($data['tipo_comprobante'] ?? '', ['Boleta', 'Factura']) ? $data['tipo_comprobante'] : 'Factura';
-        $telefono = trim((string)($data['telefono'] ?? $data['cliente_telefono'] ?? ''));
-        if (empty($telefono)) {
-            $telefono = 'No especificado';
-        }
-        $telefono = substr($telefono, 0, 20);
-
-        $documento = substr($documento, 0, 20);
-        $nombre = substr($nombre, 0, 150);
-
-        $email = trim((string)($data['email'] ?? $data['cliente_email'] ?? ''));
-        if (empty($email)) {
-            $email = 'ventas@descartablesperuanos.pe';
-        }
-        $email = substr($email, 0, 150);
-
-        $destino = trim((string)($data['destino'] ?? $data['departamento'] ?? 'Lima Metropolitana'));
-        $destino = substr($destino, 0, 100);
-
-        $total_items = is_array($items) ? array_reduce($items, fn($carry, $i) => $carry + (int)($i['cantidad'] ?? 1), 0) : 0;
+        $anio = (int)date('Y');
+        // Generación de correlativo atómico sin huecos ni colisiones
+        $codigo = ConcurrencyEngine::nextCorrelative($pdo, 'COTIZACION', $anio);
         $estado = 'Pendiente';
-        $notas = trim((string)($data['notas'] ?? ''));
+        $itemsJson = json_encode($validatedItems, JSON_UNESCAPED_UNICODE);
 
-        $itemsJson = is_string($items) ? $items : json_encode($items, JSON_UNESCAPED_UNICODE);
-        if (json_decode($itemsJson) === null && json_last_error() !== JSON_ERROR_NONE) {
-            $itemsJson = json_encode([], JSON_UNESCAPED_UNICODE);
-        }
+        $sql = "INSERT INTO cotizaciones (
+            codigo_cotizacion, usuario_id, tipo_comprobante, documento, 
+            nombre_cliente, telefono, email, destino, items, total_items, 
+            notas, estado, enviado_whatsapp, creado_en
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())";
 
-        // Detectar columnas existentes en la tabla cotizaciones
-        $cols = $pdo->query("SHOW COLUMNS FROM cotizaciones")->fetchAll(PDO::FETCH_COLUMN);
-
-        $insertCols = ['codigo_cotizacion'];
-        $insertVals = [$codigo];
-        $placeholders = ['?'];
-
-        if (in_array('usuario_id', $cols)) { $insertCols[] = 'usuario_id'; $insertVals[] = $usuario_id; $placeholders[] = '?'; }
-        if (in_array('tipo_comprobante', $cols)) { $insertCols[] = 'tipo_comprobante'; $insertVals[] = $tipo_comprobante; $placeholders[] = '?'; }
-
-        // Nombre
-        if (in_array('nombre_cliente', $cols)) { $insertCols[] = 'nombre_cliente'; $insertVals[] = $nombre; $placeholders[] = '?'; }
-        elseif (in_array('cliente_nombre', $cols)) { $insertCols[] = 'cliente_nombre'; $insertVals[] = $nombre; $placeholders[] = '?'; }
-
-        // Documento
-        if (in_array('documento', $cols)) { $insertCols[] = 'documento'; $insertVals[] = $documento; $placeholders[] = '?'; }
-        elseif (in_array('cliente_doc', $cols)) { $insertCols[] = 'cliente_doc'; $insertVals[] = $documento; $placeholders[] = '?'; }
-
-        // Teléfono
-        if (in_array('telefono', $cols)) { $insertCols[] = 'telefono'; $insertVals[] = $telefono; $placeholders[] = '?'; }
-        elseif (in_array('cliente_telefono', $cols)) { $insertCols[] = 'cliente_telefono'; $insertVals[] = $telefono; $placeholders[] = '?'; }
-
-        // Email
-        if (in_array('email', $cols)) { $insertCols[] = 'email'; $insertVals[] = $email; $placeholders[] = '?'; }
-        elseif (in_array('cliente_email', $cols)) { $insertCols[] = 'cliente_email'; $insertVals[] = $email; $placeholders[] = '?'; }
-
-        // Destino / Departamento
-        if (in_array('destino', $cols)) { $insertCols[] = 'destino'; $insertVals[] = $destino; $placeholders[] = '?'; }
-        elseif (in_array('departamento', $cols)) { $insertCols[] = 'departamento'; $insertVals[] = $destino; $placeholders[] = '?'; }
-
-        // Items
-        if (in_array('detalle_items', $cols)) { $insertCols[] = 'detalle_items'; $insertVals[] = $itemsJson; $placeholders[] = '?'; }
-        elseif (in_array('items', $cols)) { $insertCols[] = 'items'; $insertVals[] = $itemsJson; $placeholders[] = '?'; }
-
-        // Total items
-        if (in_array('total_items', $cols)) { $insertCols[] = 'total_items'; $insertVals[] = $total_items; $placeholders[] = '?'; }
-
-        // Estado
-        if (in_array('estado', $cols)) { $insertCols[] = 'estado'; $insertVals[] = $estado; $placeholders[] = '?'; }
-
-        // Notas
-        if (in_array('notas', $cols)) { $insertCols[] = 'notas'; $insertVals[] = $notas; $placeholders[] = '?'; }
-
-        // Creado en
-        if (in_array('creado_en', $cols)) { $insertCols[] = 'creado_en'; $insertVals[] = date('Y-m-d H:i:s'); $placeholders[] = '?'; }
-
-        $sql = "INSERT INTO cotizaciones (" . implode(', ', $insertCols) . ") VALUES (" . implode(', ', $placeholders) . ")";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute($insertVals);
+        $stmt->execute([
+            $codigo,
+            $usuario_id,
+            $tipo_comprobante,
+            $documento,
+            $nombre,
+            $telefono,
+            $email,
+            $destino,
+            $itemsJson,
+            $total_items,
+            $notas,
+            $estado
+        ]);
 
-        $newId = (int)$pdo->lastInsertId();
+        $cotizacionId = (int)$pdo->lastInsertId();
 
-        echo json_encode([
+        $responsePayload = [
             'success'            => true,
-            'message'            => 'Cotización registrada con éxito en el sistema.',
+            'message'            => 'Cotización formal registrada exitosamente.',
+            'id'                 => $cotizacionId,
             'codigo_cotizacion'  => $codigo,
-            'id'                 => $newId,
-            'estado'             => $estado,
-            'fecha'              => date('d/m/Y H:i:s')
-        ], JSON_UNESCAPED_UNICODE);
+            'fecha'              => date('d/m/Y H:i:s'),
+            'total_items'        => $total_items,
+            'total_monto'        => $total_monto,
+            'items'              => $validatedItems
+        ];
+
+        // Guardar respuesta cacheada en tabla de idempotencia
+        ConcurrencyEngine::saveIdempotency(
+            $pdo,
+            $scope,
+            $idempotencyKey,
+            $requestHash,
+            $codigo,
+            $responsePayload,
+            $usuario_id,
+            $documento
+        );
+
+        $pdo->commit();
+
+        echo json_encode($responsePayload, JSON_UNESCAPED_UNICODE);
         exit();
 
     } catch (Throwable $e) {
-        echo json_encode([
-            'success'            => false,
-            'error'              => 'Error al registrar cotización: ' . $e->getMessage()
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        ApiResponse::error('Error al registrar cotización.', 'REGISTER_ERROR', 500, $e);
     }
 }
 
 // 4. CONSULTAR COTIZACIONES (GET)
 if ($method === 'GET') {
     $codigo = isset($_GET['codigo']) ? trim($_GET['codigo']) : null;
-    $doc = isset($_GET['documento']) ? trim($_GET['documento']) : null;
-    $usuarioId = !empty($_GET['usuario_id']) ? (int)$_GET['usuario_id'] : null;
-    $estado = isset($_GET['estado']) && $_GET['estado'] !== 'all' && $_GET['estado'] !== 'todos' ? trim($_GET['estado']) : null;
-    $search = isset($_GET['q']) ? trim($_GET['q']) : null;
+    $docParam = isset($_GET['documento']) ? trim($_GET['documento']) : null;
+    $emailParam = isset($_GET['email']) ? trim($_GET['email']) : null;
 
     if (!$pdo) {
-        echo json_encode(['success' => true, 'count' => 0, 'data' => []], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
     }
 
     try {
-        $cols = $pdo->query("SHOW COLUMNS FROM cotizaciones")->fetchAll(PDO::FETCH_COLUMN);
+        $token = class_exists('Vault') ? Vault::extractTokenFromRequest() : null;
+        $session = ($token && class_exists('Vault')) ? Vault::validateToken($token) : null;
 
-        $colNombre = in_array('nombre_cliente', $cols) ? 'nombre_cliente' : (in_array('cliente_nombre', $cols) ? 'cliente_nombre' : "'Cliente'");
-        $colDoc = in_array('documento', $cols) ? 'documento' : (in_array('cliente_doc', $cols) ? 'cliente_doc' : "''");
-        $colTel = in_array('telefono', $cols) ? 'telefono' : (in_array('cliente_telefono', $cols) ? 'cliente_telefono' : "''");
-        $colDest = in_array('destino', $cols) ? 'destino' : (in_array('departamento', $cols) ? 'departamento' : "'Lima'");
+        $isAdmin = ($session && isset($session['rol']) && $session['rol'] === 'admin');
+        $isClient = ($session && isset($session['rol']) && $session['rol'] === 'cliente');
 
-        $sql = "SELECT * FROM cotizaciones WHERE 1=1";
-        $params = [];
+        if ($isAdmin) {
+            $sql = "SELECT c.*, u.nombre_razon_social as usuario_nombre, u.email as usuario_email 
+                    FROM cotizaciones c 
+                    LEFT JOIN usuarios u ON c.usuario_id = u.id 
+                    WHERE 1=1";
+            $params = [];
 
-        if ($codigo) {
-            $sql .= " AND codigo_cotizacion = ?";
-            $params[] = $codigo;
-        } elseif ($doc || $usuarioId) {
-            $userConds = [];
-            if ($doc) {
-                $userConds[] = "{$colDoc} = ?";
-                $params[] = $doc;
+            if ($codigo) {
+                $sql .= " AND c.codigo_cotizacion = ?";
+                $params[] = $codigo;
             }
-            if ($usuarioId && in_array('usuario_id', $cols)) {
-                $userConds[] = "usuario_id = ?";
-                $params[] = $usuarioId;
+            if ($docParam) {
+                $sql .= " AND c.documento = ?";
+                $params[] = $docParam;
             }
-            if (!empty($userConds)) {
-                $sql .= " AND (" . implode(" OR ", $userConds) . ")";
+
+            $sql .= " ORDER BY c.id DESC";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $quotes = $stmt->fetchAll();
+
+            foreach ($quotes as &$q) {
+                $q['id'] = (int)$q['id'];
+                $q['items'] = json_decode($q['items'] ?? '[]', true) ?: [];
             }
-        } else {
-            // Consulta de todas las cotizaciones de la empresa: Solo Administradores
-            if (class_exists('Vault')) {
-                Vault::requireAdmin();
-            }
+
+            echo json_encode(['success' => true, 'count' => count($quotes), 'data' => $quotes], JSON_UNESCAPED_UNICODE);
+            exit();
         }
 
-        if ($estado) {
-            $sql .= " AND estado = ?";
-            $params[] = $estado;
-        }
+        if ($isClient) {
+            $authId = (int)$session['uid'];
+            $sql = "SELECT c.*, u.nombre_razon_social as usuario_nombre 
+                    FROM cotizaciones c 
+                    JOIN usuarios u ON c.usuario_id = u.id 
+                    WHERE c.usuario_id = ?";
+            $params = [$authId];
 
-        if ($search) {
-            $sql .= " AND (codigo_cotizacion LIKE ? OR {$colNombre} LIKE ? OR {$colDoc} LIKE ? OR {$colTel} LIKE ?)";
-            $sw = "%$search%";
-            $params[] = $sw;
-            $params[] = $sw;
-            $params[] = $sw;
-            $params[] = $sw;
-        }
-
-        $sql .= " ORDER BY id DESC LIMIT 200";
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Normalizar estructura de retorno
-        foreach ($res as &$r) {
-            $rawItems = $r['detalle_items'] ?? $r['items'] ?? '[]';
-            $r['items'] = is_string($rawItems) ? json_decode($rawItems, true) : $rawItems;
-            $r['detalle_items'] = $r['items'];
-            $r['nombre_cliente'] = $r['nombre_cliente'] ?? $r['cliente_nombre'] ?? 'Cliente';
-            $r['cliente_nombre'] = $r['nombre_cliente'];
-            $r['documento'] = $r['documento'] ?? $r['cliente_doc'] ?? '—';
-            $r['cliente_doc'] = $r['documento'];
-            $r['telefono'] = $r['telefono'] ?? $r['cliente_telefono'] ?? '';
-            $r['cliente_telefono'] = $r['telefono'];
-            $r['destino'] = $r['destino'] ?? $r['departamento'] ?? 'Lima Metropolitana';
-            $r['departamento'] = $r['destino'];
-            $r['codigo'] = $r['codigo_cotizacion'] ?? ('COT-' . $r['id']);
-            if (empty($r['estado'])) {
-                $r['estado'] = 'Pendiente';
+            if ($codigo) {
+                $sql .= " AND c.codigo_cotizacion = ?";
+                $params[] = $codigo;
             }
+
+            $sql .= " ORDER BY c.id DESC";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $quotes = $stmt->fetchAll();
+
+            foreach ($quotes as &$q) {
+                $q['id'] = (int)$q['id'];
+                $q['items'] = json_decode($q['items'] ?? '[]', true) ?: [];
+            }
+
+            echo json_encode(['success' => true, 'count' => count($quotes), 'data' => $quotes], JSON_UNESCAPED_UNICODE);
+            exit();
         }
 
-        // Estadísticas agregadas
-        $stmtStats = $pdo->query("
-            SELECT 
-                COUNT(*) as total,
-                COALESCE(SUM(CASE WHEN estado = 'Pendiente' THEN 1 ELSE 0 END), 0) as pendientes,
-                COALESCE(SUM(CASE WHEN estado IN ('Atendido', 'Despachado') THEN 1 ELSE 0 END), 0) as atendidos
-            FROM cotizaciones
-        ");
-        $statsRow = $stmtStats->fetch(PDO::FETCH_ASSOC) ?: [];
-        $stats = [
-            'total'      => (int)($statsRow['total'] ?? count($res)),
-            'pendientes' => (int)($statsRow['pendientes'] ?? 0),
-            'atendidos'  => (int)($statsRow['atendidos'] ?? 0)
-        ];
+        // Invitado no autenticado
+        if ($codigo && ($docParam || $emailParam)) {
+            $sql = "SELECT id, codigo_cotizacion, tipo_comprobante, documento, nombre_cliente, telefono, email, destino, items, total_items, estado, creado_en 
+                    FROM cotizaciones 
+                    WHERE codigo_cotizacion = ?";
+            $params = [$codigo];
 
-        echo json_encode([
-            'success' => true, 
-            'count'   => count($res), 
-            'stats'   => $stats,
-            'data'    => $res
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    } catch (PDOException $e) {
-        echo json_encode([
-            'success' => true, 
-            'count'   => 0, 
-            'stats'   => ['total' => 0, 'pendientes' => 0, 'atendidos' => 0],
-            'data'    => []
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
+            if ($docParam) {
+                $sql .= " AND documento = ?";
+                $params[] = $docParam;
+            } else {
+                $sql .= " AND LOWER(email) = LOWER(?)";
+                $params[] = $emailParam;
+            }
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $quote = $stmt->fetch();
+
+            if ($quote) {
+                $quote['id'] = (int)$quote['id'];
+                $quote['items'] = json_decode($quote['items'] ?? '[]', true) ?: [];
+                echo json_encode(['success' => true, 'data' => [$quote]], JSON_UNESCAPED_UNICODE);
+                exit();
+            }
+
+            ApiResponse::error('No se encontró la cotización con los datos de verificación proporcionados.', 'NOT_FOUND', 404);
+        }
+
+        ApiResponse::error('No autorizado: Inicie sesión o proporcione código de cotización y documento/correo de validación.', 'UNAUTHORIZED', 401);
+    } catch (Throwable $e) {
+        ApiResponse::error('Error al consultar cotizaciones.', 'FETCH_ERROR', 500, $e);
     }
 }
 
-http_response_code(405);
-echo json_encode(['success' => false, 'error' => 'Método no permitido'], JSON_UNESCAPED_UNICODE);
+ApiResponse::error('Método no permitido.', 'METHOD_NOT_ALLOWED', 405);

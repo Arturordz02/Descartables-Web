@@ -1,60 +1,130 @@
 <?php
 /**
- * API REST: Generador de Copia de Seguridad Completa (Backup en 1 Clic)
+ * API REST: Generador de Copias de Seguridad y Exportaciones Administrativas (F14)
  * Plataforma Descartables Peruanos
  * 
- * Exporta todas las entidades gestionables de la base de datos MySQL en formato JSON estructurado:
- * - configuracion (Datos del Negocio, Contacto, Redes y Parámetros)
- * - banners (Banners promocionales, Hero y Barra Superior)
- * - categorias (Categorías y líneas de productos)
- * - productos (Catálogo completo de productos, precios y disponibilidad)
- * - usuarios (Directorio de clientes y administradores)
- * - cotizaciones (Historial de cotizaciones B2B y sus ítems)
- * - libro_reclamaciones (Reclamaciones y quejas INDECOPI)
+ * Modos Soportados:
+ * 1. type=export (Por defecto): Exportación administrativa rápida en JSON para el panel admin.
+ *    - Excluye hashes de contraseñas y tokens.
+ *    - Política Fail-Fast: Si una sola tabla falla, aborta con HTTP 500 (sin falsos éxitos).
+ * 2. type=full / type=dr: Paquete comprimido integral de Disaster Recovery (.zip)
+ *    - Incluye manifest.json con conteo de registros y hashes SHA-256 por archivo.
+ *    - Incluye schema canónico, migraciones versionadas y datos lógicos.
+ *    - Incluye imágenes persistentes gestionadas.
+ *    - Excluye por política rate_limits (temporal/operativa) y secretos del servidor.
+ *    - En descarga directa (?download=1), elimina el archivo temporal tras el streaming.
  */
 
-require_once __DIR__ . '/db.php';
+declare(strict_types=1);
 
-$method = $_SERVER['REQUEST_METHOD'];
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/vault.php';
+require_once __DIR__ . '/response.php';
+require_once __DIR__ . '/backup_engine.php';
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method !== 'GET' && $method !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Método no permitido.'], JSON_UNESCAPED_UNICODE);
-    exit();
+    ApiResponse::error('Método no permitido.', 'METHOD_NOT_ALLOWED', 405);
+    return;
+}
+
+// 1. Control de Acceso Estricto: Administrador Obligatorio
+$adminUser = Vault::requireAdmin();
+if (!$adminUser) {
+    return;
 }
 
 $pdo = getDbConnection();
-
-// ================= 1. VALIDACIÓN DE SEGURIDAD ESTRICTA (ADMIN ONLY) =================
-$adminUser = class_exists('Vault') ? Vault::requireAdmin() : null;
-if (!$adminUser) {
-    http_response_code(403);
-    echo json_encode([
-        'success' => false,
-        'error'   => 'Acceso denegado: Esta función requiere privilegios de Administrador Master.'
-    ], JSON_UNESCAPED_UNICODE);
-    exit();
+if (!$pdo) {
+    ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
+    return;
 }
 
-// ================= 2. EXTRACCIÓN DE DATOS DE TODAS LAS TABLAS =================
+$type = isset($_GET['type']) ? strtolower(trim((string)$_GET['type'])) : 'export';
+if (isset($_GET['action']) && $_GET['action'] === 'full_backup') {
+    $type = 'full';
+}
+$isDirectDownload = isset($_GET['download']) && ($_GET['download'] === '1' || $_GET['download'] === 'true');
+
+// =========================================================================
+// MODO 1: PAQUETE INTEGRAL DE DISASTER RECOVERY (ZIP CON MANIFEST Y SHA-256)
+// =========================================================================
+if ($type === 'full' || $type === 'dr') {
+    try {
+        $result = BackupEngine::createDisasterRecoveryArchive($pdo, null, ['purge_days' => 7]);
+
+        if ($isDirectDownload) {
+            $filePath = $result['archive_path'];
+            if (!file_exists($filePath)) {
+                ApiResponse::error('El archivo de backup generado no se encuentra disponible para descarga.', 'BACKUP_NOT_FOUND', 500);
+                return;
+            }
+
+            // Headers seguros para streaming de archivo comprimido
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $result['archive_name'] . '"');
+            header('Content-Length: ' . (string)$result['size_bytes']);
+            header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+            header('X-Content-Type-Options: nosniff');
+
+            readfile($filePath);
+
+            // Eliminar copia temporal tras la descarga para no dejar archivos permanentes en webroot
+            @unlink($filePath);
+            exit();
+        } else {
+            ApiResponse::success([
+                'tipo'             => 'full_disaster_recovery',
+                'archivo'          => $result['archive_name'],
+                'tamanio_bytes'    => $result['size_bytes'],
+                'sha256'           => $result['sha256'],
+                'tablas_incluidas' => array_keys($result['manifest']['tablas']),
+                'total_archivos'   => $result['manifest']['archivos_persistentes']['total_archivos'] ?? 0,
+                'manifest'         => $result['manifest']
+            ], [
+                'message' => 'Paquete de Disaster Recovery generado exitosamente en almacenamiento privado.'
+            ]);
+            return;
+        }
+
+    } catch (Throwable $e) {
+        Logger::error('Error crítico al generar backup Disaster Recovery', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        ApiResponse::error('Fallo crítico al generar el paquete de recuperación: ' . $e->getMessage(), 'BACKUP_FAILED', 500, $e);
+        return;
+    }
+}
+
+// =========================================================================
+// MODO 2: EXPORTACIÓN ADMINISTRATIVA JSON (FAIL-FAST Y SIN SECRETOS)
+// =========================================================================
 try {
-    // 2.1 Configuración plana y estructurada
-    $configFlat = [];
+    // 2.1 Configuración
     try {
         $stmtConf = $pdo->query("SELECT clave, valor, updated_at FROM configuracion");
-        $confRows = $stmtConf->fetchAll();
+        if ($stmtConf === false) {
+            throw new RuntimeException("Error al ejecutar SELECT en 'configuracion'.");
+        }
+        $confRows = $stmtConf->fetchAll(PDO::FETCH_ASSOC);
+        $configFlat = [];
         foreach ($confRows as $row) {
             $configFlat[$row['clave']] = $row['valor'];
         }
-    } catch (Exception $e) {
-        $configFlat = [];
+    } catch (Throwable $e) {
+        Logger::error('Backup: Error al extraer configuracion', ['error' => $e->getMessage()]);
+        ApiResponse::error('Fallo al exportar tabla configuracion: ' . $e->getMessage(), 'BACKUP_TABLE_EXPORT_FAILED', 500, $e);
+        return;
     }
 
-    // Separar configuración del negocio y banners para máxima legibilidad
     $datosNegocio = [];
     $bannersData = [];
     foreach ($configFlat as $k => $v) {
-        if (strpos($k, 'banner_') === 0 || strpos($k, 'hero_') === 0) {
+        if (str_starts_with($k, 'banner_') || str_starts_with($k, 'hero_')) {
             $bannersData[$k] = $v;
         } else {
             $datosNegocio[$k] = $v;
@@ -62,77 +132,93 @@ try {
     }
 
     // 2.2 Categorías
-    $categorias = [];
     try {
         $stmtCat = $pdo->query("SELECT * FROM categorias ORDER BY id ASC");
-        $categorias = $stmtCat->fetchAll();
-    } catch (Exception $e) {
-        $categorias = [];
+        if ($stmtCat === false) {
+            throw new RuntimeException("Error al ejecutar SELECT en 'categorias'.");
+        }
+        $categorias = $stmtCat->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        Logger::error('Backup: Error al extraer categorias', ['error' => $e->getMessage()]);
+        ApiResponse::error('Fallo al exportar tabla categorias: ' . $e->getMessage(), 'BACKUP_TABLE_EXPORT_FAILED', 500, $e);
+        return;
     }
 
     // 2.3 Productos
-    $productos = [];
     try {
         $stmtProd = $pdo->query("SELECT * FROM productos ORDER BY id ASC");
-        $productos = $stmtProd->fetchAll();
-    } catch (Exception $e) {
-        $productos = [];
+        if ($stmtProd === false) {
+            throw new RuntimeException("Error al ejecutar SELECT en 'productos'.");
+        }
+        $productos = $stmtProd->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        Logger::error('Backup: Error al extraer productos', ['error' => $e->getMessage()]);
+        ApiResponse::error('Fallo al exportar tabla productos: ' . $e->getMessage(), 'BACKUP_TABLE_EXPORT_FAILED', 500, $e);
+        return;
     }
 
-    // 2.4 Directorio de Usuarios (Clientes y Admins)
-    $usuarios = [];
+    // 2.4 Usuarios (ESTRICTAMENTE SIN HASHES DE PASSWORD NI SECRETOS)
     try {
         $stmtUsers = $pdo->query("SELECT id, tipo_documento, numero_documento, nombre_razon_social, email, telefono, departamento, provincia, distrito, direccion, rol, creado_en FROM usuarios ORDER BY id ASC");
-        $usuarios = $stmtUsers->fetchAll();
-    } catch (Exception $e) {
-        $usuarios = [];
+        if ($stmtUsers === false) {
+            throw new RuntimeException("Error al ejecutar SELECT en 'usuarios'.");
+        }
+        $usuarios = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        Logger::error('Backup: Error al extraer usuarios', ['error' => $e->getMessage()]);
+        ApiResponse::error('Fallo al exportar tabla usuarios: ' . $e->getMessage(), 'BACKUP_TABLE_EXPORT_FAILED', 500, $e);
+        return;
     }
 
     // 2.5 Cotizaciones B2B
-    $cotizaciones = [];
     try {
         $stmtCotiz = $pdo->query("SELECT * FROM cotizaciones ORDER BY id DESC");
-        $cotizacionesRaw = $stmtCotiz->fetchAll();
+        if ($stmtCotiz === false) {
+            throw new RuntimeException("Error al ejecutar SELECT en 'cotizaciones'.");
+        }
+        $cotizacionesRaw = $stmtCotiz->fetchAll(PDO::FETCH_ASSOC);
+        $cotizaciones = [];
         foreach ($cotizacionesRaw as $c) {
             if (isset($c['items']) && is_string($c['items'])) {
                 $decoded = json_decode($c['items'], true);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     $c['items'] = $decoded;
                 }
-            } elseif (isset($c['detalle_items']) && is_string($c['detalle_items'])) {
-                $decoded = json_decode($c['detalle_items'], true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $c['detalle_items'] = $decoded;
-                }
             }
             $cotizaciones[] = $c;
         }
-    } catch (Exception $e) {
-        $cotizaciones = [];
+    } catch (Throwable $e) {
+        Logger::error('Backup: Error al extraer cotizaciones', ['error' => $e->getMessage()]);
+        ApiResponse::error('Fallo al exportar tabla cotizaciones: ' . $e->getMessage(), 'BACKUP_TABLE_EXPORT_FAILED', 500, $e);
+        return;
     }
 
-    // 2.6 Libro de Reclamaciones (Normativa INDECOPI)
-    $reclamaciones = [];
+    // 2.6 Libro de Reclamaciones
     try {
-        $tableExists = $pdo->query("SHOW TABLES LIKE 'libro_reclamaciones'")->fetch();
-        $tableName = $tableExists ? 'libro_reclamaciones' : 'reclamaciones';
-        $stmtRec = $pdo->query("SELECT * FROM {$tableName} ORDER BY id DESC");
-        $reclamaciones = $stmtRec->fetchAll();
-    } catch (Exception $e) {
-        $reclamaciones = [];
+        $stmtRec = $pdo->query("SELECT * FROM libro_reclamaciones ORDER BY id DESC");
+        if ($stmtRec === false) {
+            throw new RuntimeException("Error al ejecutar SELECT en 'libro_reclamaciones'.");
+        }
+        $reclamaciones = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        Logger::error('Backup: Error al extraer libro_reclamaciones', ['error' => $e->getMessage()]);
+        ApiResponse::error('Fallo al exportar tabla libro_reclamaciones: ' . $e->getMessage(), 'BACKUP_TABLE_EXPORT_FAILED', 500, $e);
+        return;
     }
 
-    // ================= 3. ESTRUCTURAR PAYLOAD DE BACKUP =================
+    // Estructurar Payload de Exportación Administrativa
     date_default_timezone_set('America/Lima');
     $now = new DateTime();
     $fechaIso = $now->format('c');
     $fechaNombreArchivo = $now->format('Y-m-d_Hi');
-    $filename = "backup_descartables_{$fechaNombreArchivo}.json";
+    $filename = "export_descartables_{$fechaNombreArchivo}.json";
 
     $backupPayload = [
         '_metadata' => [
             'sistema'           => 'Descartables Peruanos - Plataforma Web & Panel Administrativo',
-            'version_backup'    => '1.0',
+            'tipo_operacion'    => BackupEngine::BACKUP_TYPE_EXPORT,
+            'advertencia'       => 'Esta es una exportación lógica administrativa en formato JSON para el panel de control. No sustituye un paquete de recuperación ante desastres (Disaster Recovery).',
+            'version'           => '2.0',
             'fecha_exportacion' => $fechaIso,
             'timestamp'         => time(),
             'generado_por'      => [
@@ -159,31 +245,26 @@ try {
         'libro_reclamaciones'    => $reclamaciones
     ];
 
-    // ================= 4. DESCARGA DIRECTA O RESPUESTA JSON =================
-    $isDirectDownload = isset($_GET['download']) && ($_GET['download'] === '1' || $_GET['download'] === 'true');
-
     if ($isDirectDownload) {
         header('Content-Type: application/json; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Pragma: no-cache');
         header('Expires: 0');
+        header('X-Content-Type-Options: nosniff');
         echo json_encode($backupPayload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit();
     } else {
-        echo json_encode([
-            'success'  => true,
+        ApiResponse::success($backupPayload, [
             'filename' => $filename,
-            'metadata' => $backupPayload['_metadata'],
-            'data'     => $backupPayload
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        exit();
+            'metadata' => $backupPayload['_metadata']
+        ]);
+        return;
     }
 
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error'   => 'Error crítico al generar la copia de seguridad: ' . $e->getMessage()
-    ], JSON_UNESCAPED_UNICODE);
-    exit();
+} catch (Throwable $e) {
+    Logger::error('Error general durante la exportación administrativa', [
+        'error' => $e->getMessage()
+    ]);
+    ApiResponse::error('Error crítico al procesar la exportación administrativa: ' . $e->getMessage(), 'BACKUP_FAILED', 500, $e);
+    return;
 }

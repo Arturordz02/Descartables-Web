@@ -1,218 +1,470 @@
 <?php
 /**
  * API REST: Libro de Reclamaciones Virtual
- * Normativa INDECOPI (D.S. 011-2011-PCM)
+ * Normativa INDECOPI (D.S. 011-2011-PCM / Ley N° 31435)
+ * Plataforma Descartables Peruanos
  */
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/vault.php';
+require_once __DIR__ . '/concurrency.php';
+require_once __DIR__ . '/validator.php';
+require_once __DIR__ . '/ratelimit.php';
+require_once __DIR__ . '/response.php';
+
+Vault::handleCors();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+// =========================================================================
+// 1. REGISTRAR HOJA DE RECLAMACIÓN (POST)
+// =========================================================================
 if ($method === 'POST') {
-    $inputJSON = file_get_contents('php://input');
-    $data = json_decode($inputJSON, true);
+    $data = Validator::parseJsonInput(1048576);
 
-    if (!$data) {
-        $data = $_POST;
+    // 1. Validar Tipo y Número de Documento de Identidad
+    $tipoDoc = Validator::validateAllowlist($data['tipo_documento'] ?? 'DNI', ['DNI', 'RUC', 'CE', 'Pasaporte'], true);
+    if ($tipoDoc === null) {
+        ApiResponse::error('Tipo de documento no válido. Tipos aceptados: DNI, RUC, CE, Pasaporte.', 'VALIDATION_ERROR', 400);
+        return;
     }
 
-    // Validar campos obligatorios
-    $requiredFields = [
-        'tipo_documento', 'numero_documento', 'nombre_completo', 
-        'telefono', 'email', 'departamento', 'provincia', 'distrito', 
-        'direccion', 'tipo_bien', 'monto_reclamado', 'descripcion_bien', 
-        'tipo_reclamacion', 'detalle_reclamacion', 'pedido_consumidor'
-    ];
+    $docResult = Validator::validateDocument((string)($data['numero_documento'] ?? ''), $tipoDoc);
+    if (!$docResult) {
+        ApiResponse::error('Número de documento no válido para el tipo seleccionado (DNI requiere 8 dígitos numéricos y RUC 11 dígitos).', 'VALIDATION_ERROR', 400);
+        return;
+    }
+    $numDoc = $docResult['documento'];
 
-    foreach ($requiredFields as $field) {
-        if (!isset($data[$field]) || trim((string)$data[$field]) === '') {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'error'   => "El campo '{$field}' es obligatorio según normativa INDECOPI."
-            ], JSON_UNESCAPED_UNICODE);
-            exit();
+    // 2. Validar Nombre Completo
+    $nombre = Validator::validateText($data['nombre_completo'] ?? '', 2, 150);
+    if (!$nombre) {
+        ApiResponse::error('El nombre completo debe tener entre 2 y 150 caracteres.', 'VALIDATION_ERROR', 400);
+        return;
+    }
+
+    // 3. Validar Teléfono
+    $telefono = Validator::validatePhone((string)($data['telefono'] ?? ''));
+    if (!$telefono) {
+        ApiResponse::error('El número de teléfono ingresado no tiene un formato válido (entre 7 y 15 dígitos).', 'VALIDATION_ERROR', 400);
+        return;
+    }
+
+    // 4. Validar Correo Electrónico
+    $email = Validator::validateEmail((string)($data['email'] ?? ''));
+    if (!$email) {
+        ApiResponse::error('El correo electrónico ingresado no tiene un formato válido.', 'VALIDATION_ERROR', 400);
+        return;
+    }
+
+    // 5. Validar Datos Geográficos y Dirección
+    $departamento = Validator::validateText($data['departamento'] ?? 'Lima', 2, 100) ?: 'Lima';
+    $provincia = Validator::validateText($data['provincia'] ?? 'Lima', 2, 100) ?: 'Lima';
+    $distrito = Validator::validateText($data['distrito'] ?? '', 2, 100);
+    $direccion = Validator::validateText($data['direccion'] ?? '', 5, 255);
+
+    if (!$distrito || !$direccion) {
+        ApiResponse::error('El distrito y la dirección domiciliaria (mínimo 5 caracteres) son obligatorios.', 'VALIDATION_ERROR', 400);
+        return;
+    }
+
+    // 6. Validar Menor de Edad y Tutor
+    $es_menor = !empty($data['es_menor']) ? 1 : 0;
+    $nombre_tutor = null;
+    if ($es_menor) {
+        $nombre_tutor = Validator::validateText((string)($data['nombre_tutor'] ?? ''), 2, 150);
+        if (!$nombre_tutor) {
+            ApiResponse::error('Al indicar que es menor de edad, el nombre del padre, madre o tutor es obligatorio (2-150 caracteres).', 'VALIDATION_ERROR', 400);
+            return;
         }
     }
 
-    $pdo = getDbConnection();
+    // 7. Validar Datos del Bien Reclamado
+    $tipo_bien = Validator::validateAllowlist($data['tipo_bien'] ?? 'Producto', ['Producto', 'Servicio'], true);
+    $monto = Validator::validatePrice($data['monto_reclamado'] ?? 0.0, 0.0, 1000000.0);
+    $descripcion_bien = Validator::validateText($data['descripcion_bien'] ?? '', 3, 500, true);
 
-    // Generar código correlativo de hoja de reclamación (Ej: REC-2026-00001)
-    $anio = date('Y');
-    $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM libro_reclamaciones WHERE codigo_hoja LIKE ?");
-    $stmtCount->execute(["REC-{$anio}-%"]);
-    $row = $stmtCount->fetch();
-    $nextNumber = ((int)$row['total']) + 1;
-    $codigo_hoja = sprintf('REC-%s-%05d', $anio, $nextNumber);
+    if (!$tipo_bien || $monto === null || !$descripcion_bien) {
+        ApiResponse::error('Datos del bien contratado no válidos (tipo: Producto/Servicio, descripción 3-500 caracteres, monto positivo válido).', 'VALIDATION_ERROR', 400);
+        return;
+    }
 
-    $sql = "INSERT INTO libro_reclamaciones (
-        codigo_hoja, tipo_documento, numero_documento, nombre_completo, 
-        telefono, email, departamento, provincia, distrito, direccion, 
-        es_menor, nombre_tutor, tipo_bien, monto_reclamado, descripcion_bien, 
-        tipo_reclamacion, detalle_reclamacion, pedido_consumidor, estado
-    ) VALUES (
-        ?, ?, ?, ?, 
-        ?, ?, ?, ?, ?, ?, 
-        ?, ?, ?, ?, ?, 
-        ?, ?, ?, 'Pendiente'
-    )";
+    // 8. Validar Reclamación y Pedido
+    $tipo_reclamacion = Validator::validateAllowlist($data['tipo_reclamacion'] ?? 'Reclamo', ['Reclamo', 'Queja'], true);
+    $detalle_reclamacion = Validator::validateText($data['detalle_reclamacion'] ?? '', 10, 3000, true);
+    $pedido_consumidor = Validator::validateText($data['pedido_consumidor'] ?? '', 5, 1000, true);
 
-    $stmt = $pdo->prepare($sql);
-    $es_menor = !empty($data['es_menor']) ? 1 : 0;
-    $nombre_tutor = $es_menor && !empty($data['nombre_tutor']) ? trim($data['nombre_tutor']) : null;
-    $monto = floatval($data['monto_reclamado']);
-
-    $stmt->execute([
-        $codigo_hoja,
-        $data['tipo_documento'],
-        trim($data['numero_documento']),
-        trim($data['nombre_completo']),
-        trim($data['telefono']),
-        trim($data['email']),
-        trim($data['departamento']),
-        trim($data['provincia']),
-        trim($data['distrito']),
-        trim($data['direccion']),
-        $es_menor,
-        $nombre_tutor,
-        $data['tipo_bien'],
-        $monto,
-        trim($data['descripcion_bien']),
-        $data['tipo_reclamacion'],
-        trim($data['detalle_reclamacion']),
-        trim($data['pedido_consumidor'])
-    ]);
-
-    $reclamacion_id = $pdo->lastInsertId();
-
-    echo json_encode([
-        'success'      => true,
-        'message'      => 'Su Hoja de Reclamación ha sido registrada exitosamente conforme a la normativa INDECOPI.',
-        'codigo_hoja'  => $codigo_hoja,
-        'fecha'        => date('d/m/Y H:i:s'),
-        'empresa'      => [
-            'razon_social' => EMPRESA_RAZON_SOCIAL,
-            'ruc'          => EMPRESA_RUC,
-            'direccion'    => EMPRESA_DIRECCION,
-            'telefono'     => EMPRESA_TELEFONO,
-            'email'        => EMPRESA_EMAIL
-        ],
-        'plazo_legal'  => '15 días hábiles conforme a la Ley N° 31435 que modifica el Código de Protección y Defensa del Consumidor.'
-    ], JSON_UNESCAPED_UNICODE);
-    exit();
-}
-
-if ($method === 'GET') {
-    $codigo = isset($_GET['codigo']) ? trim($_GET['codigo']) : null;
-    $doc = isset($_GET['documento']) ? trim($_GET['documento']) : null;
+    if (!$tipo_reclamacion || !$detalle_reclamacion || !$pedido_consumidor) {
+        ApiResponse::error('El detalle de la reclamación debe tener entre 10 y 3,000 caracteres, y el pedido del consumidor entre 5 y 1,000 caracteres.', 'VALIDATION_ERROR', 400);
+        return;
+    }
 
     $pdo = getDbConnection();
     if (!$pdo) {
-        echo json_encode(['success' => true, 'data' => [], 'stats' => ['total' => 0, 'pendientes' => 0, 'atendidos' => 0]]);
-        exit();
+        ApiResponse::error('Base de datos no disponible para registro oficial.', 'DB_UNAVAILABLE', 503);
+        return;
     }
 
-    if ($codigo) {
-        $stmt = $pdo->prepare("SELECT * FROM libro_reclamaciones WHERE codigo_hoja = ?");
-        $stmt->execute([$codigo]);
-        $resultados = $stmt->fetchAll();
-        echo json_encode(['success' => true, 'data' => $resultados], JSON_UNESCAPED_UNICODE);
-        exit();
-    }
-
-    if ($doc) {
-        $stmt = $pdo->prepare("SELECT * FROM libro_reclamaciones WHERE numero_documento = ? ORDER BY id DESC");
-        $stmt->execute([$doc]);
-        $resultados = $stmt->fetchAll();
-        echo json_encode(['success' => true, 'data' => $resultados], JSON_UNESCAPED_UNICODE);
-        exit();
-    }
-
-    // Listado general para Panel Administrativo: Requiere autorización de Administrador
+    // Identificar sesión de usuario autenticado si existe
+    $usuario_id = null;
     if (class_exists('Vault')) {
-        Vault::requireAdmin();
+        $token = Vault::extractTokenFromRequest();
+        $session = $token ? Vault::validateToken($token) : null;
+        if ($session && !empty($session['uid'])) {
+            $usuario_id = (int)$session['uid'];
+        }
     }
 
-    $stmt = $pdo->query("SELECT * FROM libro_reclamaciones ORDER BY id DESC");
-    $resultados = $stmt->fetchAll();
+    // =========================================================================
+    // VERIFICACIÓN DE IDEMPOTENCIA (ANTES DEL RATE LIMIT)
+    // =========================================================================
+    $idempotencyKey = ConcurrencyEngine::extractIdempotencyKey($data);
+    $scope = 'reclamacion:create';
+    $requestHash = ConcurrencyEngine::normalizePayloadForFingerprint($data);
 
-    // Estadísticas agregadas
-    $stmtStats = $pdo->query("
-        SELECT 
-            COUNT(*) as total,
-            COALESCE(SUM(CASE WHEN estado = 'Pendiente' THEN 1 ELSE 0 END), 0) as pendientes,
-            COALESCE(SUM(CASE WHEN estado = 'En Proceso' THEN 1 ELSE 0 END), 0) as en_proceso,
-            COALESCE(SUM(CASE WHEN estado = 'Atendido' THEN 1 ELSE 0 END), 0) as atendidos,
-            COALESCE(SUM(CASE WHEN tipo_reclamacion = 'Reclamo' THEN 1 ELSE 0 END), 0) as reclamos,
-            COALESCE(SUM(CASE WHEN tipo_reclamacion = 'Queja' THEN 1 ELSE 0 END), 0) as quejas
-        FROM libro_reclamaciones
-    ");
-    $rawStats = $stmtStats->fetch() ?: [];
-    $stats = [
-        'total'      => (int)($rawStats['total'] ?? count($resultados)),
-        'pendientes' => (int)($rawStats['pendientes'] ?? 0),
-        'en_proceso' => (int)($rawStats['en_proceso'] ?? 0),
-        'atendidos'  => (int)($rawStats['atendidos'] ?? 0),
-        'reclamos'   => (int)($rawStats['reclamos'] ?? 0),
-        'quejas'     => (int)($rawStats['quejas'] ?? 0)
-    ];
+    if ($idempotencyKey) {
+        $checkPre = ConcurrencyEngine::checkIdempotency($pdo, $scope, $idempotencyKey, $requestHash, $usuario_id, $numDoc);
+        if ($checkPre['status'] === 'conflict') {
+            ApiResponse::error(
+                $checkPre['error'],
+                $checkPre['code'] ?? 'IDEMPOTENCY_CONFLICT',
+                $checkPre['http_code'] ?? 409
+            );
+            return;
+        }
+        if ($checkPre['status'] === 'replay') {
+            header('X-Idempotent-Replay: true');
+            $replayPayload = $checkPre['response'];
+            $replayPayload['idempotent_replay'] = true;
+            ApiResponse::success($replayPayload, $replayPayload);
+            return;
+        }
+    }
 
-    echo json_encode([
-        'success' => true,
-        'count'   => count($resultados),
-        'stats'   => $stats,
-        'data'    => $resultados
-    ], JSON_UNESCAPED_UNICODE);
-    exit();
+    // Control de abuso: Máximo 10 reclamaciones nuevas por hora por IP / usuario
+    RateLimiter::enforce($pdo, 'reclamacion:create', 10, 3600, 3600, $usuario_id);
+
+    $pdo->beginTransaction();
+
+    try {
+        // Verificación de idempotencia bajo bloqueo transaccional
+        if ($idempotencyKey) {
+            $checkLocked = ConcurrencyEngine::checkIdempotency($pdo, $scope, $idempotencyKey, $requestHash, $usuario_id, $numDoc);
+            if ($checkLocked['status'] === 'conflict') {
+                $pdo->rollBack();
+                ApiResponse::error(
+                    $checkLocked['error'],
+                    $checkLocked['code'] ?? 'IDEMPOTENCY_CONFLICT',
+                    $checkLocked['http_code'] ?? 409
+                );
+                return;
+            }
+            if ($checkLocked['status'] === 'replay') {
+                $pdo->rollBack();
+                header('X-Idempotent-Replay: true');
+                $replayPayload = $checkLocked['response'];
+                $replayPayload['idempotent_replay'] = true;
+                ApiResponse::success($replayPayload, $replayPayload);
+                return;
+            }
+        }
+
+        // Generar código correlativo de hoja de reclamación atómico (Ej: REC-2026-00001)
+        $anio = (int)date('Y');
+        $codigo_hoja = ConcurrencyEngine::nextCorrelative($pdo, 'RECLAMACION', $anio);
+
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $nowSql = $driver === 'sqlite' ? "datetime('now')" : "NOW()";
+
+        $sql = "INSERT INTO libro_reclamaciones (
+            codigo_hoja, tipo_documento, numero_documento, nombre_completo, 
+            telefono, email, departamento, provincia, distrito, direccion, 
+            es_menor, nombre_tutor, tipo_bien, monto_reclamado, descripcion_bien, 
+            tipo_reclamacion, detalle_reclamacion, pedido_consumidor, estado, creado_en
+        ) VALUES (
+            ?, ?, ?, ?, 
+            ?, ?, ?, ?, ?, ?, 
+            ?, ?, ?, ?, ?, 
+            ?, ?, ?, 'Pendiente', $nowSql
+        )";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            $codigo_hoja,
+            $tipoDoc,
+            $numDoc,
+            $nombre,
+            $telefono,
+            $email,
+            $departamento,
+            $provincia,
+            $distrito,
+            $direccion,
+            $es_menor,
+            $nombre_tutor,
+            $tipo_bien,
+            $monto,
+            $descripcion_bien,
+            $tipo_reclamacion,
+            $detalle_reclamacion,
+            $pedido_consumidor
+        ]);
+
+        $reclamacion_id = (int)$pdo->lastInsertId();
+
+        $responsePayload = [
+            'success'      => true,
+            'message'      => 'Su Hoja de Reclamación ha sido registrada exitosamente conforme a la normativa INDECOPI.',
+            'codigo_hoja'  => $codigo_hoja,
+            'id'           => $reclamacion_id,
+            'fecha'        => date('d/m/Y H:i:s'),
+            'empresa'      => [
+                'razon_social' => defined('EMPRESA_RAZON_SOCIAL') ? EMPRESA_RAZON_SOCIAL : 'DESCARTABLES PERUANOS S.A.C.',
+                'ruc'          => defined('EMPRESA_RUC') ? EMPRESA_RUC : '20601234567',
+                'direccion'    => defined('EMPRESA_DIRECCION') ? EMPRESA_DIRECCION : 'Av. Alejandro Bertello 732-C, Cercado de Lima',
+                'telefono'     => defined('EMPRESA_TELEFONO') ? EMPRESA_TELEFONO : '(01) 000-0000',
+                'email'        => defined('EMPRESA_EMAIL') ? EMPRESA_EMAIL : 'ventas@descartablesperuanos.pe'
+            ],
+            'plazo_legal'  => '15 días hábiles conforme a la Ley N° 31435 que modifica el Código de Protección y Defensa del Consumidor.'
+        ];
+
+        // Guardar respuesta de idempotencia en la misma transacción
+        ConcurrencyEngine::saveIdempotency(
+            $pdo,
+            $scope,
+            $idempotencyKey,
+            $requestHash,
+            $codigo_hoja,
+            $responsePayload,
+            $usuario_id,
+            $numDoc
+        );
+
+        $pdo->commit();
+
+        ApiResponse::success($responsePayload, $responsePayload);
+        return;
+
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        ApiResponse::error('Error interno al registrar reclamación.', 'RECLAMACION_CREATE_FAILED', 500, $e);
+        return;
+    }
 }
 
-if ($method === 'PUT') {
-    // Solo un administrador puede actualizar el estado o respuesta de una reclamación
-    if (class_exists('Vault')) {
-        Vault::requireAdmin();
+// =========================================================================
+// 2. CONSULTAR HOJAS DE RECLAMACIÓN (GET)
+// =========================================================================
+if ($method === 'GET') {
+    $codigo = isset($_GET['codigo']) ? trim((string)$_GET['codigo']) : (isset($_GET['codigo_hoja']) ? trim((string)$_GET['codigo_hoja']) : null);
+    $docParam = isset($_GET['documento']) ? trim((string)$_GET['documento']) : (isset($_GET['numero_documento']) ? trim((string)$_GET['numero_documento']) : null);
+    $emailParam = isset($_GET['email']) ? trim((string)$_GET['email']) : null;
+
+    $pdo = getDbConnection();
+    if (!$pdo) {
+        ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
+        return;
     }
 
-    $inputJSON = file_get_contents('php://input');
-    $data = json_decode($inputJSON, true);
+    try {
+        // Verificar sesión y rol
+        $token = class_exists('Vault') ? Vault::extractTokenFromRequest() : null;
+        $session = ($token && class_exists('Vault')) ? Vault::validateToken($token) : null;
+
+        $isAdmin = ($session && isset($session['rol']) && $session['rol'] === 'admin');
+        $isClient = ($session && isset($session['rol']) && $session['rol'] === 'cliente');
+
+        // CASO A: Administrador autorizado (Listado global, búsqueda y estadísticas)
+        if ($isAdmin) {
+            $sql = "SELECT * FROM libro_reclamaciones WHERE 1=1";
+            $params = [];
+
+            if ($codigo) {
+                $sql .= " AND codigo_hoja = ?";
+                $params[] = $codigo;
+            }
+            if ($docParam) {
+                $sql .= " AND numero_documento = ?";
+                $params[] = $docParam;
+            }
+
+            $sql .= " ORDER BY id DESC";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $resultados = $stmt->fetchAll();
+
+            $stmtStats = $pdo->query("
+                SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN estado = 'Pendiente' THEN 1 ELSE 0 END) as pendientes,
+                    SUM(CASE WHEN estado = 'Atendido' THEN 1 ELSE 0 END) as atendidos,
+                    SUM(CASE WHEN tipo_reclamacion = 'Reclamo' THEN 1 ELSE 0 END) as reclamos,
+                    SUM(CASE WHEN tipo_reclamacion = 'Queja' THEN 1 ELSE 0 END) as quejas
+                FROM libro_reclamaciones
+            ");
+            $stats = $stmtStats->fetch() ?: ['total' => 0, 'pendientes' => 0, 'atendidos' => 0, 'reclamos' => 0, 'quejas' => 0];
+
+            ApiResponse::success($resultados, [
+                'count' => count($resultados),
+                'stats' => $stats
+            ]);
+            return;
+        }
+
+        // CASO B: Cliente autenticado consultando su historial
+        if ($isClient) {
+            $authDoc = $session['doc'] ?? null;
+            $authEmail = $session['email'] ?? null;
+
+            $sql = "SELECT id, codigo_hoja, tipo_documento, numero_documento, nombre_completo, tipo_bien, monto_reclamado, descripcion_bien, tipo_reclamacion, detalle_reclamacion, pedido_consumidor, estado, respuesta_proveedor, fecha_respuesta, creado_en 
+                    FROM libro_reclamaciones 
+                    WHERE (numero_documento = ? OR LOWER(email) = LOWER(?))";
+            $params = [$authDoc, $authEmail];
+
+            if ($codigo) {
+                $sql .= " AND codigo_hoja = ?";
+                $params[] = $codigo;
+            }
+
+            $sql .= " ORDER BY id DESC";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $resultados = $stmt->fetchAll();
+
+            ApiResponse::success($resultados, [
+                'count' => count($resultados)
+            ]);
+            return;
+        }
+
+        // CASO C: Consulta de Invitado con Doble Factor (Código + Documento o Correo)
+        if ($codigo) {
+            if (!$docParam && !$emailParam) {
+                ApiResponse::error('No autorizado: Se requiere el número de documento o correo electrónico de verificación junto al código de reclamación.', 'VERIFICATION_REQUIRED', 401);
+                return;
+            }
+
+            $sql = "SELECT id, codigo_hoja, tipo_documento, numero_documento, nombre_completo, 
+                           telefono, email, departamento, provincia, distrito, direccion,
+                           tipo_bien, monto_reclamado, descripcion_bien, tipo_reclamacion, 
+                           detalle_reclamacion, pedido_consumidor, estado, respuesta_proveedor, 
+                           fecha_respuesta, creado_en 
+                    FROM libro_reclamaciones 
+                    WHERE codigo_hoja = ?";
+            $params = [$codigo];
+
+            if ($docParam) {
+                $sql .= " AND numero_documento = ?";
+                $params[] = $docParam;
+            } else {
+                $sql .= " AND LOWER(email) = LOWER(?)";
+                $params[] = $emailParam;
+            }
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $reclamacion = $stmt->fetch();
+
+            if ($reclamacion) {
+                ApiResponse::success([$reclamacion], [
+                    'count' => 1
+                ]);
+                return;
+            }
+
+            ApiResponse::error('No se encontró ninguna hoja de reclamación con los datos de verificación proporcionados.', 'NOT_FOUND', 404);
+            return;
+        }
+
+        // Si se consulta sin código pero con documento/email en público (ej: login o perfil)
+        if ($docParam || $emailParam) {
+            // Requiere autenticación activa para listar por documento sin código específico
+            ApiResponse::error('No autorizado: Se requiere una sesión activa para consultar hojas de reclamación por documento.', 'AUTH_REQUIRED', 401);
+            return;
+        }
+
+        ApiResponse::error('No autorizado: Se requiere iniciar sesión o proporcionar el código de hoja y número de documento/correo de verificación.', 'AUTH_REQUIRED', 401);
+        return;
+
+    } catch (Throwable $e) {
+        ApiResponse::error('Error al consultar reclamaciones.', 'FETCH_ERROR', 500, $e);
+        return;
+    }
+}
+
+// =========================================================================
+// 3. ACTUALIZAR ESTADO Y RESPUESTA (PUT - SOLO ADMINISTRADOR)
+// =========================================================================
+if ($method === 'PUT') {
+    if (class_exists('Vault')) {
+        $admin = Vault::requireAdmin();
+        if (!$admin) {
+            return;
+        }
+    }
+
+    $data = Validator::parseJsonInput(1048576);
 
     if (!$data || (empty($data['id']) && empty($data['codigo_hoja']))) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'Se requiere el ID o código de la hoja de reclamación.']);
-        exit();
+        ApiResponse::error('Se requiere el ID o código de la hoja de reclamación.', 'VALIDATION_ERROR', 400);
+        return;
     }
 
     $pdo = getDbConnection();
     if (!$pdo) {
-        echo json_encode(['success' => true, 'message' => 'Actualizado en modo local.']);
-        exit();
+        ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
+        return;
     }
 
     $id = !empty($data['id']) ? (int)$data['id'] : null;
-    $codigo = !empty($data['codigo_hoja']) ? trim($data['codigo_hoja']) : null;
-    $estado = in_array($data['estado'] ?? '', ['Pendiente', 'En Proceso', 'Atendido']) ? $data['estado'] : 'Atendido';
-    $respuesta = trim($data['respuesta_proveedor'] ?? '');
+    $codigo = !empty($data['codigo_hoja']) ? trim((string)$data['codigo_hoja']) : null;
 
-    if ($id) {
-        $stmt = $pdo->prepare("UPDATE libro_reclamaciones SET estado = ?, respuesta_proveedor = ?, fecha_respuesta = NOW() WHERE id = ?");
-        $stmt->execute([$estado, $respuesta, $id]);
+    $validEstados = ['Pendiente', 'En Proceso', 'Atendido', 'Cerrado'];
+    if (isset($data['estado'])) {
+        $estado = Validator::validateAllowlist((string)$data['estado'], $validEstados, 'Estado de Reclamación');
+        if (!$estado) {
+            ApiResponse::error('Estado de reclamación no válido. Permitidos: ' . implode(', ', $validEstados), 'VALIDATION_ERROR', 400);
+            return;
+        }
     } else {
-        $stmt = $pdo->prepare("UPDATE libro_reclamaciones SET estado = ?, respuesta_proveedor = ?, fecha_respuesta = NOW() WHERE codigo_hoja = ?");
-        $stmt->execute([$estado, $respuesta, $codigo]);
+        $estado = 'Atendido';
     }
 
-    echo json_encode([
-        'success' => true,
-        'message' => 'Hoja de reclamación actualizada exitosamente conforme a INDECOPI.',
-        'data'    => [
+    $respuesta = isset($data['respuesta_proveedor']) ? (Validator::validateText((string)$data['respuesta_proveedor'], 0, 3000, true) ?: '') : '';
+
+    try {
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $nowSql = $driver === 'sqlite' ? "datetime('now')" : "NOW()";
+
+        if ($id) {
+            $stmt = $pdo->prepare("UPDATE libro_reclamaciones SET estado = ?, respuesta_proveedor = ?, fecha_respuesta = $nowSql WHERE id = ?");
+            $stmt->execute([$estado, $respuesta, $id]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE libro_reclamaciones SET estado = ?, respuesta_proveedor = ?, fecha_respuesta = $nowSql WHERE codigo_hoja = ?");
+            $stmt->execute([$estado, $respuesta, $codigo]);
+        }
+
+        $updatedData = [
             'id'                  => $id,
+            'codigo_hoja'         => $codigo,
             'estado'              => $estado,
             'respuesta_proveedor' => $respuesta,
             'fecha_respuesta'     => date('Y-m-d H:i:s')
-        ]
-    ], JSON_UNESCAPED_UNICODE);
-    exit();
+        ];
+
+        ApiResponse::success($updatedData, [
+            'message' => 'Hoja de reclamación actualizada exitosamente conforme a INDECOPI.'
+        ]);
+        return;
+
+    } catch (Throwable $e) {
+        ApiResponse::error('Error al actualizar la hoja de reclamación.', 'UPDATE_ERROR', 500, $e);
+        return;
+    }
 }
 
-http_response_code(405);
-echo json_encode(['success' => false, 'error' => 'Método no permitido']);
-
+ApiResponse::error('Método no permitido.', 'METHOD_NOT_ALLOWED', 405);

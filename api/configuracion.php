@@ -5,9 +5,14 @@
  */
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/validator.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = getDbConnection();
+
+if (!$pdo) {
+    ApiResponse::error('Base de datos no disponible.', 'DB_UNAVAILABLE', 503);
+}
 
 // Formateador de respuesta estructurada compatible con COMPANY_CONTACT
 function buildStructuredConfig($flatConfig) {
@@ -94,15 +99,9 @@ if ($method === 'GET') {
 
         $structured = buildStructuredConfig($rows);
 
-        echo json_encode([
-            'success' => true,
-            'data'    => $structured
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Error al consultar configuración: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::success($structured);
+    } catch (Throwable $e) {
+        ApiResponse::error('Error al consultar configuración.', 'SERVER_ERROR', 500, $e);
     }
 }
 
@@ -114,14 +113,38 @@ if ($method === 'POST' || $method === 'PUT') {
     }
 
     try {
-        $rawInput = file_get_contents('php://input');
-        $data = json_decode($rawInput, true);
-        if (!$data || !is_array($data)) {
+        $data = Validator::parseJsonInput();
+        if (empty($data)) {
             $data = $_POST;
         }
 
         // Si envían 'flat' o directamente los campos
         $fieldsToSave = isset($data['flat']) && is_array($data['flat']) ? $data['flat'] : $data;
+
+        // Validaciones de negocio en campos sensibles si están presentes
+        if (isset($fieldsToSave['ruc']) && trim((string)$fieldsToSave['ruc']) !== '') {
+            $rucVal = Validator::validateDocument((string)$fieldsToSave['ruc'], 'RUC');
+            if ($rucVal === null) {
+                ApiResponse::error('RUC de empresa no válido. Debe contener 11 dígitos numéricos.', 'VALIDATION_ERROR', 400);
+            }
+            $fieldsToSave['ruc'] = $rucVal['documento'];
+        }
+
+        if (isset($fieldsToSave['email_ventas']) && trim((string)$fieldsToSave['email_ventas']) !== '') {
+            $emVal = Validator::validateEmail((string)$fieldsToSave['email_ventas']);
+            if ($emVal === null) {
+                ApiResponse::error('Email de ventas no válido.', 'VALIDATION_ERROR', 400);
+            }
+            $fieldsToSave['email_ventas'] = $emVal;
+        }
+
+        if (isset($fieldsToSave['email_cotizaciones']) && trim((string)$fieldsToSave['email_cotizaciones']) !== '') {
+            $emVal = Validator::validateEmail((string)$fieldsToSave['email_cotizaciones']);
+            if ($emVal === null) {
+                ApiResponse::error('Email de cotizaciones no válido.', 'VALIDATION_ERROR', 400);
+            }
+            $fieldsToSave['email_cotizaciones'] = $emVal;
+        }
 
         $allowedKeys = [
             'enable_redirects',
@@ -156,8 +179,12 @@ if ($method === 'POST' || $method === 'PUT') {
             'banner_promo_btn_link'
         ];
 
-
-        $stmt = $pdo->prepare("INSERT INTO configuracion (clave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)");
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'sqlite') {
+            $stmt = $pdo->prepare("INSERT INTO configuracion (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor");
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO configuracion (clave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)");
+        }
 
         foreach ($fieldsToSave as $k => $v) {
             if (in_array($k, $allowedKeys)) {
@@ -171,19 +198,11 @@ if ($method === 'POST' || $method === 'PUT') {
         $allRows = $fetchStmt->fetchAll(PDO::FETCH_KEY_PAIR);
         $structured = buildStructuredConfig($allRows);
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'Configuración de la empresa actualizada correctamente.',
-            'data'    => $structured
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Error al guardar configuración: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::success($structured, ['message' => 'Configuración de la empresa actualizada correctamente.']);
+    } catch (Throwable $e) {
+        ApiResponse::error('Error al guardar configuración.', 'SERVER_ERROR', 500, $e);
     }
 }
 
-http_response_code(405);
-echo json_encode(['success' => false, 'error' => 'Método no permitido.'], JSON_UNESCAPED_UNICODE);
+ApiResponse::error('Método no permitido.', 'METHOD_NOT_ALLOWED', 405);
 

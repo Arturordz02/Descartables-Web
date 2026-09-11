@@ -4,7 +4,7 @@
 # ====================================================================
 
 # 1. Manejo de Errores Personalizado
-ErrorDocument 404 /descartables/404.html
+ErrorDocument 404 /404.html
 
 # 2. Codificación UTF-8 predeterminada
 AddDefaultCharset UTF-8
@@ -12,33 +12,57 @@ AddDefaultCharset UTF-8
 # 3. Evitar listado de directorios abierto
 Options -Indexes
 
-# 4. Protección de archivos y scripts sensibles de configuración
-<FilesMatch "^(schema\.sql|config\.php|db\.php|\.env|\.git)">
+# 4. Redirección HTTP a HTTPS en Producción
+# NOTA OPERATIVA:
+# - Se excluyen localhost y 127.0.0.1 para permitir desarrollo y pruebas locales sin SSL.
+# - Se respeta el entorno si APP_ENV está definido como development o local.
+#
+# ESTADO EN INFINITYFREE (descartables.free.nf):
+# InfinityFree sirve SSL automáticamente desde el proxy/CDN (openresty). La variable
+# %{HTTPS} no siempre está disponible desde .htaccess en este hosting. La redirección
+# forzada puede generar bucles o no ejecutarse. HTTPS está activo y funcional vía proxy.
+#
+# Para reactivar cuando se migre a hosting con control nativo de SSL (VPS, cPanel con cert):
+# Descomente el bloque <IfModule mod_rewrite.c> a continuación.
+#
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+#     RewriteCond %{HTTPS} !=on
+#     RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:[0-9]+)?$ [NC]
+#     RewriteCond %{ENV:APP_ENV} !^(development|local)$
+#     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>
+
+# 5. Protección estricta de archivos y scripts sensibles de configuración
+<FilesMatch "(\.(sql|env|log|bak|rar|zip|tar(\.gz)?)|secrets(\.example)?\.php|vault\.php|db\.php|\.git.*)$">
     Require all denied
 </FilesMatch>
 
-# 5. Compresión GZIP (mod_deflate) para acelerar velocidad de carga
+# 6. Compresión GZIP (mod_deflate) para acelerar velocidad de carga
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
     AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json application/xml
     AddOutputFilterByType DEFLATE image/svg+xml
 </IfModule>
 
-# 6. Cabeceras de Caché para Estáticos (mod_expires)
+# 7. Cabeceras de Caché para Estáticos (mod_expires)
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType image/jpg "access plus 1 month"
     ExpiresByType image/jpeg "access plus 1 month"
     ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
     ExpiresByType image/svg+xml "access plus 1 month"
     ExpiresByType text/css "access plus 1 week"
     ExpiresByType application/javascript "access plus 1 week"
 </IfModule>
 
-# 7. Cabeceras de Seguridad Básicas
+# 8. Cabeceras de Seguridad Reforzadas
 <IfModule mod_headers.c>
     Header set X-Content-Type-Options "nosniff"
     Header set X-XSS-Protection "1; mode=block"
     Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 </IfModule>
 

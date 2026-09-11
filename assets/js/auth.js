@@ -6,9 +6,13 @@
 const Auth = {
   getCurrentUser() {
     try {
+      if (typeof StorageHelper !== 'undefined') {
+        return StorageHelper.get('dp_usuario_activo', null);
+      }
       const user = localStorage.getItem('dp_usuario_activo');
       return user ? JSON.parse(user) : null;
     } catch (e) {
+      try { localStorage.removeItem('dp_usuario_activo'); } catch (_) {}
       return null;
     }
   },
@@ -21,7 +25,19 @@ const Auth = {
     if (typeof AdminNotifications !== 'undefined' && typeof AdminNotifications.stop === 'function') {
       AdminNotifications.stop();
     }
-    localStorage.removeItem('dp_usuario_activo');
+    try {
+      localStorage.removeItem('dp_usuario_activo');
+      localStorage.removeItem('dp_mis_cotizaciones');
+      localStorage.removeItem('dp_historial_cotizaciones');
+      localStorage.removeItem('dp_cotizaciones_recibidas');
+      localStorage.removeItem('dp_libro_reclamaciones');
+      localStorage.removeItem('dp_admin_notifications_cache');
+      localStorage.removeItem('dp_admin_stats');
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.clear();
+      }
+    } catch (e) {}
+
     if (typeof Carrito !== 'undefined' && typeof Carrito.reloadUserCart === 'function') {
       Carrito.reloadUserCart();
     }
@@ -38,17 +54,26 @@ const Auth = {
     const navUserContainers = document.querySelectorAll('.nav-user-container');
     const mobileUserContainers = document.querySelectorAll('.nav-user-container-mobile');
 
+    const esc = (s) => (typeof escapeHtml === 'function' ? escapeHtml(s) : String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+
     navUserContainers.forEach((container, idx) => {
       if (user) {
-        const shortName = user.nombre_razon_social.split(' ')[0] || 'Mi Cuenta';
+        const rawName = user.nombre_razon_social || 'Mi Cuenta';
+        const safeName = esc(rawName);
+        const safeShortName = esc(rawName.split(' ')[0] || 'Mi Cuenta');
+        const safeDocType = esc(user.tipo_documento || 'DOC');
+        const safeDocNum = esc(user.numero_documento || '');
+        const safeEmail = esc(user.email || '');
+        const initial = esc(rawName.charAt(0).toUpperCase() || 'C');
         const dropdownId = `userDropdownMenu_${idx}`;
+
         container.innerHTML = `
           <div class="relative inline-block text-left">
             <button type="button" onclick="Auth.toggleUserDropdown(event, '${dropdownId}')" class="flex items-center gap-2 py-1.5 px-3 rounded-xl bg-[#F4EFEA] hover:bg-[#EAE3DA] text-[#1F1815] text-xs font-semibold border border-[#EAE3DA] transition-colors tap-target cursor-pointer select-none">
               <span class="w-6 h-6 rounded-full bg-[#C85A32] text-white flex items-center justify-center font-bold text-[10px]">
-                ${(user.nombre_razon_social || 'C').charAt(0).toUpperCase()}
+                ${initial}
               </span>
-              <span class="max-w-[120px] truncate">${shortName}</span>
+              <span class="max-w-[120px] truncate">${safeShortName}</span>
               <svg class="w-3.5 h-3.5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
@@ -58,11 +83,11 @@ const Auth = {
             <div id="${dropdownId}" class="user-dropdown-menu absolute right-0 top-full mt-1.5 w-60 bg-white rounded-2xl shadow-2xl border border-[#EAE3DA] py-2 hidden z-50 animate-fade-in divide-y divide-stone-100">
               <div class="px-4 py-2.5 bg-gradient-to-r from-warm-sand to-warm-cream rounded-t-xl">
                 <div class="flex items-center justify-between">
-                  <p class="text-xs font-bold text-[#1F1815] truncate" title="${user.nombre_razon_social}">${user.nombre_razon_social}</p>
+                  <p class="text-xs font-bold text-[#1F1815] truncate" title="${safeName}">${safeName}</p>
                   ${user.rol === 'admin' ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-[#C85A32] text-white font-black uppercase">ADMIN</span>' : ''}
                 </div>
-                <p class="text-[10px] text-[#C85A32] font-semibold">${user.tipo_documento}: ${user.numero_documento}</p>
-                <p class="text-[10px] text-stone-500 truncate">${user.email || ''}</p>
+                <p class="text-[10px] text-[#C85A32] font-semibold">${safeDocType}: ${safeDocNum}</p>
+                <p class="text-[10px] text-stone-500 truncate">${safeEmail}</p>
               </div>
               <div class="py-1">
                 ${user.rol === 'admin' ? `
@@ -106,19 +131,25 @@ const Auth = {
     mobileUserContainers.forEach(container => {
       if (user) {
         const isAdmin = user.rol === 'admin';
+        const rawName = user.nombre_razon_social || 'Mi Cuenta';
+        const safeName = esc(rawName);
+        const safeDocType = esc(user.tipo_documento || 'DOC');
+        const safeDocNum = esc(user.numero_documento || '');
+        const initial = esc(rawName.charAt(0).toUpperCase() || 'C');
+
         container.innerHTML = `
           <div class="p-3 bg-white rounded-2xl border border-[#EAE3DA] mb-2 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2.5 min-w-0">
                 <span class="w-8 h-8 rounded-full bg-[#C85A32] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                  ${(user.nombre_razon_social || 'C').charAt(0).toUpperCase()}
+                  ${initial}
                 </span>
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5">
-                    <p class="text-xs font-bold text-[#1F1815] truncate max-w-[140px]">${user.nombre_razon_social}</p>
+                    <p class="text-xs font-bold text-[#1F1815] truncate max-w-[140px]">${safeName}</p>
                     ${isAdmin ? '<span class="text-[9px] px-1.5 py-0.2 rounded-full bg-[#C85A32] text-white font-extrabold uppercase">ADMIN</span>' : ''}
                   </div>
-                  <p class="text-[10px] text-[#574B46]">${user.tipo_documento}: ${user.numero_documento}</p>
+                  <p class="text-[10px] text-[#574B46]">${safeDocType}: ${safeDocNum}</p>
                 </div>
               </div>
               <button type="button" onclick="Auth.logout()" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg text-xs font-bold transition-colors" title="Cerrar sesión">
@@ -436,9 +467,9 @@ const Auth = {
 
     // 2. Fallback LocalStorage solo si NO se pudo contactar al backend
     if (!fetchedFromBackend && history.length === 0) {
-      const myQuotes = JSON.parse(localStorage.getItem('dp_mis_cotizaciones') || '[]');
-      const legacyQuotes = JSON.parse(localStorage.getItem('dp_historial_cotizaciones') || '[]');
-      const receivedQuotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
+      const myQuotes = typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_mis_cotizaciones', []) : (function() { try { return JSON.parse(localStorage.getItem('dp_mis_cotizaciones') || '[]'); } catch(_) { return []; } })();
+      const legacyQuotes = typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_historial_cotizaciones', []) : (function() { try { return JSON.parse(localStorage.getItem('dp_historial_cotizaciones') || '[]'); } catch(_) { return []; } })();
+      const receivedQuotes = typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_cotizaciones_recibidas', []) : (function() { try { return JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]'); } catch(_) { return []; } })();
 
       const userDoc = currentUser?.numero_documento;
       const filteredReceived = userDoc ? receivedQuotes.filter(q => q.documento === userDoc || q.cliente_doc === userDoc) : receivedQuotes;
@@ -452,6 +483,8 @@ const Auth = {
         return true;
       });
     }
+
+    const esc = (s) => (typeof escapeHtml === 'function' ? escapeHtml(s) : String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
 
     if (history.length === 0) {
       container.innerHTML = `
@@ -491,28 +524,33 @@ const Auth = {
       else if (estado === 'En Contacto' || estado === 'Cotizado') badgeColor = 'bg-blue-100 text-blue-800';
 
       const itemsJsonSafe = encodeURIComponent(JSON.stringify(itemsList));
+      const safeCodigo = esc(codigo);
+      const safeFecha = esc(fecha);
+      const safeComprobante = esc(comprobante);
+      const safeDestino = esc(destino);
+      const safeEstado = esc(estado);
 
       return `
         <div class="p-4 bg-white rounded-2xl border border-[#EAE3DA] shadow-sm mb-3">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-mono font-bold text-[#1F1815]">${codigo}</span>
+            <span class="text-xs font-mono font-bold text-[#1F1815]">${safeCodigo}</span>
             <div class="flex items-center gap-2">
-              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${badgeColor}">${estado}</span>
-              <span class="text-[11px] text-[#574B46]">${fecha}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${badgeColor}">${safeEstado}</span>
+              <span class="text-[11px] text-[#574B46]">${safeFecha}</span>
             </div>
           </div>
           <p class="text-xs text-[#574B46] mb-2">
-            <strong>Tipo:</strong> ${comprobante} | <strong>Destino:</strong> ${destino}
+            <strong>Tipo:</strong> ${safeComprobante} | <strong>Destino:</strong> ${safeDestino}
           </p>
           <div class="bg-[#F4EFEA] p-2.5 rounded-xl text-xs space-y-1 mb-2.5 max-h-36 overflow-y-auto">
             ${itemsList.map(item => `
               <div class="flex justify-between text-[#1F1815]">
-                <span>${item.cantidad || 1} x ${item.nombre || 'Producto'}</span>
-                <span class="text-stone-500 font-mono text-[11px]">${item.sku || ''}</span>
+                <span>${esc(item.cantidad || 1)} x ${esc(item.nombre || 'Producto')}</span>
+                <span class="text-stone-500 font-mono text-[11px]">${esc(item.sku || '')}</span>
               </div>
             `).join('')}
           </div>
-          <button type="button" onclick="if(window.Carrito){ Carrito.items = JSON.parse(decodeURIComponent('${itemsJsonSafe}')); Carrito.openFormalQuoteModal('${codigo}'); }" class="w-full py-2 px-3 rounded-xl bg-[#FDFBF7] hover:bg-[#F4EFEA] text-[#1F1815] text-xs font-bold flex items-center justify-center gap-1.5 border border-[#EAE3DA] transition-colors cursor-pointer tap-target">
+          <button type="button" onclick="if(window.Carrito){ Carrito.items = JSON.parse(decodeURIComponent('${itemsJsonSafe}')); Carrito.openFormalQuoteModal('${safeCodigo}'); }" class="w-full py-2 px-3 rounded-xl bg-[#FDFBF7] hover:bg-[#F4EFEA] text-[#1F1815] text-xs font-bold flex items-center justify-center gap-1.5 border border-[#EAE3DA] transition-colors cursor-pointer tap-target">
             <svg class="w-3.5 h-3.5 text-[#C85A32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             <span>Descargar Proforma Formal en PDF</span>
           </button>
@@ -546,7 +584,7 @@ const Auth = {
 
     // 2. Fallback Local
     if (claims.length === 0) {
-      const localClaims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
+      const localClaims = typeof StorageHelper !== 'undefined' ? StorageHelper.get('dp_libro_reclamaciones', []) : (function() { try { return JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]'); } catch(_) { return []; } })();
       claims = currentUser?.numero_documento 
         ? localClaims.filter(c => c.numero_documento === currentUser.numero_documento)
         : localClaims;
@@ -561,15 +599,17 @@ const Auth = {
       return;
     }
 
+    const esc = (s) => (typeof escapeHtml === 'function' ? escapeHtml(s) : String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+
     container.innerHTML = claims.map(rec => `
       <div class="p-4 bg-white rounded-2xl border border-[#EAE3DA] shadow-sm mb-3">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-bold text-[#C85A32] font-mono">${rec.codigo_hoja}</span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">${rec.estado || 'Pendiente'}</span>
+          <span class="text-xs font-bold text-[#C85A32] font-mono">${esc(rec.codigo_hoja)}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">${esc(rec.estado || 'Pendiente')}</span>
         </div>
-        <p class="text-xs text-[#1F1815] font-semibold">${rec.tipo_reclamacion || 'Reclamo'}: ${rec.tipo_bien || 'Servicio'}</p>
-        <p class="text-xs text-[#574B46] line-clamp-2 my-1">${rec.detalle_reclamacion || ''}</p>
-        <p class="text-[11px] text-stone-400">Fecha: ${(rec.creado_en || rec.fecha || 'Reciente').slice(0, 10)}</p>
+        <p class="text-xs text-[#1F1815] font-semibold">${esc(rec.tipo_reclamacion || 'Reclamo')}: ${esc(rec.tipo_bien || 'Servicio')}</p>
+        <p class="text-xs text-[#574B46] line-clamp-2 my-1">${esc(rec.detalle_reclamacion || '')}</p>
+        <p class="text-[11px] text-stone-400">Fecha: ${esc((rec.creado_en || rec.fecha || 'Reciente').slice(0, 10))}</p>
       </div>
     `).join('');
   },

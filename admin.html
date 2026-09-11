@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
   <meta charset="UTF-8">
@@ -9,36 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              orange: '#ea580c',
-              orangeDark: '#c2410c',
-              terracota: '#C85A32',
-              amber: '#d97706',
-              salvia: '#4A5D4E',
-            },
-            admin: {
-              slateBg: '#090d16',
-              slateCard: '#0f172a',
-              slateInner: '#162032',
-              slateBorder: '#1e293b',
-              slateBorderSubtle: '#27354f',
-            }
-          },
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            heading: ['Outfit', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Tailwind CSS Compilado Oficial (Producción) -->
+  <link rel="stylesheet" href="assets/css/tailwind.css">
 
   <style>
     /* ================= SISTEMA DE VARIABLES DE TEMA FORMAL ================= */
@@ -4815,7 +4787,16 @@
           return;
         }
 
-        const code = c.codigo || ('COT-' + c.id);
+        const code = this.escapeHtml(c.codigo || ('COT-' + c.id));
+        const fechaStr = this.escapeHtml((c.creado_en || '').slice(0, 10));
+        const estadoStr = this.escapeHtml(c.estado || 'Pendiente');
+        const clienteNombre = this.escapeHtml(c.cliente_nombre || 'Cliente General');
+        const clienteDoc = this.escapeHtml(c.cliente_doc || '—');
+        const clienteTel = this.escapeHtml(c.cliente_telefono || '—');
+        const tipoComp = this.escapeHtml(c.tipo_comprobante || 'Factura');
+        const destinoDespacho = this.escapeHtml(c.departamento || c.ciudad || 'Lima');
+        const notasStr = c.notas ? this.escapeHtml(c.notas) : '';
+
         let items = [];
         try {
           items = typeof c.items === 'string' ? JSON.parse(c.items) : (c.items || []);
@@ -4826,10 +4807,10 @@
         const itemsHtml = items.map((it, idx) => `
           <tr>
             <td style="text-align:center; padding: 8px; border: 1px solid #e5e5e5;">${idx + 1}</td>
-            <td style="font-family:monospace; font-weight:bold; color:#C85A32; padding: 8px; border: 1px solid #e5e5e5;">${it.sku || '—'}</td>
-            <td style="padding: 8px; border: 1px solid #e5e5e5; font-weight:600;">${it.nombre || 'Producto'}</td>
-            <td style="padding: 8px; border: 1px solid #e5e5e5; color:#666;">${it.presentacion || '—'}</td>
-            <td style="text-align:center; font-weight:bold; padding: 8px; border: 1px solid #e5e5e5;">${it.cantidad || 1}</td>
+            <td style="font-family:monospace; font-weight:bold; color:#C85A32; padding: 8px; border: 1px solid #e5e5e5;">${this.escapeHtml(it.sku || '—')}</td>
+            <td style="padding: 8px; border: 1px solid #e5e5e5; font-weight:600;">${this.escapeHtml(it.nombre || 'Producto')}</td>
+            <td style="padding: 8px; border: 1px solid #e5e5e5; color:#666;">${this.escapeHtml(it.presentacion || '—')}</td>
+            <td style="text-align:center; font-weight:bold; padding: 8px; border: 1px solid #e5e5e5;">${parseInt(it.cantidad, 10) || 1}</td>
           </tr>
         `).join('');
 
@@ -4865,19 +4846,19 @@
               <div class="title-box">
                 <h1>COTIZACIÓN CORPORATIVA</h1>
                 <div class="code">${code}</div>
-                <div style="font-size:11px; color:#666; margin-top:3px;">Fecha: ${(c.creado_en || '').slice(0, 10)}</div>
-                <div style="font-size:11px; font-weight:bold; color:#166534; margin-top:2px;">Estado: ${c.estado || 'Pendiente'}</div>
+                <div style="font-size:11px; color:#666; margin-top:3px;">Fecha: ${fechaStr}</div>
+                <div style="font-size:11px; font-weight:bold; color:#166534; margin-top:2px;">Estado: ${estadoStr}</div>
               </div>
             </div>
 
             <div class="box">
               <div style="font-size:11px; font-weight:bold; text-transform:uppercase; color:#786F6A; margin-bottom:6px; border-bottom:1px solid #f0f0f0; padding-bottom:4px;">Datos del Cliente</div>
               <div class="grid">
-                <div><strong>Razón Social / Cliente:</strong> ${c.cliente_nombre || 'Cliente General'}</div>
-                <div><strong>RUC / DNI:</strong> ${c.cliente_doc || '—'}</div>
-                <div><strong>Teléfono / WhatsApp:</strong> ${c.cliente_telefono || '—'}</div>
-                <div><strong>Tipo Comprobante:</strong> ${c.tipo_comprobante || 'Factura'}</div>
-                <div><strong>Destino de Despacho:</strong> ${c.departamento || c.ciudad || 'Lima'}</div>
+                <div><strong>Razón Social / Cliente:</strong> ${clienteNombre}</div>
+                <div><strong>RUC / DNI:</strong> ${clienteDoc}</div>
+                <div><strong>Teléfono / WhatsApp:</strong> ${clienteTel}</div>
+                <div><strong>Tipo Comprobante:</strong> ${tipoComp}</div>
+                <div><strong>Destino de Despacho:</strong> ${destinoDespacho}</div>
               </div>
             </div>
 
@@ -4899,10 +4880,10 @@
               </table>
             </div>
 
-            ${c.notas ? `
+            ${notasStr ? `
               <div class="box" style="background:#faf8f5;">
                 <strong>Notas / Condiciones comerciales:</strong><br>
-                <p style="margin:4px 0 0 0; color:#555;">${c.notas}</p>
+                <p style="margin:4px 0 0 0; color:#555;">${notasStr}</p>
               </div>
             ` : ''}
 

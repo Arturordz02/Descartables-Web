@@ -7,6 +7,8 @@ desktop.ini
 
 # Dependencias y logs
 *.log
+logs/*
+!logs/.htaccess
 node_modules/
 vendor/
 
@@ -17,5 +19,17 @@ api/vault.local.php
 .env.*
 *.local.php
 scratch/
+dist/
+*.zip
+*.rar
 
+# Copias de seguridad y dumps locales
+backups/*
+!backups/.htaccess
+*.sql.gz
 
+# Subidas de usuarios (uploads) - preservar default.png y archivos .htaccess/.gitkeep
+assets/images/productos/prod_*
+uploads/*
+!uploads/.htaccess
+!uploads/.gitkeep

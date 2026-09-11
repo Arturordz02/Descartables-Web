@@ -1,0 +1,16 @@
+{
+  "name": "descartables-peruanos-web",
+  "version": "1.0.0",
+  "description": "Plataforma Web Oficial de Descartables Peruanos S.A.C.",
+  "scripts": {
+    "build:css": "tailwindcss -i assets/css/tailwind-input.css -o assets/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i assets/css/tailwind-input.css -o assets/css/tailwind.css --watch",
+    "package": "node scripts/build_package.js",
+    "test": "node tests/test_task12_frontend_build_cache.js"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  },
+  "private": true
+}
+

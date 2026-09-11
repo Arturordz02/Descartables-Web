@@ -5,9 +5,12 @@
  */
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/validator.php';
 
-$method = $_SERVER['REQUEST_METHOD'];
-$pdo = getDbConnection();
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (empty($GLOBALS['PRODUCTOS_SCRIPT_INCLUDED'])) {
+    $pdo = getDbConnection();
+}
 
 // Resuelve la categoría (existente o nueva)
 function resolveCategoryId($pdo, &$data) {
@@ -43,30 +46,12 @@ function resolveCategoryId($pdo, &$data) {
                 $slug .= '-' . rand(10, 99);
             }
 
-            // Asegurar que las columnas icono y color existan si la tabla es antigua
-            try {
-                $colCheck = $pdo->query("SHOW COLUMNS FROM categorias LIKE 'color'")->fetch();
-                if (!$colCheck) {
-                    $pdo->exec("ALTER TABLE categorias ADD COLUMN icono VARCHAR(50) DEFAULT 'box'");
-                    $pdo->exec("ALTER TABLE categorias ADD COLUMN color VARCHAR(100) DEFAULT 'from-amber-600/20 to-orange-600/20'");
-                }
-            } catch (Exception $ignored) {}
-
-            try {
-                $insertCat = $pdo->prepare("INSERT INTO categorias (nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, 'box', 'from-amber-600/20 to-orange-600/20')");
-                $insertCat->execute([
-                    $catName,
-                    $slug,
-                    "Línea especializada: {$catName}"
-                ]);
-            } catch (Exception $e) {
-                $insertCat = $pdo->prepare("INSERT INTO categorias (nombre, slug, descripcion) VALUES (?, ?, ?)");
-                $insertCat->execute([
-                    $catName,
-                    $slug,
-                    "Línea especializada: {$catName}"
-                ]);
-            }
+            $insertCat = $pdo->prepare("INSERT INTO categorias (nombre, slug, descripcion, icono, color) VALUES (?, ?, ?, 'box', 'from-amber-600/20 to-orange-600/20')");
+            $insertCat->execute([
+                $catName,
+                $slug,
+                "Línea especializada: {$catName}"
+            ]);
             return (int)$pdo->lastInsertId();
         }
     }
@@ -74,6 +59,53 @@ function resolveCategoryId($pdo, &$data) {
     $id = (int)$categoria_id;
     return $id > 0 ? $id : 1;
 }
+
+/**
+ * Elimina de forma segura una imagen huérfana gestionada (F12).
+ * Protecciones estrictas:
+ * 1. NUNCA elimina default.png.
+ * 2. Solo elimina archivos gestionados cuyo nombre inicie con 'prod_'.
+ * 3. Valida que ningún otro producto en la base de datos use la misma imagen.
+ * 4. Valida mediante realpath que el archivo físico resida estrictamente dentro de assets/images/productos/.
+ */
+function safelyDeleteOrphanProductImage(PDO $pdo, ?string $oldImageUrl, int $excludeProductId = 0): void {
+    if (empty($oldImageUrl)) {
+        return;
+    }
+
+    $cleanUrl = trim($oldImageUrl);
+    if ($cleanUrl === 'assets/images/productos/default.png' || basename($cleanUrl) === 'default.png') {
+        return;
+    }
+
+    $baseName = basename($cleanUrl);
+    if (!str_starts_with($baseName, 'prod_')) {
+        return;
+    }
+
+    // Verificar si otro producto referencia la imagen
+    $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM productos WHERE imagen_url = ? AND id != ?");
+    $checkStmt->execute([$cleanUrl, $excludeProductId]);
+    if ((int)$checkStmt->fetchColumn() > 0) {
+        return;
+    }
+
+    $uploadDir = realpath(__DIR__ . '/../assets/images/productos');
+    if (!$uploadDir || !is_dir($uploadDir)) {
+        return;
+    }
+
+    $targetFile = $uploadDir . DIRECTORY_SEPARATOR . $baseName;
+    $realTarget = realpath($targetFile);
+
+    // Garantizar que reside dentro de assets/images/productos sin path traversal
+    if ($realTarget && is_file($realTarget) && str_starts_with($realTarget, $uploadDir)) {
+        @unlink($realTarget);
+    }
+}
+
+// ================= EJECUCIÓN PRINCIPAL =================
+if (empty($GLOBALS['PRODUCTOS_SCRIPT_INCLUDED'])) {
 
 // 1. LISTAR PRODUCTOS O CATEGORÍAS (GET)
 if ($method === 'GET') {
@@ -166,12 +198,7 @@ if ($method === 'GET') {
         ], JSON_UNESCAPED_UNICODE);
         exit();
     } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'error'   => 'Error al consultar productos: ' . $e->getMessage()
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Error al consultar productos del catálogo.', 'FETCH_ERROR', 500, $e);
     }
 }
 
@@ -180,52 +207,56 @@ if (class_exists('Vault')) {
     Vault::requireAdmin();
 }
 
-$rawInput = file_get_contents('php://input');
-$data = json_decode($rawInput, true);
-if (!$data || !is_array($data)) {
-    $data = $_POST;
-}
+$data = Validator::parseJsonInput(1048576);
 
 // 2. CREAR PRODUCTO (POST)
 if ($method === 'POST') {
     try {
-        $nombre = trim($data['nombre'] ?? '');
-        $sku = strtoupper(trim($data['sku'] ?? ''));
-        $categoria_id = resolveCategoryId($pdo, $data);
-        $descripcion = trim($data['descripcion'] ?? '');
-        $presentacion = trim($data['presentacion'] ?? 'Unidad');
-        $material = trim($data['material'] ?? 'Polipropileno');
-        $precio = (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
-        $stock_estado = trim($data['stock_estado'] ?? 'en_stock');
-        if (!in_array($stock_estado, ['en_stock', 'bajo_pedido', 'agotado'])) {
-            $stock_estado = 'en_stock';
+        $nombre = Validator::validateText($data['nombre'] ?? '', 2, 200);
+        $sku = Validator::validateText(strtoupper((string)($data['sku'] ?? '')), 2, 50);
+
+        if (!$nombre || !$sku) {
+            ApiResponse::error('El Nombre (2-200 caracteres) y el Código SKU (2-50 caracteres) son obligatorios.', 'VALIDATION_ERROR', 400);
         }
+
+        $categoria_id = resolveCategoryId($pdo, $data);
+        $descripcion = Validator::validateText($data['descripcion'] ?? '', 0, 2000, true) ?: '';
+        $presentacion = Validator::validateText($data['presentacion'] ?? 'Unidad', 1, 100) ?: 'Unidad';
+        $material = Validator::validateText($data['material'] ?? 'Polipropileno', 1, 100) ?: 'Polipropileno';
+
+        $precio = null;
+        if (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) {
+            $precio = Validator::validatePrice($data['precio'], 0.0, 1000000.0);
+            if ($precio === null) {
+                ApiResponse::error('El precio debe ser un número positivo válido (máximo 1,000,000).', 'VALIDATION_ERROR', 400);
+            }
+        }
+
+        $stock_estado = 'en_stock';
+        if (isset($data['stock_estado'])) {
+            $stock_estado = Validator::validateAllowlist($data['stock_estado'], ['en_stock', 'bajo_pedido', 'agotado']);
+            if (!$stock_estado) {
+                ApiResponse::error('Estado de stock no válido. Permitidos: en_stock, bajo_pedido, agotado.', 'VALIDATION_ERROR', 400);
+            }
+        }
+
         $biodegradable = (isset($data['biodegradable']) && ($data['biodegradable'] === true || $data['biodegradable'] === 1 || $data['biodegradable'] === '1' || $data['biodegradable'] === 'true')) ? 1 : 0;
         $destacado = (isset($data['destacado']) && ($data['destacado'] === true || $data['destacado'] === 1 || $data['destacado'] === '1' || $data['destacado'] === 'true')) ? 1 : 0;
-        $imagen_url = trim($data['imagen_url'] ?? 'assets/images/productos/default.png');
+        $rawImgUrl = isset($data['imagen_url']) && trim((string)$data['imagen_url']) !== ''
+            ? trim((string)$data['imagen_url'])
+            : 'assets/images/productos/default.png';
 
-        if (empty($nombre) || empty($sku)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'El Nombre y el Código SKU son obligatorios.'], JSON_UNESCAPED_UNICODE);
-            exit();
+        $imagen_url = Validator::validateImageUrl($rawImgUrl);
+        if (!$imagen_url) {
+            ApiResponse::error('Ruta de imagen de producto no válida o no permitida.', 'VALIDATION_ERROR', 400);
         }
 
         // Verificar si el SKU ya existe
         $check = $pdo->prepare("SELECT id FROM productos WHERE UPPER(sku) = UPPER(?) LIMIT 1");
         $check->execute([$sku]);
         if ($check->fetch()) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => "El código SKU '$sku' ya existe en el catálogo."], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error("El código SKU '$sku' ya existe en el catálogo.", 'SKU_ALREADY_EXISTS', 400);
         }
-
-        // Asegurar que la columna stock_estado exista en la tabla productos
-        try {
-            $colStock = $pdo->query("SHOW COLUMNS FROM productos LIKE 'stock_estado'")->fetch();
-            if (!$colStock) {
-                $pdo->exec("ALTER TABLE productos ADD COLUMN stock_estado VARCHAR(30) DEFAULT 'en_stock'");
-            }
-        } catch (Exception $ignored) {}
 
         $insertSql = "INSERT INTO productos (categoria_id, sku, nombre, descripcion, presentacion, material, precio, stock_estado, biodegradable, imagen_url, destacado) 
                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -244,7 +275,7 @@ if ($method === 'POST') {
             $destacado
         ]);
 
-        $newId = $pdo->lastInsertId();
+        $newId = (int)$pdo->lastInsertId();
         $fetchStmt = $pdo->prepare("SELECT p.*, c.nombre as categoria_nombre, c.slug as categoria_slug 
                                     FROM productos p 
                                     LEFT JOIN categorias c ON p.categoria_id = c.id 
@@ -265,12 +296,7 @@ if ($method === 'POST') {
         ], JSON_UNESCAPED_UNICODE);
         exit();
     } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'error'   => 'Error al crear producto: ' . $e->getMessage()
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Error al crear el producto.', 'CREATE_ERROR', 500, $e);
     }
 }
 
@@ -292,24 +318,28 @@ if ($method === 'PUT' || $method === 'PATCH') {
             $params = [];
 
             if (array_key_exists('stock_estado', $data)) {
-                $stock_estado = trim($data['stock_estado']);
-                if (!in_array($stock_estado, ['en_stock', 'bajo_pedido', 'agotado'])) {
-                    $stock_estado = 'en_stock';
+                $stock_estado = Validator::validateAllowlist((string)$data['stock_estado'], ['en_stock', 'bajo_pedido', 'agotado']);
+                if (!$stock_estado) {
+                    ApiResponse::error('Estado de stock no válido. Permitidos: en_stock, bajo_pedido, agotado.', 'VALIDATION_ERROR', 400);
                 }
                 $fieldsToUpdate[] = "stock_estado = ?";
                 $params[] = $stock_estado;
             }
 
             if (array_key_exists('precio', $data)) {
-                $precio = ($data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
+                $precio = null;
+                if ($data['precio'] !== '' && $data['precio'] !== null) {
+                    $precio = Validator::validatePrice($data['precio'], 0.0, 1000000.0);
+                    if ($precio === null) {
+                        ApiResponse::error('El precio debe ser un número positivo válido (máx 1,000,000).', 'VALIDATION_ERROR', 400);
+                    }
+                }
                 $fieldsToUpdate[] = "precio = ?";
                 $params[] = $precio;
             }
 
             if (empty($fieldsToUpdate)) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'error' => 'No se proporcionaron campos válidos para actualizar.'], JSON_UNESCAPED_UNICODE);
-                exit();
+                ApiResponse::error('No se proporcionaron campos válidos para actualizar.', 'VALIDATION_ERROR', 400);
             }
 
             $params[] = $id;
@@ -338,43 +368,63 @@ if ($method === 'PUT' || $method === 'PATCH') {
             exit();
         }
 
-        $nombre = trim($data['nombre'] ?? '');
-        $sku = strtoupper(trim($data['sku'] ?? ''));
-        $categoria_id = resolveCategoryId($pdo, $data);
-        $descripcion = trim($data['descripcion'] ?? '');
-        $presentacion = trim($data['presentacion'] ?? 'Unidad');
-        $material = trim($data['material'] ?? 'Polipropileno');
-        $precio = (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) ? (float)$data['precio'] : null;
-        $stock_estado = trim($data['stock_estado'] ?? 'en_stock');
-        if (!in_array($stock_estado, ['en_stock', 'bajo_pedido', 'agotado'])) {
-            $stock_estado = 'en_stock';
+        $nombre = Validator::validateText($data['nombre'] ?? '', 2, 200);
+        $sku = Validator::validateText(strtoupper((string)($data['sku'] ?? '')), 2, 50);
+
+        if (!$nombre || !$sku) {
+            ApiResponse::error('El Nombre (2-200 caracteres) y el Código SKU (2-50 caracteres) son obligatorios.', 'VALIDATION_ERROR', 400);
         }
+
+        $categoria_id = resolveCategoryId($pdo, $data);
+        $descripcion = Validator::validateText($data['descripcion'] ?? '', 0, 2000, true) ?: '';
+        $presentacion = Validator::validateText($data['presentacion'] ?? 'Unidad', 1, 100) ?: 'Unidad';
+        $material = Validator::validateText($data['material'] ?? 'Polipropileno', 1, 100) ?: 'Polipropileno';
+
+        $precio = null;
+        if (isset($data['precio']) && $data['precio'] !== '' && $data['precio'] !== null) {
+            $precio = Validator::validatePrice($data['precio'], 0.0, 1000000.0);
+            if ($precio === null) {
+                ApiResponse::error('El precio debe ser un número positivo válido (máximo 1,000,000).', 'VALIDATION_ERROR', 400);
+            }
+        }
+
+        $stock_estado = 'en_stock';
+        if (isset($data['stock_estado'])) {
+            $stock_estado = Validator::validateAllowlist($data['stock_estado'], ['en_stock', 'bajo_pedido', 'agotado']);
+            if (!$stock_estado) {
+                ApiResponse::error('Estado de stock no válido. Permitidos: en_stock, bajo_pedido, agotado.', 'VALIDATION_ERROR', 400);
+            }
+        }
+
         $biodegradable = (isset($data['biodegradable']) && ($data['biodegradable'] === true || $data['biodegradable'] === 1 || $data['biodegradable'] === '1' || $data['biodegradable'] === 'true')) ? 1 : 0;
         $destacado = (isset($data['destacado']) && ($data['destacado'] === true || $data['destacado'] === 1 || $data['destacado'] === '1' || $data['destacado'] === 'true')) ? 1 : 0;
-        $imagen_url = trim($data['imagen_url'] ?? '');
+
+        $hasNewImage = false;
+        $imagen_url = null;
+        if (isset($data['imagen_url']) && trim((string)$data['imagen_url']) !== '') {
+            $rawImg = trim((string)$data['imagen_url']);
+            $imagen_url = Validator::validateImageUrl($rawImg);
+            if (!$imagen_url) {
+                ApiResponse::error('Ruta de imagen de producto no válida o no permitida.', 'VALIDATION_ERROR', 400);
+            }
+            $hasNewImage = true;
+        }
+
+        // Consultar imagen actual para gestionar reemplazo seguro
+        $currStmt = $pdo->prepare("SELECT imagen_url FROM productos WHERE id = ?");
+        $currStmt->execute([$id]);
+        $oldImageUrl = $currStmt->fetchColumn();
 
         if (empty($nombre) || empty($sku)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'El Nombre y el Código SKU son obligatorios.'], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error('El Nombre y el Código SKU son obligatorios.', 'VALIDATION_ERROR', 400);
         }
 
         // Verificar SKU repetido en otro producto
         $check = $pdo->prepare("SELECT id FROM productos WHERE UPPER(sku) = UPPER(?) AND id != ? LIMIT 1");
         $check->execute([$sku, $id]);
         if ($check->fetch()) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => "El código SKU '$sku' ya pertenece a otro producto."], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error("El código SKU '$sku' ya pertenece a otro producto.", 'SKU_ALREADY_EXISTS', 400);
         }
-
-        // Asegurar que la columna stock_estado exista en la tabla productos
-        try {
-            $colStock = $pdo->query("SHOW COLUMNS FROM productos LIKE 'stock_estado'")->fetch();
-            if (!$colStock) {
-                $pdo->exec("ALTER TABLE productos ADD COLUMN stock_estado VARCHAR(30) DEFAULT 'en_stock'");
-            }
-        } catch (Exception $ignored) {}
 
         $updateSql = "UPDATE productos SET 
                         categoria_id = ?, 
@@ -386,7 +436,7 @@ if ($method === 'PUT' || $method === 'PATCH') {
                         precio = ?, 
                         stock_estado = ?, 
                         biodegradable = ?, 
-                        destacado = ?" . (!empty($imagen_url) ? ", imagen_url = ?" : "") . "
+                        destacado = ?" . ($hasNewImage ? ", imagen_url = ?" : "") . "
                       WHERE id = ?";
         
         $params = [
@@ -401,13 +451,18 @@ if ($method === 'PUT' || $method === 'PATCH') {
             $biodegradable,
             $destacado
         ];
-        if (!empty($imagen_url)) {
+        if ($hasNewImage) {
             $params[] = $imagen_url;
         }
         $params[] = $id;
 
         $stmt = $pdo->prepare($updateSql);
         $stmt->execute($params);
+
+        // Si se actualizó la imagen, limpiar la imagen anterior si quedó huérfana
+        if ($hasNewImage && $oldImageUrl && $oldImageUrl !== $imagen_url) {
+            safelyDeleteOrphanProductImage($pdo, (string)$oldImageUrl, $id);
+        }
 
         $fetchStmt = $pdo->prepare("SELECT p.*, c.nombre as categoria_nombre, c.slug as categoria_slug 
                                     FROM productos p 
@@ -429,12 +484,7 @@ if ($method === 'PUT' || $method === 'PATCH') {
         ], JSON_UNESCAPED_UNICODE);
         exit();
     } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'error'   => 'Error al actualizar producto: ' . $e->getMessage()
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Error al actualizar el producto.', 'UPDATE_ERROR', 500, $e);
     }
 }
 
@@ -443,13 +493,21 @@ if ($method === 'DELETE') {
     try {
         $id = (int)($data['id'] ?? ($_GET['id'] ?? 0));
         if ($id <= 0) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'ID de producto no válido para eliminar.'], JSON_UNESCAPED_UNICODE);
-            exit();
+            ApiResponse::error('ID de producto no válido para eliminar.', 'VALIDATION_ERROR', 400);
         }
+
+        // Obtener imagen del producto antes de eliminar
+        $currStmt = $pdo->prepare("SELECT imagen_url FROM productos WHERE id = ?");
+        $currStmt->execute([$id]);
+        $currentImg = $currStmt->fetchColumn();
 
         $stmt = $pdo->prepare("DELETE FROM productos WHERE id = ?");
         $stmt->execute([$id]);
+
+        // Limpiar imagen si quedó huérfana
+        if ($currentImg) {
+            safelyDeleteOrphanProductImage($pdo, (string)$currentImg, $id);
+        }
 
         echo json_encode([
             'success' => true,
@@ -457,14 +515,9 @@ if ($method === 'DELETE') {
         ], JSON_UNESCAPED_UNICODE);
         exit();
     } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'error'   => 'Error al eliminar producto: ' . $e->getMessage()
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
+        ApiResponse::error('Error al eliminar el producto.', 'DELETE_ERROR', 500, $e);
     }
 }
 
-http_response_code(405);
-echo json_encode(['success' => false, 'error' => 'Método no permitido'], JSON_UNESCAPED_UNICODE);
+ApiResponse::error('Método no permitido.', 'METHOD_NOT_ALLOWED', 405);
+}

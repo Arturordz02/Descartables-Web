@@ -1,27 +1,115 @@
 /**
- * Capa de Abstracción de Datos y Servicios API
- * Soporte híbrido: Consulta backend MySQL vía PHP o respaldo dinámico transparente en LocalStorage
+ * Helper de Almacenamiento Seguro (Safe Storage & Resilience) - F17
+ * Garantiza resiliencia frente a cadenas corruptas o truncadas en LocalStorage.
+ * Auto-purgado seguro (self-healing) que evita fallos catastróficos por SyntaxError.
+ * 
+ * NOTA DE SEGURIDAD: LocalStorage NUNCA es autoridad de rol ni permisos.
+ * La sesión real y las autorizaciones son verificadas criptográficamente en backend por Vault.
  */
+const StorageHelper = {
+  get(key, fallback = null) {
+    try {
+      if (typeof localStorage === 'undefined') return fallback;
+      const raw = localStorage.getItem(key);
+      if (raw === null || raw === undefined || raw === '') {
+        return fallback;
+      }
+      if (raw === 'undefined' || raw === 'null') {
+        try { localStorage.removeItem(key); } catch (_) {}
+        return fallback;
+      }
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn(`[StorageHelper] JSON corrupto detectado en clave '${key}', purgando clave dañada.`);
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(key);
+        }
+      } catch (_) {}
+      return fallback;
+    }
+  },
+
+  set(key, value) {
+    try {
+      if (typeof localStorage === 'undefined') return false;
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (e) {
+      console.warn(`[StorageHelper] Error al escribir en localStorage['${key}']`, e);
+      return false;
+    }
+  },
+
+  remove(key) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(key);
+      }
+    } catch (_) {}
+  },
+
+  safeParse(raw, fallback = null, keyToPurge = null) {
+    if (raw === null || raw === undefined || raw === '') {
+      return fallback;
+    }
+    if (raw === 'undefined' || raw === 'null') {
+      if (keyToPurge && typeof localStorage !== 'undefined') {
+        try { localStorage.removeItem(keyToPurge); } catch (_) {}
+      }
+      return fallback;
+    }
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn(`[StorageHelper] Error al parsear JSON ${keyToPurge ? `para clave '${keyToPurge}'` : ''}.`);
+      if (keyToPurge && typeof localStorage !== 'undefined') {
+        try { localStorage.removeItem(keyToPurge); } catch (_) {}
+      }
+      return fallback;
+    }
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.StorageHelper = StorageHelper;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports.StorageHelper = StorageHelper;
+}
 
 const ApiService = {
   baseUrl: 'api',
   hasBackend: null,
 
+  // Métodos auxiliares públicos de almacenamiento seguro
+  safeJsonStorage(key, fallback = null) {
+    return StorageHelper.get(key, fallback);
+  },
+
+  safeJsonParse(raw, fallback = null, keyToPurge = null) {
+    return StorageHelper.safeParse(raw, fallback, keyToPurge);
+  },
+
   // Cabeceras de autenticación seguras
   getAuthHeaders(customHeaders = {}) {
     const headers = { 'Accept': 'application/json', ...customHeaders };
     try {
-      const user = JSON.parse(localStorage.getItem('dp_usuario_activo') || '{}');
+      const user = StorageHelper.get('dp_usuario_activo', {});
       if (user && user.token) {
         headers['Authorization'] = `Bearer ${user.token}`;
         headers['X-Auth-Token'] = user.token;
       }
-      if (user && user.rol === 'admin') {
-        headers['X-Admin-Doc'] = user.numero_documento || '';
-        headers['X-Admin-Email'] = user.email || '';
-      }
     } catch (e) {}
     return headers;
+  },
+
+  // Generador de clave de idempotencia única para reintentos seguros
+  generateIdempotencyKey(prefix = 'idemp') {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return `${prefix}_${crypto.randomUUID()}`;
+    }
+    return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 12)}`;
   },
 
   // Verifica la disponibilidad del backend MySQL en InfinityFree
@@ -67,7 +155,7 @@ const ApiService = {
         }
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          localStorage.setItem('dp_categorias_cache', JSON.stringify(json.data));
+          StorageHelper.set('dp_categorias_cache', json.data);
           return json.data;
         }
       } catch (e) {
@@ -75,8 +163,8 @@ const ApiService = {
       }
     }
 
-    // Modo local
-    const cached = JSON.parse(localStorage.getItem('dp_categorias_cache') || 'null');
+    // Modo local / Respaldo seguro
+    const cached = StorageHelper.get('dp_categorias_cache', null);
     if (cached && Array.isArray(cached) && cached.length > 0) return cached;
     return typeof CATEGORIAS !== 'undefined' ? CATEGORIAS : [];
   },
@@ -135,8 +223,8 @@ const ApiService = {
 
     // Modo Local enriquecido con productos agregados en el Admin
     if (results.length === 0) {
-      const customProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
-      const deletedIds = JSON.parse(localStorage.getItem('dp_productos_deleted') || '[]');
+      const customProds = StorageHelper.get('dp_productos_custom', []);
+      const deletedIds = StorageHelper.get('dp_productos_deleted', []);
       
       const slugMap = {
         1: 'pamolsa',
@@ -233,11 +321,9 @@ const ApiService = {
     }
 
     // 3. Probar en LocalStorage de productos personalizados
-    try {
-      const customProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
-      const foundCustom = customProds.find(p => p.sku && p.sku.toUpperCase() === sku);
-      if (foundCustom) return this.cleanProduct(foundCustom);
-    } catch(e) {}
+    const customProds = StorageHelper.get('dp_productos_custom', []);
+    const foundCustom = customProds.find(p => p.sku && p.sku.toUpperCase() === sku);
+    if (foundCustom) return this.cleanProduct(foundCustom);
 
     // 4. Probar en base estática data.js
     if (typeof PRODUCTOS !== 'undefined' && Array.isArray(PRODUCTOS)) {
@@ -265,11 +351,9 @@ const ApiService = {
       if (found) return found;
     }
 
-    try {
-      const customProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
-      const foundCustom = customProds.find(p => p.id === id);
-      if (foundCustom) return this.cleanProduct(foundCustom);
-    } catch(e) {}
+    const customProds = StorageHelper.get('dp_productos_custom', []);
+    const foundCustom = customProds.find(p => p.id === id);
+    if (foundCustom) return this.cleanProduct(foundCustom);
 
     if (typeof PRODUCTOS !== 'undefined' && Array.isArray(PRODUCTOS)) {
       const foundBase = PRODUCTOS.find(p => p.id === id);
@@ -315,62 +399,60 @@ const ApiService = {
   },
 
   // Registrar Hoja de Reclamación INDECOPI
-  async registerReclamacion(claimData) {
+  async registerReclamacion(claimData, idempotencyKey = null) {
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
+        const idempKey = idempotencyKey || claimData?.idempotency_key || null;
+        const reqHeaders = { 'Content-Type': 'application/json' };
+        if (idempKey) {
+          reqHeaders['Idempotency-Key'] = idempKey;
+        }
         const res = await fetch(`${this.baseUrl}/reclamaciones.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders(reqHeaders),
           body: JSON.stringify(claimData)
         });
+        if (!res.ok) {
+          let errorMsg = 'Error en el servidor al registrar el reclamo.';
+          let retryAfter = null;
+          try {
+            const errJson = await res.json();
+            if (errJson && errJson.error) errorMsg = errJson.error;
+            if (errJson && errJson.retry_after) retryAfter = errJson.retry_after;
+          } catch (_) {}
+          return { success: false, error: errorMsg, status: res.status, retry_after: retryAfter };
+        }
         const json = await res.json();
         if (json.success) {
           this.backupLocalReclamacion(json);
           return json;
+        } else {
+          return { success: false, error: json.error || 'Error al procesar el reclamo.' };
         }
       } catch (e) {
-        console.warn('Error enviando reclamo a API MySQL, guardando localmente con formato legal.');
+        console.warn('Error enviando reclamo a API MySQL:', e);
+        return {
+          success: false,
+          offline_draft: true,
+          error: 'No se pudo conectar con el servidor oficial. Verifique su conexión.'
+        };
       }
     }
 
-    // Generador Local INDECOPI
-    const year = new Date().getFullYear();
-    const claims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
-    const nextSeq = String(claims.length + 1).padStart(5, '0');
-    const codigo_hoja = `REC-${year}-${nextSeq}`;
-
-    const newRecord = {
-      ...claimData,
-      id: Date.now(),
-      codigo_hoja: codigo_hoja,
-      fecha: new Date().toLocaleString('es-PE'),
-      estado: 'Pendiente'
-    };
-
-    claims.push(newRecord);
-    localStorage.setItem('dp_libro_reclamaciones', JSON.stringify(claims));
-
     return {
-      success: true,
-      message: 'Su Hoja de Reclamación ha sido registrada exitosamente conforme a la normativa INDECOPI.',
-      codigo_hoja: codigo_hoja,
-      fecha: newRecord.fecha,
-      empresa: {
-        razon_social: 'DESCARTABLES PERUANOS S.A.C.',
-        ruc: '20601234567',
-        direccion: 'Av. Alejandro Bertello 732-C, Cercado de Lima',
-        telefono: '(01) 000-0000',
-        email: 'ventas@descartablesperuanos.pe'
-      },
-      plazo_legal: '15 días hábiles conforme a la Ley N° 31435 que modifica el Código de Protección y Defensa del Consumidor.'
+      success: false,
+      offline_draft: true,
+      error: 'Servidor no disponible para registro oficial de reclamaciones.'
     };
   },
 
   backupLocalReclamacion(record) {
-    const claims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
-    claims.unshift(record);
-    localStorage.setItem('dp_libro_reclamaciones', JSON.stringify(claims));
+    try {
+      const claims = StorageHelper.get('dp_libro_reclamaciones', []);
+      claims.unshift(record);
+      StorageHelper.set('dp_libro_reclamaciones', claims.slice(0, 50));
+    } catch (e) {}
   },
 
   // Obtener todas las reclamaciones (Modo Admin)
@@ -388,7 +470,7 @@ const ApiService = {
       }
     }
 
-    const localClaims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
+    const localClaims = StorageHelper.get('dp_libro_reclamaciones', []);
     const total = localClaims.length;
     const pendientes = localClaims.filter(c => (c.estado || 'Pendiente') === 'Pendiente').length;
     const atendidos = localClaims.filter(c => c.estado === 'Atendido').length;
@@ -425,58 +507,29 @@ const ApiService = {
     }
 
     // Modo local
-    const localClaims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
+    const localClaims = StorageHelper.get('dp_libro_reclamaciones', []);
     const idx = localClaims.findIndex(c => c.id == id || c.codigo_hoja == id || c.codigo_seguimiento == id);
     if (idx !== -1) {
       localClaims[idx].estado = payload.estado || 'Atendido';
       localClaims[idx].respuesta_proveedor = payload.respuesta_proveedor || '';
       localClaims[idx].fecha_respuesta = new Date().toLocaleString('es-PE');
-      localStorage.setItem('dp_libro_reclamaciones', JSON.stringify(localClaims));
+      StorageHelper.set('dp_libro_reclamaciones', localClaims);
       return { success: true, message: 'Actualizado localmente.', data: localClaims[idx] };
     }
     return { success: true, message: 'Actualizado.' };
   },
 
-  // Registrar Cotización Formal B2B (MySQL + Respaldo Local)
-  async registerQuote(quoteData) {
-    const isAvailable = await this.checkBackendAvailability();
-    if (isAvailable) {
-      try {
-        const res = await fetch(`${this.baseUrl}/cotizaciones.php`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(quoteData)
-        });
-        const json = await res.json();
-        if (json.success) {
-          return json;
-        }
-      } catch (e) {
-        console.warn('Fallo al guardar cotización en MySQL, utilizando generación local.');
-      }
-    }
-
-    const correlativo = 'COT-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
-    return {
-      success: true,
-      codigo_cotizacion: correlativo,
-      fecha: new Date().toLocaleDateString('es-PE') + ' ' + new Date().toLocaleTimeString('es-PE')
-    };
+  // Registrar Cotización Formal B2B - Alias canónico hacia saveCotizacion (F16)
+  async registerQuote(quoteData, idempotencyKey = null) {
+    return this.saveCotizacion(quoteData, idempotencyKey);
   },
 
-  // Obtener cotizaciones
-  async getQuotes() {
-    const isAvailable = await this.checkBackendAvailability();
-    if (isAvailable) {
-      try {
-        const res = await fetch(`${this.baseUrl}/cotizaciones.php`);
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) return json.data;
-      } catch (e) {
-        console.warn('Error consultando cotizaciones en MySQL');
-      }
-    }
-    return JSON.parse(localStorage.getItem('dp_historial_cotizaciones') || '[]');
+  // Obtener cotizaciones - Alias canónico hacia getCotizaciones (F16)
+  async getQuotes(filters = {}) {
+    const res = await this.getCotizaciones(filters);
+    if (res && res.data && Array.isArray(res.data)) return res.data;
+    if (Array.isArray(res)) return res;
+    return [];
   },
 
   // Autenticación: Login
@@ -489,34 +542,39 @@ const ApiService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ identificador, password })
         });
+        if (!res.ok) {
+          let errorMsg = 'Error de autenticación en el servidor.';
+          let retryAfter = null;
+          try {
+            const errJson = await res.json();
+            if (errJson && errJson.error) errorMsg = errJson.error;
+            if (errJson && errJson.retry_after) retryAfter = errJson.retry_after;
+          } catch (_) {}
+          return { success: false, error: errorMsg, status: res.status, retry_after: retryAfter };
+        }
         const json = await res.json();
-        if (json.success) {
-          localStorage.setItem('dp_usuario_activo', JSON.stringify(json.user));
-          return json;
+        if (json.success && json.user) {
+          const cleanUser = { ...json.user };
+          delete cleanUser.password;
+          delete cleanUser.password_hash;
+          localStorage.setItem('dp_usuario_activo', JSON.stringify(cleanUser));
+          return { success: true, user: cleanUser, message: json.message };
         } else {
-          return json;
+          return { success: false, error: json.error || 'Documento/correo o contraseña incorrectos.' };
         }
       } catch (e) {
-        console.warn('Fallo en API MySQL login, probando credenciales locales.');
+        console.warn('Fallo en API login:', e);
+        return {
+          success: false,
+          error: 'Error de comunicación con el servidor. Verifique su conexión.'
+        };
       }
     }
 
-    // Fallback de usuarios locales si el backend no está disponible
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-
-    const user = users.find(u => 
-      (u.email.toLowerCase() === identificador.toLowerCase() || u.numero_documento === identificador) && 
-      u.password === password
-    );
-
-    if (user) {
-      const sessionUser = { ...user };
-      delete sessionUser.password;
-      localStorage.setItem('dp_usuario_activo', JSON.stringify(sessionUser));
-      return { success: true, message: 'Inicio de sesión exitoso.', user: sessionUser };
-    }
-
-    return { success: false, error: 'Documento/correo o contraseña incorrectos.' };
+    return {
+      success: false,
+      error: 'El servicio de inicio de sesión requiere conexión con el servidor.'
+    };
   },
 
   // Autenticación: Registro
@@ -529,47 +587,38 @@ const ApiService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userData)
         });
+        if (!res.ok) {
+          let errorMsg = 'Error al registrar usuario en el servidor.';
+          let retryAfter = null;
+          try {
+            const errJson = await res.json();
+            if (errJson && errJson.error) errorMsg = errJson.error;
+            if (errJson && errJson.retry_after) retryAfter = errJson.retry_after;
+          } catch (_) {}
+          return { success: false, error: errorMsg, status: res.status, retry_after: retryAfter };
+        }
         const json = await res.json();
-        if (json.success) {
-          localStorage.setItem('dp_usuario_activo', JSON.stringify(json.user));
-          return json;
+        if (json.success && json.user) {
+          const cleanUser = { ...json.user };
+          delete cleanUser.password;
+          delete cleanUser.password_hash;
+          localStorage.setItem('dp_usuario_activo', JSON.stringify(cleanUser));
+          return { success: true, user: cleanUser, message: json.message };
         } else {
-          return json;
+          return { success: false, error: json.error || 'Error en el registro.' };
         }
       } catch (e) {
-        console.error('Error al registrar en MySQL:', e);
+        console.error('Error al registrar en servidor:', e);
         return {
           success: false,
-          error: 'Error de comunicación con el servidor MySQL. Verifique su conexión.'
+          error: 'Error de comunicación con el servidor. Verifique su conexión.'
         };
       }
     }
 
-    // Fallback Local
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-    const exists = users.find(u => u.numero_documento === userData.numero_documento || u.email === userData.email);
-    if (exists) {
-      return { success: false, error: 'El número de documento o correo ya está registrado.' };
-    }
-
-    const newUser = {
-      id: Date.now(),
-      ...userData,
-      rol: 'cliente',
-      creado_en: new Date().toISOString()
-    };
-
-    users.push(newUser);
-    localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
-
-    const sessionUser = { ...newUser };
-    delete sessionUser.password;
-    localStorage.setItem('dp_usuario_activo', JSON.stringify(sessionUser));
-
-    return { 
-      success: true, 
-      message: 'Usuario registrado exitosamente.', 
-      user: sessionUser 
+    return {
+      success: false,
+      error: 'El servicio de registro requiere conexión con el servidor.'
     };
   },
 
@@ -580,32 +629,25 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/auth.php?action=update_profile`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(userData)
         });
         const json = await res.json();
-        if (json.success) {
-          localStorage.setItem('dp_usuario_activo', JSON.stringify(json.user));
-          return json;
+        if (json.success && json.user) {
+          const cleanUser = { ...json.user };
+          delete cleanUser.password;
+          delete cleanUser.password_hash;
+          localStorage.setItem('dp_usuario_activo', JSON.stringify(cleanUser));
+          return { success: true, user: cleanUser, message: json.message };
         }
+        return json;
       } catch (e) {
-        console.warn('Fallo actualizando perfil en MySQL, actualizando localmente.');
+        console.warn('Fallo actualizando perfil en MySQL:', e);
+        return { success: false, error: 'Error de comunicación al actualizar perfil.' };
       }
     }
 
-    const currentUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || '{}');
-    const updated = { ...currentUser, ...userData };
-    localStorage.setItem('dp_usuario_activo', JSON.stringify(updated));
-
-    // Actualizar también en lista general
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-    const idx = users.findIndex(u => u.id === updated.id || u.numero_documento === updated.numero_documento);
-    if (idx !== -1) {
-      users[idx] = { ...users[idx], ...userData };
-      localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
-    }
-
-    return { success: true, message: 'Perfil actualizado con éxito.', user: updated };
+    return { success: false, error: 'La actualización de perfil requiere conexión con el servidor.' };
   },
 
   // ==================== MÓDULO ADMINISTRATIVO ====================
@@ -633,7 +675,7 @@ const ApiService = {
         const json = await res.json();
         if (json.success && json.data) {
           // Guardar copia local de respaldo
-          const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+          const localProds = StorageHelper.get('dp_productos_custom', []);
           const newProd = this.cleanProduct(json.data);
           const existingIdx = localProds.findIndex(p => p.id === newProd.id || (newProd.sku && p.sku === newProd.sku));
           if (existingIdx !== -1) {
@@ -641,7 +683,7 @@ const ApiService = {
           } else {
             localProds.unshift(newProd);
           }
-          localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+          StorageHelper.set('dp_productos_custom', localProds);
           this.invalidateProductsCache();
           return json;
         } else {
@@ -660,10 +702,10 @@ const ApiService = {
     }
 
     // Modo Local Offline (si no hay backend disponible)
-    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const localProds = StorageHelper.get('dp_productos_custom', []);
     const newLocalProd = { id: Date.now(), ...enhancedData };
     localProds.unshift(newLocalProd);
-    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+    StorageHelper.set('dp_productos_custom', localProds);
     this.invalidateProductsCache();
 
     return { 
@@ -696,7 +738,7 @@ const ApiService = {
         });
         const json = await res.json();
         if (json.success && json.data) {
-          const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+          const localProds = StorageHelper.get('dp_productos_custom', []);
           const updatedProd = this.cleanProduct(json.data);
           const idx = localProds.findIndex(p => p.id === id || (updatedProd.sku && p.sku === updatedProd.sku));
           if (idx !== -1) {
@@ -704,7 +746,7 @@ const ApiService = {
           } else {
             localProds.unshift(updatedProd);
           }
-          localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+          StorageHelper.set('dp_productos_custom', localProds);
           this.invalidateProductsCache();
           return json;
         } else {
@@ -723,14 +765,14 @@ const ApiService = {
     }
 
     // Modo Local Offline
-    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const localProds = StorageHelper.get('dp_productos_custom', []);
     const idx = localProds.findIndex(p => p.id === id);
     if (idx !== -1) {
       localProds[idx] = { ...localProds[idx], ...enhancedData };
     } else {
       localProds.push(enhancedData);
     }
-    localStorage.setItem('dp_productos_custom', JSON.stringify(localProds));
+    StorageHelper.set('dp_productos_custom', localProds);
     this.invalidateProductsCache();
 
     return { 
@@ -752,14 +794,14 @@ const ApiService = {
         });
         const json = await res.json();
         if (json.success) {
-          const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+          const localProds = StorageHelper.get('dp_productos_custom', []);
           const filtered = localProds.filter(p => p.id !== id);
-          localStorage.setItem('dp_productos_custom', JSON.stringify(filtered));
+          StorageHelper.set('dp_productos_custom', filtered);
 
-          const deletedIds = JSON.parse(localStorage.getItem('dp_productos_deleted') || '[]');
+          const deletedIds = StorageHelper.get('dp_productos_deleted', []);
           if (!deletedIds.includes(id)) {
             deletedIds.push(id);
-            localStorage.setItem('dp_productos_deleted', JSON.stringify(deletedIds));
+            StorageHelper.set('dp_productos_deleted', deletedIds);
           }
 
           this.invalidateProductsCache();
@@ -780,15 +822,15 @@ const ApiService = {
     }
 
     // Modo Local Offline
-    const deletedIds = JSON.parse(localStorage.getItem('dp_productos_deleted') || '[]');
+    const deletedIds = StorageHelper.get('dp_productos_deleted', []);
     if (!deletedIds.includes(id)) {
       deletedIds.push(id);
-      localStorage.setItem('dp_productos_deleted', JSON.stringify(deletedIds));
+      StorageHelper.set('dp_productos_deleted', deletedIds);
     }
 
-    const localProds = JSON.parse(localStorage.getItem('dp_productos_custom') || '[]');
+    const localProds = StorageHelper.get('dp_productos_custom', []);
     const filtered = localProds.filter(p => p.id !== id);
-    localStorage.setItem('dp_productos_custom', JSON.stringify(filtered));
+    StorageHelper.set('dp_productos_custom', filtered);
 
     this.invalidateProductsCache();
     return { success: true, message: 'Producto eliminado del almacenamiento local.' };
@@ -897,7 +939,7 @@ const ApiService = {
     // Modo Local
     const cached = await this.getCategories();
     const filtered = cached.filter(c => c.id != id);
-    localStorage.setItem('dp_categorias_cache', JSON.stringify(filtered));
+    StorageHelper.set('dp_categorias_cache', filtered);
     this.invalidateProductsCache();
     return { success: true, message: 'Categoría eliminada del almacenamiento local.' };
   },
@@ -915,7 +957,7 @@ const ApiService = {
           if (typeof window !== 'undefined') {
             window.COMPANY_CONTACT = json.data;
           }
-          localStorage.setItem('dp_empresa_config', JSON.stringify(json.data));
+          StorageHelper.set('dp_empresa_config', json.data);
           return { success: true, data: json.data };
         }
       } catch (e) {
@@ -923,7 +965,7 @@ const ApiService = {
       }
     }
 
-    const localConfig = JSON.parse(localStorage.getItem('dp_empresa_config') || 'null');
+    const localConfig = StorageHelper.get('dp_empresa_config', null);
     if (localConfig) {
       if (typeof window !== 'undefined') {
         window.COMPANY_CONTACT = localConfig;
@@ -1024,161 +1066,32 @@ const ApiService = {
       try {
         const res = await fetch(`${this.baseUrl}/auth.php?action=change_password`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({
             current_password: currentPassword,
             new_password: newPassword,
             identificador: identificador
           })
         });
-        const json = await res.json();
-        if (json.success) {
-          const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-          const activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || '{}');
-          const targetDoc = identificador || activeUser.numero_documento || activeUser.email;
-          const uIdx = users.findIndex(u => (targetDoc && (u.numero_documento === targetDoc || u.email === targetDoc)) || u.rol === 'admin');
-          if (uIdx !== -1) {
-            users[uIdx].password = newPassword;
-            localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
-          }
-          return json;
-        } else {
-          return json;
+        if (!res.ok) {
+          let errorMsg = 'Error en el servidor al cambiar contraseña.';
+          let retryAfter = null;
+          try {
+            const errJson = await res.json();
+            if (errJson && errJson.error) errorMsg = errJson.error;
+            if (errJson && errJson.retry_after) retryAfter = errJson.retry_after;
+          } catch (_) {}
+          return { success: false, error: errorMsg, status: res.status, retry_after: retryAfter };
         }
+        const json = await res.json();
+        return json;
       } catch (e) {
         console.warn('Error en comunicación con auth.php para cambio de contraseña:', e);
+        return { success: false, error: 'Error de comunicación con el servidor.' };
       }
     }
 
-    // Modo local / Fallback Offline
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-    const activeUser = JSON.parse(localStorage.getItem('dp_usuario_activo') || '{}');
-    const targetDoc = identificador || activeUser.numero_documento || activeUser.email;
-    const uIdx = users.findIndex(u => (targetDoc && (u.numero_documento === targetDoc || u.email === targetDoc)) || u.rol === 'admin');
-
-    if (uIdx !== -1) {
-      const user = users[uIdx];
-      const valid = user.password === currentPassword;
-      if (!valid) {
-        return { success: false, error: 'La contraseña actual ingresada es incorrecta.' };
-      }
-      user.password = newPassword;
-      localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
-      return { success: true, message: 'Contraseña actualizada en almacenamiento local.' };
-    }
-
-    return { success: true, message: 'Contraseña actualizada.' };
-  },
-
-
-
-  // Subir imagen de producto
-  async uploadProductImage(file) {
-    const isAvailable = await this.checkBackendAvailability();
-    if (isAvailable) {
-      try {
-        const formData = new FormData();
-        formData.append('imagen', file);
-        const authHeaders = this.getAuthHeaders();
-        delete authHeaders['Content-Type'];
-        const res = await fetch(`${this.baseUrl}/upload.php`, {
-          method: 'POST',
-          headers: authHeaders,
-          body: formData
-        });
-        return await res.json();
-      } catch (e) {
-        console.error('Error al subir imagen:', e);
-        return { success: false, error: 'No se pudo subir la imagen al servidor.' };
-      }
-    }
-
-    // Fallback: Convertir a DataURL Base64 para persistencia local
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        resolve({ success: true, url: e.target.result });
-      };
-      reader.onerror = () => {
-        resolve({ success: false, error: 'Error al procesar la imagen localmente.' });
-      };
-      reader.readAsDataURL(file);
-    });
-  },
-
-  // Listar usuarios registrados
-  async getUsers(params = {}) {
-    const isAvailable = await this.checkBackendAvailability();
-    if (isAvailable) {
-      try {
-        const query = new URLSearchParams(params).toString();
-        const res = await fetch(`${this.baseUrl}/usuarios.php${query ? '?' + query : ''}`, {
-          headers: this.getAuthHeaders()
-        });
-        const json = await res.json();
-        if (json.success) return json;
-      } catch (e) {
-        console.warn('Error al obtener usuarios de MySQL, listando respaldo local.');
-      }
-    }
-
-    // Fallback local
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-    const stats = {
-      total: users.length,
-      clientes: users.filter(u => u.rol === 'cliente').length,
-      admins: users.filter(u => u.rol === 'admin').length,
-      empresas: users.filter(u => u.tipo_documento === 'RUC').length,
-      naturales: users.filter(u => u.tipo_documento === 'DNI').length
-    };
-    return { success: true, data: users, stats };
-  },
-
-  // Actualizar rol de usuario
-  async updateUserRole(id, role) {
-    const isAvailable = await this.checkBackendAvailability();
-    if (isAvailable) {
-      try {
-        const res = await fetch(`${this.baseUrl}/usuarios.php`, {
-          method: 'PUT',
-          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ id, rol: role })
-        });
-        return await res.json();
-      } catch (e) {
-        console.error('Error al actualizar rol:', e);
-      }
-    }
-
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-    const idx = users.findIndex(u => u.id === id);
-    if (idx !== -1) {
-      users[idx].rol = role;
-      localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
-    }
-    return { success: true, message: `Rol actualizado a ${role} localmente.` };
-  },
-
-  // Eliminar usuario
-  async deleteUser(id) {
-    const isAvailable = await this.checkBackendAvailability();
-    if (isAvailable) {
-      try {
-        const res = await fetch(`${this.baseUrl}/usuarios.php`, {
-          method: 'DELETE',
-          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ id })
-        });
-        return await res.json();
-      } catch (e) {
-        console.error('Error al eliminar usuario:', e);
-      }
-    }
-
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
-    const filtered = users.filter(u => u.id !== id);
-    localStorage.setItem('dp_usuarios_registrados', JSON.stringify(filtered));
-    return { success: true, message: 'Usuario eliminado localmente.' };
+    return { success: false, error: 'El cambio de contraseña requiere conexión con el servidor.' };
   },
 
   getCatalogCategoryName(catId, defaultName = null) {
@@ -1201,68 +1114,60 @@ const ApiService = {
   // ====================================================================
   // MÓDULO DE COTIZACIONES B2B
   // ====================================================================
-  async saveCotizacion(quoteData) {
+  async saveCotizacion(quoteData, idempotencyKey = null) {
     const isAvailable = await this.checkBackendAvailability();
     if (isAvailable) {
       try {
+        const idempKey = idempotencyKey || quoteData?.idempotency_key || null;
+        const reqHeaders = { 'Content-Type': 'application/json' };
+        if (idempKey) {
+          reqHeaders['Idempotency-Key'] = idempKey;
+        }
         const res = await fetch(`${this.baseUrl}/cotizaciones.php`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: this.getAuthHeaders(reqHeaders),
           body: JSON.stringify(quoteData)
         });
+        if (!res.ok) {
+          let errorMsg = 'Error en el servidor al guardar la cotización.';
+          let retryAfter = null;
+          try {
+            const errJson = await res.json();
+            if (errJson && errJson.error) errorMsg = errJson.error;
+            if (errJson && errJson.retry_after) retryAfter = errJson.retry_after;
+          } catch (_) {}
+          return { success: false, error: errorMsg, status: res.status, retry_after: retryAfter };
+        }
         const json = await res.json();
         if (json.success) {
           this.saveLocalCotizacionBackup({ ...quoteData, codigo_cotizacion: json.codigo_cotizacion, id: json.id, creado_en: json.fecha });
           return json;
         } else {
-          console.error('API Error al guardar cotización:', json.error);
-          return json;
+          return { success: false, error: json.error || 'Error al procesar la cotización.' };
         }
       } catch (e) {
-        console.warn('Fallo al guardar cotización en backend, usando modo local:', e);
+        console.warn('Fallo al guardar cotización en backend:', e);
+        return {
+          success: false,
+          offline_draft: true,
+          error: 'No se pudo conectar con el servidor para registrar la cotización.'
+        };
       }
     }
 
-    // Modo local / Fallback
-    const localQuotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
-    const anio = new Date().getFullYear();
-    const nextNum = localQuotes.length + 1;
-    const codigo = `COT-${anio}-${String(nextNum).padStart(5, '0')}`;
-    const newQuote = {
-      id: Date.now(),
-      codigo_cotizacion: codigo,
-      usuario_id: quoteData.usuario_id || null,
-      tipo_comprobante: quoteData.tipo_comprobante || 'Factura',
-      documento: quoteData.documento || '',
-      nombre_cliente: quoteData.nombre_cliente || '',
-      telefono: quoteData.telefono || '',
-      destino: quoteData.destino || 'Lima Metropolitana',
-      detalle_items: quoteData.items || [],
-      total_items: (quoteData.items || []).reduce((acc, it) => acc + (parseInt(it.cantidad, 10) || 1), 0),
-      estado: 'Pendiente',
-      notas: quoteData.notas || '',
-      creado_en: new Date().toISOString()
-    };
-    localQuotes.unshift(newQuote);
-    localStorage.setItem('dp_cotizaciones_recibidas', JSON.stringify(localQuotes));
-    this.saveLocalCotizacionBackup(newQuote);
-
     return {
-      success: true,
-      message: 'Cotización registrada formalmente.',
-      codigo_cotizacion: codigo,
-      id: newQuote.id,
-      estado: 'Pendiente',
-      fecha: new Date().toLocaleDateString('es-PE')
+      success: false,
+      offline_draft: true,
+      error: 'Servidor no disponible para registrar cotizaciones oficiales.'
     };
   },
 
   saveLocalCotizacionBackup(quote) {
     try {
-      const myQuotes = JSON.parse(localStorage.getItem('dp_mis_cotizaciones') || '[]');
+      const myQuotes = StorageHelper.get('dp_mis_cotizaciones', []);
       myQuotes.unshift(quote);
-      localStorage.setItem('dp_mis_cotizaciones', JSON.stringify(myQuotes.slice(0, 50)));
-      localStorage.setItem('dp_historial_cotizaciones', JSON.stringify(myQuotes.slice(0, 50)));
+      StorageHelper.set('dp_mis_cotizaciones', myQuotes.slice(0, 50));
+      StorageHelper.set('dp_historial_cotizaciones', myQuotes.slice(0, 50));
     } catch (e) {}
   },
 
@@ -1292,7 +1197,7 @@ const ApiService = {
     }
 
     // Fallback local
-    let quotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
+    let quotes = StorageHelper.get('dp_cotizaciones_recibidas', []);
     if (filters.estado && filters.estado !== 'all' && filters.estado !== 'todos') {
       quotes = quotes.filter(q => q.estado === filters.estado);
     }
@@ -1331,12 +1236,12 @@ const ApiService = {
     }
 
     // Fallback local
-    const quotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
+    const quotes = StorageHelper.get('dp_cotizaciones_recibidas', []);
     const target = quotes.find(q => q.id == id);
     if (target) {
       target.estado = estado;
       if (notas !== undefined) target.notas = notas;
-      localStorage.setItem('dp_cotizaciones_recibidas', JSON.stringify(quotes));
+      StorageHelper.set('dp_cotizaciones_recibidas', quotes);
       return { success: true, message: 'Estado actualizado localmente.', estado, notas };
     }
     return { success: false, error: 'No se encontró la cotización.' };
@@ -1373,9 +1278,9 @@ const ApiService = {
     try {
       const idSet = new Set(ids.map(String));
       ['dp_cotizaciones_recibidas', 'dp_mis_cotizaciones', 'dp_historial_cotizaciones'].forEach(key => {
-        const list = JSON.parse(localStorage.getItem(key) || '[]');
+        const list = StorageHelper.get(key, []);
         const filtered = list.filter(q => !idSet.has(String(q.id)) && !idSet.has(String(q.codigo_cotizacion || q.codigo)));
-        localStorage.setItem(key, JSON.stringify(filtered));
+        StorageHelper.set(key, filtered);
       });
     } catch (e) {}
   },
@@ -1407,8 +1312,8 @@ const ApiService = {
     }
 
     // Modo Local / Offline
-    const localQuotes = JSON.parse(localStorage.getItem('dp_cotizaciones_recibidas') || '[]');
-    const localClaims = JSON.parse(localStorage.getItem('dp_libro_reclamaciones') || '[]');
+    const localQuotes = StorageHelper.get('dp_cotizaciones_recibidas', []);
+    const localClaims = StorageHelper.get('dp_libro_reclamaciones', []);
 
     const maxCotizId = localQuotes.reduce((max, q) => Math.max(max, parseInt(q.id, 10) || 0), 0);
     const maxRecId = localClaims.reduce((max, r) => Math.max(max, parseInt(r.id, 10) || 0), 0);
@@ -1483,7 +1388,7 @@ const ApiService = {
     }
 
     // Fallback local
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
+    const users = StorageHelper.get('dp_usuarios_registrados', []);
     return {
       success: true,
       count: users.length,
@@ -1507,11 +1412,11 @@ const ApiService = {
       }
     }
 
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
+    const users = StorageHelper.get('dp_usuarios_registrados', []);
     const target = users.find(u => u.id == id);
     if (target) {
       target.rol = rol;
-      localStorage.setItem('dp_usuarios_registrados', JSON.stringify(users));
+      StorageHelper.set('dp_usuarios_registrados', users);
       return { success: true, message: 'Rol actualizado localmente.' };
     }
     return { success: false, error: 'Usuario no encontrado.' };
@@ -1533,9 +1438,9 @@ const ApiService = {
       }
     }
 
-    const users = JSON.parse(localStorage.getItem('dp_usuarios_registrados') || '[]');
+    const users = StorageHelper.get('dp_usuarios_registrados', []);
     const filtered = users.filter(u => u.id != id);
-    localStorage.setItem('dp_usuarios_registrados', JSON.stringify(filtered));
+    StorageHelper.set('dp_usuarios_registrados', filtered);
     return { success: true, message: 'Usuario eliminado localmente.' };
   },
 
@@ -1559,62 +1464,28 @@ const ApiService = {
           body: formData
         });
 
+        if (!res.ok) {
+          let errorMsg = 'Error al subir imagen al servidor.';
+          try {
+            const errJson = await res.json();
+            if (errJson && errJson.error) errorMsg = errJson.error;
+          } catch (_) {}
+          return { success: false, error: errorMsg, status: res.status };
+        }
+
         const json = await res.json();
         if (json && json.success) {
           return json;
+        } else {
+          return { success: false, error: json.error || 'Error al procesar la imagen.' };
         }
       } catch (e) {
-        console.warn('Fallo al subir imagen vía multipart al servidor, aplicando optimización local:', e);
+        console.warn('Fallo de comunicación con upload.php:', e);
+        return { success: false, error: 'No se pudo conectar con el servidor para subir la imagen.' };
       }
     }
 
-    // Fallback con compresión optimizada vía Canvas a Data URL
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const maxDim = 800;
-
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-          resolve({
-            success: true,
-            url: compressedDataUrl,
-            message: 'Fotografía procesada y cargada con éxito.'
-          });
-        };
-        img.onerror = () => {
-          resolve({
-            success: true,
-            url: event.target.result,
-            message: 'Fotografía cargada con éxito.'
-          });
-        };
-        img.src = event.target.result;
-      };
-      reader.onerror = () => {
-        resolve({ success: false, error: 'No se pudo leer el archivo de imagen seleccionado.' });
-      };
-      reader.readAsDataURL(file);
-    });
+    return { success: false, error: 'El servicio de subida de imágenes requiere conexión con el servidor.' };
   },
 
   // ================= EXPORTACIÓN / BACKUP COMPLETO EN 1 CLIC =================
@@ -1625,14 +1496,7 @@ const ApiService = {
     // Si backend MySQL está disponible, solicitar al API PHP
     if (isAvailable) {
       try {
-        const queryParams = new URLSearchParams();
-        if (adminUser) {
-          if (adminUser.id) queryParams.append('admin_id', adminUser.id);
-          if (adminUser.numero_documento) queryParams.append('admin_doc', adminUser.numero_documento);
-          if (adminUser.email) queryParams.append('admin_email', adminUser.email);
-        }
-
-        const res = await fetch(`${this.baseUrl}/backup.php?${queryParams.toString()}`, {
+        const res = await fetch(`${this.baseUrl}/backup.php`, {
           headers: this.getAuthHeaders()
         });
         if (!res.ok) {
@@ -1731,6 +1595,53 @@ const ApiService = {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     }, 200);
+  },
+
+  // Limpieza de seguridad de credenciales y contraseñas residuales en localStorage
+  sanitizeStorage() {
+    try {
+      if (typeof localStorage === 'undefined') return;
+
+      // 1. Limpiar contraseñas residuales en dp_usuarios_registrados si existieran
+      const usersRaw = localStorage.getItem('dp_usuarios_registrados');
+      if (usersRaw) {
+        try {
+          const users = JSON.parse(usersRaw);
+          if (Array.isArray(users)) {
+            let modified = false;
+            const cleanUsers = users.map(u => {
+              if (u && (u.password !== undefined || u.password_hash !== undefined)) {
+                modified = true;
+                const clean = { ...u };
+                delete clean.password;
+                delete clean.password_hash;
+                return clean;
+              }
+              return u;
+            });
+            if (modified) {
+              localStorage.setItem('dp_usuarios_registrados', JSON.stringify(cleanUsers));
+            }
+          }
+        } catch (_) {}
+      }
+
+      // 2. Limpiar contraseña en dp_usuario_activo si existiera
+      const activeRaw = localStorage.getItem('dp_usuario_activo');
+      if (activeRaw) {
+        try {
+          const activeUser = JSON.parse(activeRaw);
+          if (activeUser && (activeUser.password !== undefined || activeUser.password_hash !== undefined)) {
+            delete activeUser.password;
+            delete activeUser.password_hash;
+            localStorage.setItem('dp_usuario_activo', JSON.stringify(activeUser));
+          }
+        } catch (_) {
+          // Si dp_usuario_activo está corrupto, purgarlo inmediatamente (sesión inválida)
+          try { localStorage.removeItem('dp_usuario_activo'); } catch (err) {}
+        }
+      }
+    } catch (_) {}
   }
 };
 
@@ -1799,12 +1710,14 @@ const Toast = {
       `;
     }
 
+    const safeMsg = (typeof escapeHtml === 'function' ? escapeHtml(message) : String(message || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+
     toast.className += ` ${borderAccent}`;
     toast.innerHTML = `
       ${iconSvg}
       <div class="flex-1 pt-0.5 leading-snug">
         <p class="font-heading font-bold text-xs ${isDark ? 'text-white' : 'text-slate-900'}">${type === 'success' ? 'Éxito' : type === 'error' ? 'Atención / Error' : type === 'warning' ? 'Aviso' : 'Información'}</p>
-        <p class="${isDark ? 'text-slate-300' : 'text-slate-600'} text-[11px] mt-0.5 leading-relaxed">${message}</p>
+        <p class="${isDark ? 'text-slate-300' : 'text-slate-600'} text-[11px] mt-0.5 leading-relaxed">${safeMsg}</p>
       </div>
       <button type="button" onclick="this.parentElement.remove()" class="${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'} p-1 rounded-lg transition-colors flex-shrink-0 cursor-pointer" title="Cerrar">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1834,7 +1747,46 @@ const Toast = {
   info(msg, duration) { this.show(msg, 'info', duration); }
 };
 
+// ====================================================================
+// UTILIDADES GLOBALES DE ESCAPADO Y SANEAMIENTO CONTRA XSS (F06)
+// ====================================================================
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[m]));
+}
+
+function sanitizeUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (/^(?:javascript|data|vbscript):/i.test(trimmed)) {
+    return '#';
+  }
+  return escapeHtml(trimmed);
+}
+
+window.escapeHtml = escapeHtml;
+window.sanitizeUrl = sanitizeUrl;
+ApiService.escapeHtml = escapeHtml;
+ApiService.sanitizeUrl = sanitizeUrl;
+
 window.ApiService = ApiService;
 window.Toast = Toast;
 window.showToast = (msg, type, duration) => Toast.show(msg, type, duration);
+
+// Exportación compatible con entornos Node.js / pruebas unitarias
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    ApiService,
+    StorageHelper,
+    Toast,
+    escapeHtml,
+    sanitizeUrl
+  };
+}
 

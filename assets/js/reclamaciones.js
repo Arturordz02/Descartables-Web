@@ -11,6 +11,7 @@ const Reclamaciones = {
     telefono: "(01) 000-0000",
     email: "reclamaciones@descartablesperuanos.pe"
   },
+  currentClaimIdempotencyKey: null,
 
   init() {
     this.populateGeographicSelects();
@@ -144,7 +145,13 @@ const Reclamaciones = {
       pedido_consumidor: pedidoCon
     };
 
-    const res = await ApiService.registerReclamacion(payload);
+    if (!this.currentClaimIdempotencyKey) {
+      this.currentClaimIdempotencyKey = (typeof ApiService !== 'undefined' && typeof ApiService.generateIdempotencyKey === 'function')
+        ? ApiService.generateIdempotencyKey('rec')
+        : ('rec_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10));
+    }
+
+    const res = await ApiService.registerReclamacion(payload, this.currentClaimIdempotencyKey);
 
     submitBtn.disabled = false;
     submitBtn.innerHTML = `
@@ -153,6 +160,7 @@ const Reclamaciones = {
     `;
 
     if (res.success) {
+      this.currentClaimIdempotencyKey = null; // Reiniciar clave solo tras confirmación oficial
       form.reset();
       this.openHojaOficialModal({
         ...payload,
@@ -210,6 +218,30 @@ const Reclamaciones = {
     const container = document.getElementById('hojaReclamacionPrintArea');
     if (!modal || !container) return;
 
+    const esc = (s) => (typeof escapeHtml === 'function' ? escapeHtml(s) : String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+
+    const safeRazonSocial = esc(this.empresa.razon_social);
+    const safeRuc = esc(this.empresa.ruc);
+    const safeDireccionEmpresa = esc(this.empresa.direccion);
+    const safeCodigoHoja = esc(data.codigo_hoja);
+    const safeFecha = esc(data.fecha);
+    const safeNombreCompleto = esc(data.nombre_completo);
+    const safeTipoDoc = esc(data.tipo_documento);
+    const safeNumDoc = esc(data.numero_documento);
+    const safeTelefono = esc(data.telefono);
+    const safeEmail = esc(data.email);
+    const safeDireccion = esc(data.direccion);
+    const safeDistrito = esc(data.distrito);
+    const safeProvincia = esc(data.provincia);
+    const safeDepartamento = esc(data.departamento);
+    const safeNombreTutor = esc(data.nombre_tutor || '');
+    const safeTipoBien = esc(data.tipo_bien);
+    const safeMonto = parseFloat(data.monto_reclamado || 0).toFixed(2);
+    const safeDescBien = esc(data.descripcion_bien);
+    const safeTipoReclamacion = esc(data.tipo_reclamacion || 'Reclamo');
+    const safeDetalleRec = esc(data.detalle_reclamacion);
+    const safePedidoCon = esc(data.pedido_consumidor);
+
     container.innerHTML = `
       <div class="hoja-print-border border-2 border-stone-800 p-4 sm:p-6 rounded-2xl bg-white space-y-4 sm:space-y-5">
         
@@ -220,14 +252,14 @@ const Reclamaciones = {
               Reglamento del Libro de Reclamaciones (D.S. 011-2011-PCM)
             </span>
             <h2 class="text-base sm:text-lg font-black text-[#1F1815] uppercase tracking-wide">LIBRO DE RECLAMACIONES VIRTUAL</h2>
-            <p class="font-bold text-xs sm:text-sm text-[#C85A32]">${this.empresa.razon_social}</p>
-            <p class="text-[10px] sm:text-[11px] text-stone-600">RUC: ${this.empresa.ruc} | Dirección: ${this.empresa.direccion}</p>
+            <p class="font-bold text-xs sm:text-sm text-[#C85A32]">${safeRazonSocial}</p>
+            <p class="text-[10px] sm:text-[11px] text-stone-600">RUC: ${safeRuc} | Dirección: ${safeDireccionEmpresa}</p>
           </div>
 
           <div class="bg-stone-50 p-2.5 sm:p-3 rounded-xl border border-stone-300 w-full sm:w-auto text-left sm:text-right sm:min-w-[190px]">
             <p class="text-[10px] text-stone-500 uppercase font-semibold">Hoja de Reclamación N°</p>
-            <p class="font-mono text-base font-black text-rose-700 tracking-wider">${data.codigo_hoja}</p>
-            <p class="text-[10px] sm:text-[11px] text-stone-600 mt-0.5"><strong>Fecha:</strong> ${data.fecha}</p>
+            <p class="font-mono text-base font-black text-rose-700 tracking-wider">${safeCodigoHoja}</p>
+            <p class="text-[10px] sm:text-[11px] text-stone-600 mt-0.5"><strong>Fecha:</strong> ${safeFecha}</p>
           </div>
         </div>
 
@@ -237,12 +269,12 @@ const Reclamaciones = {
             1. Identificación del Consumidor Reclamante
           </h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-            <div><strong>Nombres / Razón Social:</strong> ${data.nombre_completo}</div>
-            <div><strong>Documento (${data.tipo_documento}):</strong> ${data.numero_documento}</div>
-            <div><strong>Teléfono:</strong> ${data.telefono}</div>
-            <div><strong>Correo Electrónico:</strong> ${data.email}</div>
-            <div class="sm:col-span-2"><strong>Domicilio:</strong> ${data.direccion}, ${data.distrito}, ${data.provincia}, ${data.departamento}</div>
-            ${data.es_menor ? `<div class="sm:col-span-2 text-amber-800"><strong>Padre / Madre o Tutor:</strong> ${data.nombre_tutor}</div>` : ''}
+            <div><strong>Nombres / Razón Social:</strong> ${safeNombreCompleto}</div>
+            <div><strong>Documento (${safeTipoDoc}):</strong> ${safeNumDoc}</div>
+            <div><strong>Teléfono:</strong> ${safeTelefono}</div>
+            <div><strong>Correo Electrónico:</strong> ${safeEmail}</div>
+            <div class="sm:col-span-2"><strong>Domicilio:</strong> ${safeDireccion}, ${safeDistrito}, ${safeProvincia}, ${safeDepartamento}</div>
+            ${data.es_menor ? `<div class="sm:col-span-2 text-amber-800"><strong>Padre / Madre o Tutor:</strong> ${safeNombreTutor}</div>` : ''}
           </div>
         </div>
 
@@ -252,9 +284,9 @@ const Reclamaciones = {
             2. Identificación del Bien Contratado
           </h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-            <div><strong>Tipo de Bien:</strong> ${data.tipo_bien}</div>
-            <div><strong>Monto Reclamado:</strong> S/ ${parseFloat(data.monto_reclamado).toFixed(2)} Soles</div>
-            <div class="sm:col-span-2"><strong>Descripción del Bien:</strong> ${data.descripcion_bien}</div>
+            <div><strong>Tipo de Bien:</strong> ${safeTipoBien}</div>
+            <div><strong>Monto Reclamado:</strong> S/ ${safeMonto} Soles</div>
+            <div class="sm:col-span-2"><strong>Descripción del Bien:</strong> ${safeDescBien}</div>
           </div>
         </div>
 
@@ -265,18 +297,18 @@ const Reclamaciones = {
               3. Detalle de la Reclamación
             </h4>
             <span class="px-2 py-0.5 rounded font-bold text-[10px] ${data.tipo_reclamacion === 'Reclamo' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}">
-              Tipo: ${data.tipo_reclamacion.toUpperCase()}
+              Tipo: ${safeTipoReclamacion.toUpperCase()}
             </span>
           </div>
           
           <div class="space-y-3 text-[11px]">
             <div>
               <p class="font-semibold text-stone-700">Detalle:</p>
-              <p class="p-2 bg-white rounded border border-stone-200 mt-1 whitespace-pre-wrap">${data.detalle_reclamacion}</p>
+              <p class="p-2 bg-white rounded border border-stone-200 mt-1 whitespace-pre-wrap">${safeDetalleRec}</p>
             </div>
             <div>
               <p class="font-semibold text-stone-700">Pedido Concreto del Consumidor:</p>
-              <p class="p-2 bg-white rounded border border-stone-200 mt-1 whitespace-pre-wrap">${data.pedido_consumidor}</p>
+              <p class="p-2 bg-white rounded border border-stone-200 mt-1 whitespace-pre-wrap">${safePedidoCon}</p>
             </div>
           </div>
         </div>

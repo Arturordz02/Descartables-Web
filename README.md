@@ -19,7 +19,7 @@ Inspirado en tendencias modernas de UI/UX (**Shadcn Warm Theme**, **Tailwind OKL
 
 ## 🚀 Arquitectura y Stack Tecnológico
 
-- **Frontend:** HTML5 Semántico + Tailwind CSS CDN + JavaScript Vainilla (ES6+)
+- **Frontend:** HTML5 Semántico + Tailwind CSS Compilado Local (v3.4) + JavaScript Vainilla (ES6+)
 - **Backend API:** PHP 8 (PDO seguro, Headers CORS, respuestas en JSON estructurado)
 - **Base de Datos:** MySQL (`descartables_db`, UTF-8 Unicode)
 - **Capa Híbrida de Persistencia:** Si el backend MySQL no está disponible, la capa `assets/js/api.js` conmuta de forma transparente e instantánea a `localStorage`, asegurando que toda la web funcione sin requerir servidores locales levantados.
@@ -85,6 +85,27 @@ Simplemente abre `index.html` en tu navegador o mediante la extensión Live Serv
    php -S 127.0.0.1:8000
    ```
 5. Abre `http://127.0.0.1:8000` en tu navegador.
+
+### Opción C: Compilación de Assets Frontend y Empaquetado de Producción
+
+Para compilar Tailwind CSS localmente, ejecutar pruebas automatizadas y generar el paquete distribuible de producción sin dependencias de desarrollo (`dist/package/`):
+
+```powershell
+npm install
+npm run build:css
+npm test
+node scripts/build_package.js
+php database/migrate.php --status
+```
+
+---
+
+## 📚 Documentación Técnica y Despliegue
+
+La carpeta [`docs/`](docs/) contiene guías especializadas para la operación y pase a producción:
+- **[Guía Oficial de Despliegue en Producción](docs/deployment_guide.md):** Requisitos del sistema, variables de entorno, ubicación de `secrets.php` fuera de `public_html`, permisos en servidor Linux y ejecución de migraciones.
+- **[Checklist de Preproducción](docs/preproduction_checklist.md):** Matriz de control exhaustiva con estados `[LISTO]`, `[PENDIENTE EN HOSTING]` y puntos `[BLOQUEANTE]`.
+- **[Guía de Copias de Seguridad y Disaster Recovery](docs/backup_restore_guide.md):** Estrategia 3-2-1, exclusión de `rate_limits`, comandos `scripts/backup.php` y verificación con `scripts/restore.php --verify-only`.
 
 ---
 
